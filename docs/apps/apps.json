@@ -4,21 +4,70 @@
       "key": "dual-chat",
       "title": "Dual Chat",
       "desc": "Conversas e IA simbólica.",
-      "url": "https://example.com/dual-chat",
-      "icon": "icons/icon-192.png"
+      "url": "https://Kodux78k.github.io.com/dual-chat/index.html",
+      "icon": "icons/icon192.png"
     },
     {
       "key": "dual-player",
       "title": "Dual Player",
       "desc": "Toca faixas e TTS.",
-      "url": "https://example.com/dual-player",
+      "url": "./apps/index_luxara.html",
       "icon": "icons/icon-192.png"
     },
     {
       "key": "dual-labs",
       "title": "Dual Labs",
       "desc": "Experimentos e patches.",
-      "url": "https://example.com/dual-labs",
+      "url": "./apps/dual-labs",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "kblx-html",
+      "title": "KBLX HTML v4.1",
+      "desc": "Versão fullscreen separador.",
+      "url": "./apps/KBLX-HTML-v4.1-FULLSCREEN-SEPARADOR.html",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "kobllux-metalux",
+      "title": "KOBLLUX MetaLux",
+      "desc": "Expandido final ultrafoda.",
+      "url": "./apps/KOBLLUX_MetaLux_Expandido_Final_ultrafoda.html",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "oidual",
+      "title": "Oidual",
+      "desc": "Notas e fluxo .",
+      "url": "./apps/index.nebula.unified.html",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "smbs-book-2",
+      "title": "SmbS Book 2",
+      "desc": "Estrutura simbólica book.",
+      "url": "./apps/SmbS-book-2.html",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "apps-chat",
+      "title": "Apps JSON",
+      "desc": "Chat.",
+      "url": "./apps/Dual_App_updated_singlefile.html",
+      "icon": "icons/icon192.png"
+    },
+    {
+      "key": "sAPPDUAL-2",
+      "title": "Sigma Trinity Editor 2",
+      "desc": "Editor simbólico Trinity.",
+      "url": "./apps/Dual_App_io100_0_HARD_ON_SUMBUS_ALWAYS_ON_FIX.html",
+      "icon": "icons/icon192.png"
+    },
+    {
+      "key": "xml-app-conv-8",
+      "title": "XML App Conv 8 Online",
+      "desc": "Conversor app XML online.",
+      "url": "./apps/xml-app-conv-8-online.html",
       "icon": "icons/icon-192.png"
     }
   ]
