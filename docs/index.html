@@ -527,8 +527,9 @@ function copyInjection(app){
   );
 }
 
-/** ===== “Baixar Loader” (HTML genérico com injection) ===== **/
+// Substitui a versão antiga por ESTA — sem "</script>" literal
 function buildLoaderHTML(){
+  const END_SCRIPT = '</' + 'script>'; // evita fechar a tag do index
   return `<!doctype html>
 <html lang="pt-br"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
@@ -545,24 +546,30 @@ function buildLoaderHTML(){
     <input id="u" placeholder="cole uma URL ou use ?url=" style="flex:1;min-width:140px"/>
     <button id="go">Abrir</button>
   </div>
-  <iframe id="f"></iframe>
-  <div id="foot"><button onclick="history.back()">⬅ Voltar</button><button onclick="location.href='index.html'">🏠 Hub</button></div>
+  <iframe id="f" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+  <div id="foot">
+    <button onclick="history.back()">⬅ Voltar</button>
+    <button onclick="location.href='index.html'">🏠 Hub</button>
+  </div>
 <script>
-const p = new URLSearchParams(location.search); const f=document.getElementById('f');
+const p=new URLSearchParams(location.search);
+const f=document.getElementById('f');
 function openUrl(v){ if(!v) return; f.src=v; }
 document.getElementById('go').onclick=()=>openUrl(document.getElementById('u').value);
 const start=p.get('url'); if(start) openUrl(start);
-</script>
+${END_SCRIPT}
 </body></html>`;
 }
 
 function downloadLoader(){
   const html = buildLoaderHTML();
-  const blob = new Blob([html], {type:'text/html'});
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'Infodose_Loader.html';
-  document.body.appendChild(a); a.click(); a.remove();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 /** ===== eventos UI ===== **/
