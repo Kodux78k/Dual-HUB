@@ -40,21 +40,18 @@
     @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
     h1{font-size:1.16rem;margin:.12rem 0 0;font-weight:800}
     .kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
-
     /* Toolbar */
     .toolbar{max-width:var(--maxw);margin:10px auto 0;padding:0 14px 8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{border:1px solid var(--stroke-soft);border-radius:999px;padding:.5rem .8rem;background:rgba(255,255,255,.04);font-weight:700}
     .input{flex:1;min-width:180px;border:1px solid var(--stroke-soft);border-radius:999px;padding:.6rem .9rem;background:rgba(255,255,255,.06);color:#fff;outline:none}
     .select{border:1px solid var(--stroke-soft);border-radius:999px;padding:.56rem .9rem;background:rgba(255,255,255,.06);color:#fff}
     .toggle{display:flex;gap:8px;align-items:center}
-
     /* Section */
     .section{max-width:var(--maxw);margin:14px auto 6px;padding:0 14px}
     .section h2{
       font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;
       color:#e6e6e6;margin:14px 0 8px;opacity:.9
     }
-
     /* Grid/cards */
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     @media(max-width:560px){.grid{grid-template-columns:1fr}}
@@ -65,14 +62,11 @@
     }
     .icon{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft)}
     .icon img{width:100%;height:100%;object-fit:cover;display:block}
-    .title{font-weight:800;margin-bottom:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .badges{display:flex;gap:6px;flex-wrap:wrap}
-    .badge{font-size:.72rem;padding:.16rem .5rem;border-radius:999px;border:1px solid var(--stroke-soft);background:rgba(255,255,255,.06);color:#eaf6ff}
+    .title{font-weight:800;margin-bottom:2px}
     .muted{color:var(--muted);font-size:.86rem}
-    .row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+    .row{margin-top:8px}
     .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:999px;font-weight:800}
     .btn.primary{background:linear-gradient(90deg,#9f7cff,#29d3ff);border-color:transparent}
-
     /* Bottom Dock */
     .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:block}
     .dock-inner{
@@ -85,17 +79,6 @@
     .dbtn{appearance:none;border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
     footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0 calc(18px + var(--dock-space));opacity:.9}
     .spacer{height:calc(var(--dock-space) + env(safe-area-inset-bottom) + 8px)}
-
-    /* Viewer (fullscreen) */
-    .viewer{position:fixed;inset:0;z-index:50;background:#000}
-    .viewer iframe{position:absolute;inset:0 0 60px 0;border:0;width:100%;height:calc(100% - 60px)}
-    .viewer-footer{
-      position:fixed;left:0;right:0;bottom:0;height:60px;
-      display:flex;gap:8px;align-items:center;justify-content:center;
-      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
-      backdrop-filter:blur(18px) saturate(140%); background:rgba(0,0,0,.65);
-      border-top:1px solid var(--stroke)
-    }
   </style>
 </head>
 <body>
@@ -106,21 +89,21 @@
         <div class="kicker">Infodose • Hub Principal</div>
         <h1>Infodose Hub Ultra</h1>
       </div>
-      <nav aria-label="Ações">
-        <button class="btn primary" id="btnDownloadLoader" type="button">⤓ Baixar Loader</button>
+      <nav aria-label="Instalar">
+        <button class="btn primary" id="btnInstall" type="button">⬇️ Instalar</button>
       </nav>
     </div>
   </header>
 
   <div class="toolbar">
-    <input id="search" class="input" type="search" placeholder="Buscar e filtrar por nome, url, tag…" autocomplete="off"/>
+    <input id="search" class="input" type="search" placeholder="Buscar apps por nome/URL…" autocomplete="off"/>
     <select id="sort" class="select" title="Ordenação">
       <option value="group">Ordenar por grupos</option>
       <option value="az">A → Z</option>
       <option value="za">Z → A</option>
     </select>
     <label class="toggle pill">
-      <input id="sameTab" type="checkbox" style="accent-color:#29d3ff"> Abrir na mesma aba (viewer)
+      <input id="sameTab" type="checkbox" style="accent-color:#29d3ff"> Abrir na mesma aba
     </label>
     <div class="pill" id="countApps">Carregando…</div>
   </div>
@@ -132,7 +115,7 @@
     <div class="dock-inner">
       <button class="dbtn" id="dockHome" type="button">Home</button>
       <button class="dbtn" id="dockInfodose" type="button">Infodose</button>
-      <button class="dbtn" id="dockInstall" type="button">⤓ Baixar Loader</button>
+      <button class="dbtn" id="dockInstall" type="button">Instalar</button>
     </div>
   </div>
 
@@ -145,7 +128,7 @@ const $search = $('#search');
 const $sort = $('#sort');
 const $sameTab = $('#sameTab');
 
-/** ===== ícones ===== **/
+/** ===== ícones: usa os seus PNGs se existirem no JSON; senão, fallback local ===== **/
 const FALLBACK_ICONS = {
   base:   'icons/icon-192.png',
   chats:  'icons/icon-192-chats.png',
@@ -153,7 +136,7 @@ const FALLBACK_ICONS = {
   indexrs:'icons/icon-192-indexrs.png'
 };
 
-/** ===== grupos ===== **/
+/** ===== títulos e ordem dos grupos ===== **/
 const GROUP_TITLES = {
   index_hubs: 'Index / Hubs',
   chats: 'Chats / Render',
@@ -167,19 +150,8 @@ const GROUP_TITLES = {
 };
 const GROUP_ORDER = ['index_hubs','chats','editors_tools','menus','tutorials','visual_splash','docs','players','others'];
 
-/** ===== regras inteligentes ===== **/
-const TAG_PRIORITIES = {
-  index_hubs: ['hub','index','nebula','metalux','sumbus','sümbüs','barra','barrao'],
-  chats: ['chat','render','response','kobllux','autoload'],
-  editors_tools: ['editor','edit','labs','xml','conv','converter','kblx','sigma','metalux','apps.json'],
-  menus: ['menu'],
-  tutorials: ['tutorial','ativacoes','ativação','v7','guia'],
-  visual_splash: ['splash','visual'],
-  docs: ['book','oidual','doc','.txt'],
-  players: ['player','audio','tts']
-};
-
-const REGEX_RULES = [
+/** ===== regras de classificação inteligente (regex) ===== **/
+const RULES = [
   { key:'index_hubs',    rx: /(index|hub|nebula|metalux|s[üu]mb[üu]s|barrao)/i },
   { key:'chats',         rx: /(chat|render[-_ ]?response|autoload|kobllux)/i },
   { key:'editors_tools', rx: /(editor|labs|xml|conv|converter|apps\.json|kblx|sigma|metalux)/i },
@@ -192,91 +164,31 @@ const REGEX_RULES = [
 
 /** ===== helpers ===== **/
 function safe(v){ return (v||'').toString(); }
-function lastFile(url){
-  try{ const u = new URL(url, location.href); return (u.pathname.split('/').pop()||'').toLowerCase(); }
-  catch{ return (url||'').split('/').pop()?.toLowerCase() || ''; }
-}
-function folderHint(url){
-  try{
-    const u = new URL(url, location.href);
-    const parts = u.pathname.split('/').filter(Boolean);
-    // ex.: ./apps/metalux/something.html → retorna 'metalux'
-    const i = parts.indexOf('apps');
-    if(i>=0 && parts[i+1]) return parts[i+1].toLowerCase();
-  }catch{}
-  return '';
-}
 function sourceString(app){
-  return [app.key, app.title, app.desc, app.url].map(safe).join(' ').toLowerCase() + ' ' + lastFile(app.url);
+  const k = [app.key, app.title, app.desc, app.url].map(safe).join(' ').toLowerCase();
+  // Tenta extrair nome de arquivo da URL também
+  try {
+    const u = new URL(app.url, location.href);
+    return k + ' ' + (u.pathname.split('/').pop()||'').toLowerCase();
+  } catch { return k; }
 }
-function hasTag(app, tag){ return Array.isArray(app.tags) && app.tags.map(safe).some(t=>t.toLowerCase()===tag.toLowerCase()); }
-
 function classify(app){
-  // 1) se app.group vier explícito, respeita
-  if(app.group && GROUP_TITLES[app.group]) return app.group;
-
-  // 2) tags do app (prioridade)
-  if(Array.isArray(app.tags)){
-    const tagsLower = app.tags.map(t=>safe(t).toLowerCase());
-    for(const [gk,tagList] of Object.entries(TAG_PRIORITIES)){
-      if(tagList.some(t => tagsLower.includes(t))) return gk;
-    }
-  }
-
-  // 3) pasta logo após ./apps/
-  const folder = folderHint(app.url);
-  if(folder){
-    if(/(hub|index|nebula|metalux|s[üu]mb[üu]s|bar)/i.test(folder)) return 'index_hubs';
-    if(/(chat|render|resp|kobllux|auto)/i.test(folder)) return 'chats';
-    if(/(edit|labs|xml|conv|kblx|sigma)/i.test(folder)) return 'editors_tools';
-    if(/menu/i.test(folder)) return 'menus';
-    if(/(tutorial|ativ|v7)/i.test(folder)) return 'tutorials';
-    if(/splash/i.test(folder)) return 'visual_splash';
-    if(/(doc|book|oidual|txt)/i.test(folder)) return 'docs';
-    if(/(player|audio|tts)/i.test(folder)) return 'players';
-  }
-
-  // 4) regex em key/title/url
   const s = sourceString(app);
-  for (const r of REGEX_RULES) if (r.rx.test(s)) return r.key;
-
+  for (const r of RULES) if (r.rx.test(s)) return r.key;
   return 'others';
 }
-
-function deriveBadges(app){
-  const out = [];
-  if(Array.isArray(app.tags)) out.push(...app.tags.slice(0,5));
-  const f = (safe(app.key)+' '+safe(app.title)+' '+safe(app.url)).toLowerCase();
-  if(/fix/.test(f)) out.push('fix');
-  if(/final/.test(f)) out.push('final');
-  if(/beta|rc/.test(f)) out.push('beta');
-  if(/metalux/.test(f)) out.push('metalux');
-  if(/nebula/.test(f)) out.push('nebula');
-  if(/menu/.test(f)) out.push('menu');
-  if(/splash/.test(f)) out.push('splash');
-  return [...new Set(out)].slice(0,6);
-}
-
 function groupIconFor(key, defaults){
-  // defaults pode conter: base, chats, editors, indexrs OU chaves por grupo
-  return (defaults && (defaults[key] || defaults[ mapGroupKeyToType(key) ])) ||
-         ({
-           index_hubs: FALLBACK_ICONS.indexrs,
-           chats: FALLBACK_ICONS.chats,
-           editors_tools: FALLBACK_ICONS.editors,
-           menus: FALLBACK_ICONS.editors,
-           tutorials: FALLBACK_ICONS.base,
-           visual_splash: FALLBACK_ICONS.base,
-           docs: FALLBACK_ICONS.base,
-           players: FALLBACK_ICONS.base,
-           others: FALLBACK_ICONS.base
-         }[key] || FALLBACK_ICONS.base);
-}
-function mapGroupKeyToType(key){
-  if(key==='index_hubs') return 'indexrs';
-  if(key==='chats') return 'chats';
-  if(key==='editors_tools' || key==='menus') return 'editors';
-  return 'base';
+  return (defaults && defaults[key]) || ({
+    index_hubs: defaults?.indexrs || FALLBACK_ICONS.indexrs,
+    chats: defaults?.chats || FALLBACK_ICONS.chats,
+    editors_tools: defaults?.editors || FALLBACK_ICONS.editors,
+    menus: defaults?.editors || FALLBACK_ICONS.editors,
+    tutorials: defaults?.base || FALLBACK_ICONS.base,
+    visual_splash: defaults?.base || FALLBACK_ICONS.base,
+    docs: defaults?.base || FALLBACK_ICONS.base,
+    players: defaults?.base || FALLBACK_ICONS.base,
+    others: defaults?.base || FALLBACK_ICONS.base
+  })[key] || FALLBACK_ICONS.base;
 }
 function pickIcon(app, groupKey, defaults){
   if (app.icon && app.icon.trim()) return app.icon;
@@ -284,42 +196,32 @@ function pickIcon(app, groupKey, defaults){
 }
 
 /** ===== UI builders ===== **/
-function h(el, attrs={}, children=[]){
-  const e = document.createElement(el);
-  Object.entries(attrs).forEach(([k,v])=>{
-    if(k==='class') e.className = v;
-    else if(k==='html') e.innerHTML = v;
-    else e.setAttribute(k, v);
-  });
-  (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=> e.appendChild(c));
-  return e;
+function sectionWrap(title, key){
+  const sec = document.createElement('section');
+  sec.className = 'section';
+  sec.dataset.group = key;
+  sec.innerHTML = `<h2>${title}</h2><div class="grid"></div>`;
+  return sec;
 }
-function badgeEl(text){ return h('span', {class:'badge', html: text}); }
-
-function sectionWrap(title, key){ return h('section',{class:'section','data-group':key},[
-  h('h2',{html:title}),
-  h('div',{class:'grid'})
-]);}
-
 function card(app, groupKey, defaults){
+  const el = document.createElement('div');
+  el.className = 'card';
   const iconSrc = pickIcon(app, groupKey, defaults);
-  const badges = deriveBadges(app);
-  const c = h('div',{class:'card'},[
-    h('div',{class:'icon', html:`<img src="${iconSrc}" alt="">`}),
-    h('div',{style:'flex:1'},[
-      h('div',{class:'title', html: `${safe(app.title||app.key)}`}),
-      badges.length? h('div',{class:'badges'}, badges.map(badgeEl)) : null,
-      h('div',{class:'muted', html: safe(app.desc||'') }),
-      h('div',{class:'row'},[
-        h('button',{class:'btn', html:'Abrir'}),
-        h('button',{class:'btn', html:'⎘ Injection', title:'Copiar snippet de injection'},)
-      ])
-    ])
-  ]);
-
-  c.querySelector('.btn').addEventListener('click', ()=> openApp(app));
-  c.querySelectorAll('.btn')[1].addEventListener('click', ()=> copyInjection(app));
-  return c;
+  el.innerHTML = `
+    <div class="icon"><img src="${iconSrc}" alt=""></div>
+    <div style="flex:1">
+      <div class="title">${app.title || app.key}</div>
+      <div class="muted">${app.desc || ''}</div>
+      <div class="row">
+        <button class="btn" type="button">Abrir</button>
+      </div>
+    </div>`;
+  el.querySelector('.btn').addEventListener('click', ()=>{
+    if(!app.url) return;
+    if($sameTab.checked) location.href = app.url;
+    else window.open(app.url,'_blank','noopener');
+  });
+  return el;
 }
 
 /** ===== render ===== **/
@@ -336,7 +238,7 @@ function renderGrouped(groups, defaults){
       $content.appendChild(sec);
     }
   });
-  // grupos extras
+  // grupos não previstos
   Object.keys(groups).forEach(gk=>{
     if(!GROUP_ORDER.includes(gk)){
       const list = groups[gk];
@@ -354,19 +256,21 @@ function renderGrouped(groups, defaults){
 }
 
 function renderFlat(apps, defaults){
+  // Se flat, aplica classificação → grupos
   const groups = {};
   for(const app of apps){
     const gk = classify(app);
     (groups[gk] ||= []).push(app);
   }
-  // ordenação
+  // ordenação de grupos e apps conforme select
   const mode = $sort.value;
   if (mode === 'az' || mode === 'za'){
     const dir = (mode==='az') ? 1 : -1;
     Object.keys(groups).forEach(k=>{
-      groups[k].sort((a,b)=> safe(a.title||a.key).localeCompare(safe(b.title||b.key)) * dir);
+      groups[k].sort((a,b)=> (safe(a.title||a.key)).localeCompare(safe(b.title||b.key)) * dir);
     });
   } else {
+    // por grupo: mantém a ordem de inserção; pode ordenar A→Z dentro de cada
     Object.keys(groups).forEach(k=>{
       groups[k].sort((a,b)=> safe(a.title||a.key).localeCompare(safe(b.title||b.key)));
     });
@@ -374,15 +278,16 @@ function renderFlat(apps, defaults){
   renderGrouped(groups, defaults);
 }
 
-/** ===== busca ===== **/
+/** ===== filtro/busca ===== **/
 function applySearchFilter(original, isGrouped){
   const q = $search.value.trim().toLowerCase();
   if(!q) return original;
-  const byTag = (app)=> Array.isArray(app.tags) && app.tags.some(t=>safe(t).toLowerCase().includes(q));
+
   const matchApp = app=>{
     const s = (safe(app.key)+' '+safe(app.title)+' '+safe(app.desc)+' '+safe(app.url)).toLowerCase();
-    return s.includes(q) || byTag(app);
+    return s.includes(q);
   };
+
   if(isGrouped){
     const out = {};
     Object.entries(original).forEach(([gk,list])=>{
@@ -395,8 +300,8 @@ function applySearchFilter(original, isGrouped){
   }
 }
 
-/** ===== load/render pipeline ===== **/
-let RAW = null;
+/** ===== load ===== **/
+let RAW = null; // armazena JSON original carregado
 let DEFAULTS = null;
 
 async function load(){
@@ -405,12 +310,13 @@ async function load(){
     const data = await res.json();
     RAW = data;
 
-    // defaults vindos do json (opcional)
+    // defaults vindos do json (caso exista data.defaultIcons ou data.groups.defaultIcons)
     DEFAULTS = data.defaultIcons || data.groups?.defaultIcons || {
       base: FALLBACK_ICONS.base,
       chats: FALLBACK_ICONS.chats,
       editors: FALLBACK_ICONS.editors,
       indexrs: FALLBACK_ICONS.indexrs,
+      // mapeamento direto por groupKey opcional:
       index_hubs: FALLBACK_ICONS.indexrs
     };
 
@@ -434,20 +340,27 @@ async function load(){
 function render(){
   if(!RAW) return;
   const mode = $sort.value;
+
+  // se vier agrupado
   if (RAW.groups && typeof RAW.groups === 'object'){
     let groups = RAW.groups;
+    // filtrar
     groups = applySearchFilter(groups, true);
+    // ordenação alfabetica opcional
     if (mode==='az' || mode==='za'){
       const dir = (mode==='az') ? 1 : -1;
       const g2 = {};
       Object.keys(groups).forEach(gk=>{
-        g2[gk] = [...groups[gk]].sort((a,b)=> safe(a.title||a.key).localeCompare(safe(b.title||b.key))*dir);
+        g2[gk] = [...groups[gk]].sort((a,b)=> (safe(a.title||a.key)).localeCompare(safe(b.title||b.key))*dir);
       });
       groups = g2;
     }
     renderGrouped(groups, DEFAULTS);
-  } else if (Array.isArray(RAW.apps)){
+  }
+  // se vier plano
+  else if (Array.isArray(RAW.apps)){
     let list = RAW.apps;
+    // filtro sobre flat
     list = applySearchFilter(list, false);
     renderFlat(list, DEFAULTS);
   } else {
@@ -464,93 +377,33 @@ function render(){
   }
 }
 
-/** ===== viewer + injections ===== **/
-function isSameOrigin(url){
-  try{ const u=new URL(url, location.href); return u.origin===location.origin; }
-  catch{ return url.startsWith('./') || url.startsWith('/'); }
-}
-function openApp(app){
-  if(!$sameTab.checked){ window.open(app.url,'_blank','noopener'); return; }
-  // viewer fullscreen com iframe
-  const v = document.createElement('div');
-  v.className = 'viewer';
-  v.innerHTML = `
-    <iframe src="${app.url}" allow="autoplay; clipboard-read; clipboard-write"></iframe>
-    <div class="viewer-footer">
-      <button class="btn" id="backHub">⬅ Voltar ao Hub</button>
-      <button class="btn" id="dlHtml">⤓ Baixar HTML (com Injections)</button>
-      <button class="btn" id="copyInj">⎘ Copiar Injection</button>
-    </div>`;
-  document.body.appendChild(v);
-  v.querySelector('#backHub').addEventListener('click', ()=> v.remove());
-  v.querySelector('#dlHtml').addEventListener('click', ()=> downloadInjected(app));
-  v.querySelector('#copyInj').addEventListener('click', ()=> copyInjection(app));
-}
-
-function injectionSnippet(){
-  // snippet mínimo: barra fixa “Voltar ao Hub”
-  return `
-<!-- INFODOSE: injection footer -->
-<style>
-  .infodose-footer{position:fixed;left:0;right:0;bottom:0;z-index:99999;display:flex;gap:10px;justify-content:center;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(14px) saturate(140%);background:rgba(0,0,0,.65);border-top:1px solid rgba(255,255,255,.18)}
-  .infodose-footer .btn{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.6rem 1rem;background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}
-</style>
-<div class="infodose-footer">
-  <button class="btn" onclick="(function(){ try{ if(window.history.length>1) history.back(); else location.href='index.html'; }catch(e){ location.href='index.html'; } })()">⬅ Voltar ao Hub</button>
-</div>
-<!-- /INFODOSE -->
-`.trim();
-}
-
-async function downloadInjected(app){
-  try{
-    const res = await fetch(app.url, {cache:'no-store'});
-    const html = await res.text();
-    // injeta antes do </body>
-    const inj = injectionSnippet();
-    const out = html.includes('</body>') ? html.replace('</body>', inj + '\n</body>') : (html + '\n' + inj);
-    const blob = new Blob([out], {type:'text/html'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = (lastFile(app.url)||'page') + '.injected.html';
-    document.body.appendChild(a); a.click(); a.remove();
-  }catch(e){
-    alert('Não foi possível baixar/injetar este HTML (CORS?).');
-  }
-}
-
-function copyInjection(app){
-  const inj = injectionSnippet();
-  navigator.clipboard.writeText(inj).then(
-    ()=> alert('Injection copiado!'),
-    ()=> alert('Falha ao copiar (permissões do navegador).')
-  );
-}
-
-
-
-function downloadLoader(){
-  const html = buildLoaderHTML();
-  const blob = new Blob([html], {type:'text/html'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Infodose_Loader.html';
-  document.body.appendChild(a); a.click(); a.remove();
-}
-
 /** ===== eventos UI ===== **/
-$('#dockHome').addEventListener('click', ()=> {
+$search.addEventListener('input', ()=> render());
+$sort.addEventListener('change', ()=> render());
+
+/** ===== ações Dock/PWA ===== **/
+$('#dockHome').addEventListener('click', ()=>{
   window.scrollTo({top:0, behavior:'smooth'});
   history.pushState('', document.title, window.location.pathname + window.location.search);
 });
 $('#dockInfodose').addEventListener('click', ()=> window.open('https://infodose.com.br','_blank','noopener'));
-$('#btnDownloadLoader').addEventListener('click', downloadLoader);
-$('#dockInstall').addEventListener('click', downloadLoader);
 
-$search.addEventListener('input', ()=> render());
-$sort.addEventListener('change', ()=> render());
+// PWA install
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
+async function doInstall(){
+  if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+  else alert('Use “Adicionar à Tela de Início”.');
+}
+$('#btnInstall').addEventListener('click', doInstall);
+$('#dockInstall').addEventListener('click', doInstall);
 
-/** ===== init ===== **/
+// init
 load();
 </script>
 </body>
