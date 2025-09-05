@@ -1,74 +1,223 @@
 {
-  "apps": [
-    {
-      "key": "dual-chat",
-      "title": "Dual Chat",
-      "desc": "Conversas e IA simbólica.",
-      "url": "https://Kodux78k.github.io.com/dual-chat/index.html",
-      "icon": "icons/icon192.png"
-    },
-    {
-      "key": "dual-player",
-      "title": "Dual Player",
-      "desc": "Toca faixas e TTS.",
-      "url": "./apps/index_luxara.html",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "dual-labs",
-      "title": "Dual Labs",
-      "desc": "Experimentos e patches.",
-      "url": "./apps/dual-labs",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "kblx-html",
-      "title": "KBLX HTML v4.1",
-      "desc": "Versão fullscreen separador.",
-      "url": "./apps/KBLX-HTML-v4.1-FULLSCREEN-SEPARADOR.html",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "kobllux-metalux",
-      "title": "KOBLLUX MetaLux",
-      "desc": "Expandido final ultrafoda.",
-      "url": "./apps/KOBLLUX_MetaLux_Expandido_Final_ultrafoda.html",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "oidual",
-      "title": "Oidual",
-      "desc": "Notas e fluxo .",
-      "url": "./apps/index.nebula.unified.html",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "smbs-book-2",
-      "title": "SmbS Book 2",
-      "desc": "Estrutura simbólica book.",
-      "url": "./apps/SmbS-book-2.html",
-      "icon": "icons/icon-192.png"
-    },
-    {
-      "key": "apps-chat",
-      "title": "Apps JSON",
-      "desc": "Chat.",
-      "url": "./apps/Dual_App_updated_singlefile.html",
-      "icon": "icons/icon192.png"
-    },
-    {
-      "key": "sAPPDUAL-2",
-      "title": "Sigma Trinity Editor 2",
-      "desc": "Editor simbólico Trinity.",
-      "url": "./apps/Dual_App_io100_0_HARD_ON_SUMBUS_ALWAYS_ON_FIX.html",
-      "icon": "icons/icon192.png"
-    },
-    {
-      "key": "xml-app-conv-8",
-      "title": "XML App Conv 8 Online",
-      "desc": "Conversor app XML online.",
-      "url": "./apps/xml-app-conv-8-online.html",
-      "icon": "icons/icon-192.png"
-    }
-  ]
+  "defaultIcons": {
+    "base": "icons/icon-192.png",
+    "chats": "icons/icon-192-chats.png",
+    "editors": "icons/icon-192-editors.png",
+    "indexrs": "icons/icon-192-indexrs.png"
+  },
+
+  "groups": {
+    "index_hubs": [
+      {
+        "key": "index-nebula",
+        "title": "Index Nebula",
+        "desc": "Interface Nebula inicial.",
+        "url": "./apps/index.nebula.html",
+        "icon": "icons/icon-192-indexrs.png"
+      },
+      {
+        "key": "index-nebula-unified",
+        "title": "Index Nebula Unified",
+        "desc": "Interface Nebula unificada.",
+        "url": "./apps/index.nebula.unified.html",
+        "icon": "icons/icon-192-indexrs.png"
+      },
+      {
+        "key": "index-barrao",
+        "title": "Index Barrão",
+        "desc": "Versão barrão.",
+        "url": "./apps/indexbarrao.html",
+        "icon": "icons/icon-192-indexrs.png"
+      },
+      {
+        "key": "index-hub",
+        "title": "Index Hub",
+        "desc": "Hub principal.",
+        "url": "./apps/indexhub.html",
+        "icon": "icons/icon-192-indexrs.png"
+      },
+      {
+        "key": "index-metalux",
+        "title": "Index MetaLux",
+        "desc": "Interface MetaLux.",
+        "url": "./apps/index-MetaLux.html",
+        "icon": "icons/icon-192-indexrs.png"
+      },
+      {
+        "key": "index-sumbus-3",
+        "title": "Index Sümbüs 3",
+        "desc": "Interface simbólica Sümbüs.",
+        "url": "./apps/index-sümbüs-3.html",
+        "icon": "icons/icon-192-indexrs.png"
+      }
+    ],
+
+    "chats": [
+      {
+        "key": "dual-chat",
+        "title": "Dual Chat",
+        "desc": "Conversas e IA simbólica.",
+        "url": "https://Kodux78k.github.io.com/dual-chat/index.html",
+        "icon": "icons/icon-192-chats.png"
+      },
+      {
+        "key": "dual-chat-fix",
+        "title": "Dual Chat 0.94.15 Fix",
+        "desc": "Versão corrigida do Dual Chat.",
+        "url": "./apps/dual-chat-0-94-15-fix-78-75-REC.html",
+        "icon": "icons/icon-192-chats.png"
+      },
+      {
+        "key": "render-response-autoload",
+        "title": "Render Response Autoload",
+        "desc": "Carregamento automático de respostas.",
+        "url": "./apps/render-response-autoload.html",
+        "icon": "icons/icon-192-chats.png"
+      },
+      {
+        "key": "renderresponse-kobllux",
+        "title": "Render Response Kobllux",
+        "desc": "Renderização Kobllux.",
+        "url": "./apps/renderresponse-kobllux.html",
+        "icon": "icons/icon-192-chats.png"
+      }
+    ],
+
+    "editors_tools": [
+      {
+        "key": "dual-labs",
+        "title": "Dual Labs",
+        "desc": "Experimentos e patches.",
+        "url": "./apps/dual-labs.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "sigma-trinity-editor-2",
+        "title": "Sigma Trinity Editor 2",
+        "desc": "Editor simbólico Trinity.",
+        "url": "./apps/sigma-trinity-editor-2.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "xml-app-conv-8",
+        "title": "XML App Conv 8 Online",
+        "desc": "Conversor app XML online.",
+        "url": "./apps/xml-app-conv-8-online.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "apps-json",
+        "title": "Apps JSON",
+        "desc": "Definições de apps.",
+        "url": "./apps/apps.json",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "kblx-html",
+        "title": "KBLX HTML v4.1",
+        "desc": "Versão fullscreen separador.",
+        "url": "./apps/KBLX-HTML-v4.1-FULLSCREEN-SEPARADOR.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "kobllux-metalux",
+        "title": "KOBLLUX MetaLux",
+        "desc": "Expandido final ultrafoda.",
+        "url": "./apps/KOBLLUX_MetaLux_Expandido_Final_ultrafoda.html",
+        "icon": "icons/icon-192-editors.png"
+      }
+    ],
+
+    "menus": [
+      {
+        "key": "menu-x-1-e-12",
+        "title": "Menu X 1-E-12",
+        "desc": "Menu simbólico X.",
+        "url": "./apps/menu-x-1-E-12.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "menu-x-1-e-19",
+        "title": "Menu X 1-E-19",
+        "desc": "Menu simbólico X v19.",
+        "url": "./apps/menu-x-1-E-19.html",
+        "icon": "icons/icon-192-editors.png"
+      },
+      {
+        "key": "menu-merged-final",
+        "title": "Menu Merged Final Corrigido",
+        "desc": "Menu final corrigido.",
+        "url": "./apps/menu-merged-final-corrigido.html",
+        "icon": "icons/icon-192-editors.png"
+      }
+    ],
+
+    "tutorials": [
+      {
+        "key": "dual-app-tutorial-v7",
+        "title": "Dual App Tutorial V7",
+        "desc": "Versão tutorial com ativações longas.",
+        "url": "./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-3NU-2-3.html",
+        "icon": "icons/icon-192.png"
+      },
+      {
+        "key": "dual-app-tutorial-v7b",
+        "title": "Dual App Tutorial V7b",
+        "desc": "Outra variante do tutorial v7.",
+        "url": "./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-3NU-0.html",
+        "icon": "icons/icon-192.png"
+      },
+      {
+        "key": "dual-app-tutorial-v7c",
+        "title": "Dual App Tutorial V7c",
+        "desc": "Mais uma variante do tutorial v7.",
+        "url": "./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-5AV-0.html",
+        "icon": "icons/icon-192.png"
+      }
+    ],
+
+    "visual_splash": [
+      {
+        "key": "procedural-splash-v2",
+        "title": "Procedural Live Splash v2",
+        "desc": "Tela splash procedural Infodose.",
+        "url": "./apps/Infodose_ProceduralLive_Splash_v2.html",
+        "icon": "icons/icon-192.png"
+      },
+      {
+        "key": "splash-2",
+        "title": "Splash 2",
+        "desc": "Splash alternativa.",
+        "url": "./apps/Splash 2.html",
+        "icon": "icons/icon-192.png"
+      }
+    ],
+
+    "docs": [
+      {
+        "key": "oidual",
+        "title": "Oidual",
+        "desc": "Notas e fluxo textual.",
+        "url": "./apps/Oidual.txt",
+        "icon": "icons/icon-192.png"
+      },
+      {
+        "key": "smbs-book-2",
+        "title": "SmbS Book 2",
+        "desc": "Estrutura simbólica book.",
+        "url": "./apps/SmbS-book-2.html",
+        "icon": "icons/icon-192.png"
+      }
+    ],
+
+    "players": [
+      {
+        "key": "dual-player",
+        "title": "Dual Player",
+        "desc": "Toca faixas e TTS.",
+        "url": "./apps/index_luxara.html",
+        "icon": "icons/icon-192.png"
+      }
+    ]
+  }
 }
