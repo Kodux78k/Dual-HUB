@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Infodose Hub Ultra</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0b0b0b" id="metaThemeColor">
+  <link rel="apple-touch-startup-image" href="splash-1242x2688.png"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <style>
+    :root{--fg:#fff;--muted:#a7c1cc;--acc:#E7C65A;--stroke:rgba(255,235,180,.30);--stroke-soft:rgba(255,235,180,.16);--blur:22px;--radius:18px;--radius-lg:22px;--dock-space:84px}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--fg);
+      font-family:ui-rounded,system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial;
+      background: linear-gradient(42deg, #f0f, #0ff);
+    }
+    /* Header */
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:blur(var(--blur)) saturate(150%);background:rgba(0,0,0,.4);border-bottom:1px solid var(--stroke);box-shadow:0 12px 34px rgba(0,0,0,.42);padding-top:env(safe-area-inset-top)}
+    .inner{max-width:980px;margin:0 auto;padding:14px;display:flex;gap:14px;align-items:center}
+    .logo{width:46px;height:46px;border-radius:50%;display:inline-grid;place-items:center;position:relative;background:rgba(0,0,0,.25)}
+    .ring{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;animation:spin 6s linear infinite}
+    .bar{position:absolute;left:50%;top:50%;width:60%;height:2px;background:var(--acc);transform:translate(-50%,-50%);border-radius:999px;animation:breathe 2.4s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}} @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
+    h1{font-size:1.2rem;margin:.12rem 0 0;font-weight:800}.kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
+
+    /* Grid/cards */
+    .grid{max-width:980px;margin:18px auto 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:0 14px}
+    @media(max-width:560px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(0,0,0,.3);border:1px solid var(--stroke-soft);border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+    .icon{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft)}
+    .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.72rem 1.05rem;border-radius:999px;font-weight:700}
+
+    /* Bottom Dock */
+    .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:block}
+    .dock-inner{max-width:980px;margin:0 auto;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:space-between;align-items:center;backdrop-filter:blur(18px) saturate(140%);background:rgba(0,0,0,.45);border-top:1px solid var(--stroke);box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+    .dbtn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
+    .grid{padding-bottom:calc(var(--dock-space) + 12px)}
+    footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0;opacity:.9}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="inner">
+      <span class="logo" aria-hidden="true"><span class="ring"></span><span class="bar"></span></span>
+      <div style="flex:1">
+        <div class="kicker">Infodose • Hub Principal</div>
+        <h1>Infodose Hub Ultra</h1>
+      </div>
+      <nav aria-label="Instalar">
+        <button class="btn" id="btnInstall" type="button">⬇️ Instalar</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="grid" id="cards" aria-live="polite"></main>
+  <footer>Infodose Hub Ultra • PWA</footer>
+
+  <div class="dock" role="navigation" aria-label="Dock">
+    <div class="dock-inner">
+      <button class="dbtn" id="dockHome" type="button">Home</button>
+      <button class="dbtn" id="dockInfodose" type="button">Infodose</button>
+      <button class="dbtn" id="dockInstall" type="button">Instalar</button>
+    </div>
+  </div>
+
+<script>
+const $ = (q,root=document)=>root.querySelector(q);
+
+async function loadApps(){
+  try{
+    const res = await fetch('./apps/apps.json', {cache:'no-store'});
+    const data = await res.json();
+    const root = $('#cards'); root.innerHTML='';
+    (data.apps||[]).forEach(app=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML = `
+        <div class="icon"><img src="${app.icon||'icons/icon-192.png'}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/></div>
+        <div style="flex:1">
+          <div class="title">${app.title||app.key}</div>
+          <div class="muted">${app.desc||''}</div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" type="button" onclick="window.open('${app.url}','_blank','noopener')">Abrir</button>
+          </div>
+        </div>`;
+      root.appendChild(card);
+    });
+  }catch(e){
+    $('#cards').innerHTML='<div class="card"><div class="icon">⚠️</div><div><div class="title">Falha ao carregar</div><div class="muted">apps/apps.json não encontrado.</div></div></div>';
+  }
+}
+loadApps();
+
+// Dock actions
+$('#dockHome').addEventListener('click', ()=>{
+  window.scrollTo({top:0, behavior:'smooth'});
+  history.pushState('', document.title, window.location.pathname + window.location.search);
+});
+$('#dockInfodose').addEventListener('click', ()=>{
+  window.open('https://infodose.com.br','_blank','noopener');
+});
+
+// PWA install
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js').catch(()=>{})); }
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
+async function doInstall(){ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; } else alert('Use “Adicionar à Tela de Início”.'); }
+$('#btnInstall').addEventListener('click', doInstall);
+$('#dockInstall').addEventListener('click', doInstall);
+</script>
+</body>
+</html>
