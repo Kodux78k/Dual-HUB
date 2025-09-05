@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Dual Infodose • Hub</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root{--bg:#0b0c10;--fg:#ecf4ff;--muted:#a8b0c3;--card:#11131a;--acc:#D4AF37;--c1:#FF7A00;--radius:16px}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 50% -10%, rgba(212,175,55,.12), transparent 60%), linear-gradient(180deg,#0a0b0f 0%, #0b0c10 40%, #0a0b0f 100%);color:var(--fg);font-family:system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial}
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:rgba(11,12,16,.65);border-bottom:1px solid #ffffff14}
+    .inner{max-width:920px;margin:0 auto;padding:10px 14px;display:flex;gap:12px;align-items:center}
+    .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff6, transparent 60%), conic-gradient(from 0deg, var(--acc), #6ee7ff, var(--acc));position:relative;box-shadow:0 0 0 3px #0008,inset 0 0 20px #000;animation:pulse 2.6s infinite ease-in-out}
+    .logo:after{content:"◐";display:grid;place-items:center;position:absolute;inset:0;font-weight:900;color:#0d1014;font-size:20px;text-shadow:0 0 12px #ffd76a88}
+    @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #ffd76a33}50%{transform:scale(1.06);box-shadow:0 0 0 12px #ffd76a18}}
+    h1{font-size:1.2rem;margin:0}
+    .kicker{font-size:.74rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .grid{max-width:920px;margin:12px auto 20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 14px}
+    @media (max-width:560px){ .grid{grid-template-columns:1fr} }
+    .chips{max-width:920px;margin:10px auto 10px;display:flex;gap:8px;padding:0 14px;flex-wrap:wrap}
+    .chip{padding:.45rem .8rem;border-radius:999px;border:1px solid #ffffff1f;background:#0f1219;color:#d9e8ff;cursor:pointer}
+    .chip.active{outline:2px solid #ffd76a88}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid #ffffff12;border-radius:var(--radius);padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 25px rgba(0,0,0,.25)}
+    .icon{width:56px;height:56px;border-radius:14px;background:#0f1320;border:1px solid #ffd76a55;display:grid;place-items:center;font-size:22px;overflow:hidden}
+    .title{font-weight:800}
+    .muted{color:var(--muted);font-size:.9rem}
+    .btn{appearance:none;border:none;background:linear-gradient(180deg,#201b10,#15110a);border:1px solid #3a2a00;color:#ffeac2;padding:.6rem 1rem;border-radius:12px;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px dashed #ffffff28;color:#c8d8ff}
+    .btn:active{transform:translateY(1px)}
+    .viewer{position:fixed;inset:0;background:#000b;backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:10px;z-index:20}
+    .viewer.show{display:flex}
+    .frame{width:100%;max-width:1024px;height:86vh;border-radius:18px;border:1px solid #ffffff22;overflow:hidden;background:#0f1117;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative}
+    .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #ffffff18;background:linear-gradient(180deg,#0a0f14,#0b1116)}
+    .bar .left{display:flex;align-items:center;gap:8px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#ffd76a}
+    .iframe{width:100%;height:calc(86vh - 42px);border:0}
+    .loader{position:absolute;inset:42px 0 0 0;display:grid;place-items:center;background:linear-gradient(180deg,#0a0f14ee,#0b0f14dd);backdrop-filter:blur(2px);transition:opacity .25s ease;opacity:0;pointer-events:none}
+    .loader.show{opacity:1;pointer-events:auto}
+    .spinner{width:48px;height:48px;border-radius:50%;border:3px solid #1f2a37;border-top-color:#ffd76a;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    footer{color:#9bb4c4;font-size:.8rem;text-align:center;margin:18px 0}
+    .badge{display:inline-block;padding:.18rem .5rem;border-radius:999px;font-size:.72rem;margin-right:6px;border:1px solid #ffffff22;background:#0a0f14;color:#cde7ff}
+    .badge.external{border-color:#a78bfa55;color:#efe9ff;background:rgba(167,139,250,.12)}
+    .badge.offline-ready{border-color:#22c55e55;color:#bef7d0;background:rgba(34,197,94,.12)}
+    .badge.stable{border-color:#6ee7ff55;color:#d6faff;background:rgba(110,231,255,.1)}
+    .badge.beta{border-color:#ffd16655;color:#ffeac2;background:rgba(255,209,102,.12)}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="inner">
+      <div class="logo"></div>
+      <div style="flex:1">
+        <div class="kicker">Dual Infodose</div>
+        <h1>Hub • Home</h1>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnInstall">⬇️ Instalar</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+  <main class="grid" id="cards"></main>
+
+  <footer>“Sempre único, sempre seu.”</footer>
+
+  <div class="viewer" id="viewer">
+    <div class="frame">
+      <div class="bar">
+        <div class="left"><div class="dot"></div><strong id="barTitle">App</strong></div>
+        <div class="row">
+          <button class="btn ghost" id="btnHome">🏠 Home</button>
+          <a class="btn ghost" id="btnExternal" href="#" target="_blank" rel="noopener">↗️ Abrir em aba</a>
+        </div>
+      </div>
+      <div class="loader" id="loader"><div class="spinner"></div></div>
+      <iframe class="iframe" id="appFrame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+<script>
+// Remote-first loader with fallback to local apps.json
+async function loadApps(){
+  const REMOTE_URL = window.APPS_REMOTE || null; // defina se quiser
+  const LOCAL_URL  = './apps/apps.json';
+  async function fetchWithTimeout(url, ms=6000){
+    const ctrl = new AbortController();
+    const id = setTimeout(()=>ctrl.abort(), ms);
+    try{ const r = await fetch(url, {signal:ctrl.signal,mode:'cors',cache:'no-store'});
+         clearTimeout(id); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json();
+    }catch(e){ clearTimeout(id); throw e; }
+  }
+  try{
+    const data = REMOTE_URL ? await fetchWithTimeout(REMOTE_URL, 6000) : null;
+    if(data) renderCards(data.apps||[]);
+    else throw new Error('no-remote');
+  }catch(e){
+    const r = await fetch(LOCAL_URL); const data = await r.json();
+    renderCards(data.apps||[]);
+  }
+}
+
+function uniq(a){ return [...new Set(a)]; }
+function renderCards(apps){
+  // Build chips (categories)
+  const chipsRoot = document.getElementById('chips'); chipsRoot.innerHTML='';
+  const cats = uniq((apps||[]).map(a=>a.category).filter(Boolean));
+  const chips = ['Todos', ...cats];
+  chips.forEach(c=>{
+    const b=document.createElement('button'); b.className='chip'; b.textContent=c;
+    b.onclick=()=>{ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); b.classList.add('active'); draw(c); };
+    chipsRoot.appendChild(b);
+  });
+  if(chipsRoot.firstChild) chipsRoot.firstChild.classList.add('active');
+  draw('Todos');
+
+  function draw(cat){
+    const root = document.getElementById('cards'); root.innerHTML='';
+    (apps||[]).filter(a=> cat==='Todos' || a.category===cat ).forEach(app=>{
+      const card = document.createElement('div'); card.className='card';
+      const badges = (app.badges||[]).map(b=>`<span class="badge ${b}">${b}</span>`).join('');
+      card.innerHTML = `
+        <div class="icon"><img src="${app.icon||'icons/icon-192.png'}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/></div>
+        <div style="flex:1">
+          <div class="title">${app.title||app.key}</div>
+          <div class="muted">${app.desc||''}</div>
+          <div style="margin-top:6px">${badges}</div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" data-open="${app.key}">Abrir</button>
+            <button class="btn ghost" data-open="${app.key}" data-newtab="1">Abrir em aba</button>
+          </div>
+        </div>`;
+      root.appendChild(card);
+    });
+
+    document.querySelectorAll('[data-open]').forEach(b=>{
+      b.onclick = (e)=>{
+        const key = b.getAttribute('data-open');
+        const newtab = b.hasAttribute('data-newtab');
+        const app = (apps||[]).find(x=>x.key===key);
+        if(!app) return;
+        openApp(app, newtab);
+      };
+    });
+  }
+}
+
+// Viewer logic
+const viewer = document.getElementById('viewer');
+const frame  = document.getElementById('appFrame');
+const barTitle = document.getElementById('barTitle');
+const btnExternal = document.getElementById('btnExternal');
+const loader = document.getElementById('loader');
+
+function openApp(app, newtab=false){
+  if(newtab){ window.open(app.url, '_blank', 'noopener'); return; }
+  barTitle.textContent = app.title||app.key;
+  btnExternal.href = app.url;
+  loader.classList.add('show');
+  frame.onload = ()=> setTimeout(()=> loader.classList.remove('show'), 120);
+  frame.src = app.url;
+  viewer.classList.add('show');
+  localStorage.setItem('infodose.hub.last', app.key);
+  location.hash = '#app=' + app.key;
+}
+document.getElementById('btnHome').onclick = ()=>{
+  frame.src = 'about:blank';
+  viewer.classList.remove('show');
+  history.pushState('', document.title, window.location.pathname + window.location.search);
+};
+
+// PWA install
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js')); }
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
+document.getElementById('btnInstall').onclick = async()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+  else alert('Se o prompt não aparecer, use “Adicionar à Tela de Início”.');
+};
+
+loadApps();
+</script>
+</body>
+</html>

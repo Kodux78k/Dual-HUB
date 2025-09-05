@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-br" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Dual · Nebula Unified — Dark Neon ⇄ Purple Storm</title>
+<meta name="theme-color" content="#060910">
+<style>
+  :root{
+    --txt:#EAF2FF; --muted:#9fb1cc; --stroke:rgba(255,255,255,.14);
+    --ok:#2fe66a;
+  }
+  /* THEME: Dark Neon */
+  [data-theme="dark"]{
+    --bg:#05070d;
+    --logo-shadow: 0 0 20px rgba(41,211,255,.35), 0 0 40px rgba(138,92,255,.25), 0 0 60px rgba(0,255,168,.15);
+    --logo-grad: radial-gradient(circle at 30% 30%, rgba(41,211,255,.9), rgba(138,92,255,.6) 40%, transparent 60%);
+    --ring-color: rgba(41,211,255,.35);
+    --ico-border: 2px solid rgba(41,211,255,.35);
+    --ico-shadow: 0 0 18px rgba(41,211,255,.18), inset 0 0 26px rgba(138,92,255,.15);
+    --ico-outline: 3px solid #29d3ff;
+    --glyph-shadow: 0 0 8px rgba(41,211,255,.4);
+    --btn-border: 2px solid rgba(138,92,255,.4);
+    --btn-glow: 0 0 0 8px rgba(41,211,255,.08), inset 0 0 50px rgba(138,92,255,.18), 0 0 45px rgba(0,255,168,.12);
+    --bg-grad:
+      radial-gradient(1200px 700px at 20% -10%, rgba(41,211,255,.18), transparent 60%),
+      radial-gradient(1400px 900px at 120% 120%, rgba(138,92,255,.16), transparent 60%),
+      radial-gradient(800px 500px at 50% 50%, rgba(0,255,168,.08), transparent 60%),
+      #05070d;
+  }
+  /* THEME: Purple Storm */
+  [data-theme="purple"]{
+    --txt:#F2ECFF; --muted:#bbaee0; --stroke:rgba(216,188,255,.22);
+    --bg:#0a0612;
+    --logo-shadow: 0 0 22px rgba(181,103,255,.35), 0 0 40px rgba(110,224,255,.25), 0 0 60px rgba(255,77,242,.15);
+    --logo-grad: radial-gradient(circle at 30% 30%, rgba(181,103,255,.85), rgba(110,224,255,.55) 45%, transparent 65%);
+    --ring-color: rgba(181,103,255,.35);
+    --ico-border: 2px solid rgba(181,103,255,.45);
+    --ico-shadow: 0 0 20px rgba(181,103,255,.18), inset 0 0 28px rgba(110,224,255,.15);
+    --ico-outline: 3px solid #b567ff;
+    --glyph-shadow: 0 0 8px rgba(110,224,255,.4);
+    --btn-border: 2px solid rgba(181,103,255,.4);
+    --btn-glow: 0 0 0 8px rgba(110,224,255,.08), inset 0 0 50px rgba(181,103,255,.18), 0 0 45px rgba(255,77,242,.12);
+    --bg-grad:
+      radial-gradient(1200px 700px at 20% -10%, rgba(181,103,255,.18), transparent 60%),
+      radial-gradient(1400px 900px at 120% 120%, rgba(110,224,255,.16), transparent 60%),
+      radial-gradient(1000px 700px at 50% 50%, rgba(255,77,242,.08), transparent 60%),
+      #0a0612;
+  }
+
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background: var(--bg-grad); color:var(--txt);
+       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+       background-attachment: fixed; }
+  .wrap{min-height:100%; display:grid; grid-template-rows:auto auto 1fr auto; gap:14px; padding:16px}
+  header{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .brand{display:flex; align-items:center; gap:10px}
+  .logo{width:46px;height:46px;border-radius:16px; background: var(--logo-grad);
+        box-shadow: var(--logo-shadow), 0 0 0 2px var(--stroke) inset}
+  .title{font-weight:900;letter-spacing:.3px}
+  .gear{border:1px solid var(--stroke);border-radius:12px;padding:8px 10px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));cursor:pointer}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)); border:1px solid var(--stroke); border-radius:20px; box-shadow:0 22px 80px rgba(0,0,0,.55)}
+  .hd{padding:12px 14px; border-bottom:1px solid var(--stroke); display:flex; align-items:center; justify-content:space-between}
+  .bd{padding:12px 14px}
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{border:1px dashed var(--stroke); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+  .grid{display:grid; gap:10px}
+  .icons{grid-template-columns: repeat(3, 1fr)}
+  @media(min-width:460px){ .icons{grid-template-columns: repeat(4, 1fr)} }
+  .ico{display:grid; place-items:center; gap:6px; padding:14px; border: var(--ico-border); border-radius:22px;
+       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+       box-shadow: var(--ico_shadow, var(--ico-shadow));
+       cursor:pointer; transition:.15s}
+  .ico:active{transform:translateY(1px); filter:brightness(1.08)}
+  .ico.sel{outline: var(--ico-outline); box-shadow:0 0 0 6px rgba(41,211,255,.1), 0 0 35px rgba(0,255,168,.12)}
+  .ico .glyph{font-size:30px; line-height:1; text-shadow: var(--glyph-shadow)}
+  .ico .name{font-size:12px; opacity:.9}
+  .bigBtn{display:grid;place-items:center;width:130px;height:130px;border-radius:999px;border: var(--btn-border);
+          background:radial-gradient(60px 60px at 50% 50%, rgba(41,211,255,.22), rgba(138,92,255,.16) 60%, transparent 62%),
+          linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+          box-shadow: var(--btn-glow);
+          font-weight:900; letter-spacing:.3px; color:var(--txt)}
+  .console{background:#0d0f18;border:1px solid #1a2440;border-radius:14px;padding:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'JetBrains Mono'; font-size:12px; max-height:200px; overflow:auto;
+           box-shadow: inset 0 0 24px rgba(0,0,0,.35)}
+  .line{display:flex; gap:8px; margin:2px 0}
+  .tag{padding:2px 8px;border-radius:8px;border:1px solid var(--stroke);font-size:11px;color:#a3b7d9;background:rgba(255,255,255,.03)}
+  .val{white-space:pre-wrap; word-wrap:break-word}
+  footer{opacity:.7; font-size:12px; text-align:center; padding-bottom:8px}
+  .toolbar{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(1,7,18,0), rgba(1,7,18,.85));padding:10px;border:1px solid var(--stroke);
+           border-radius:14px;display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <div class="title">Dual · Nebula Unified</div>
+        <div style="opacity:.7;font-size:12px">Dark Neon ⇄ Purple Storm · n8n + WASM</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="gear" id="btnTheme">🌈 Tema</button>
+      <button class="gear" id="btnPatch">⚙︎ Pro</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="hd"><b>Selecione o arquétipo</b><div class="chips"><span class="chip">UNO</span><span class="chip">DUAL</span><span class="chip">TRINITY</span></div></div>
+    <div class="bd grid icons" id="icons">
+      <div class="ico" data-name="Nova"><div class="glyph">✨</div><div class="name">Nova</div></div>
+      <div class="ico" data-name="Elysha"><div class="glyph">🔮</div><div class="name">Elysha</div></div>
+      <div class="ico" data-name="Kaion"><div class="glyph">⚙️</div><div class="name">Kaion</div></div>
+      <div class="ico" data-name="Ignyra"><div class="glyph">🔥</div><div class="name">Ignyra</div></div>
+      <div class="ico" data-name="Luxara"><div class="glyph">🌟</div><div class="name">Luxara</div></div>
+      <div class="ico" data-name="Atlas"><div class="glyph">🗺️</div><div class="name">Atlas</div></div>
+      <div class="ico" data-name="Artemis"><div class="glyph">🎯</div><div class="name">Artemis</div></div>
+      <div class="ico" data-name="Serena"><div class="glyph">🌊</div><div class="name">Serena</div></div>
+      <div class="ico" data-name="Vitalis"><div class="glyph">🌱</div><div class="name">Vitalis</div></div>
+      <div class="ico" data-name="Aion"><div class="glyph">⏳</div><div class="name">Aion</div></div>
+      <div class="ico" data-name="Genus"><div class="glyph">🧬</div><div class="name">Genus</div></div>
+      <div class="ico" data-name="Rhea"><div class="glyph">🕊️</div><div class="name">Rhea</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Intenção</b><span class="chip" id="badgeMode">Modo: Nuvem (n8n)</span></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="fld">
+          <label>INTENÇÃO</label>
+          <select id="iIntent">
+            <option>TTS</option><option>RAG</option><option>MISSAO</option><option>ASR</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>UNO/DUAL/TRINITY</label>
+          <select id="iUDT"><option>UNO</option><option>DUAL</option><option>TRINITY</option></select>
+        </div>
+        <div class="fld" style="grid-column:1/-1">
+          <label>Texto | (ASR usa URL de áudio em input)</label>
+          <textarea id="iText" placeholder="Diga ao Dual..."></textarea>
+        </div>
+      </div>
+      <div class="center" style="margin:12px 0 14px; display:grid; place-items:center">
+        <button class="bigBtn" id="btnRun">◉</button>
+        <div id="ring" style="pointer-events:none; position:absolute; width:0;height:0; border-radius:9999px; border:2px solid var(--ring-color);"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnSpeak">🗣️ Falar</button>
+        <button class="btn" id="btnClear">Limpar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Console</b><small class="chip">logs</small></div>
+    <div class="bd console" id="console"></div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Saída</b><small style="color:#b6ffd0">Kodux</small></div>
+    <div class="bd" id="out" style="color:#b6ffd0"></div>
+  </section>
+
+  <footer>Do seu jeito. Sempre único, sempre seu.</footer>
+</div>
+
+<!-- Patch Manager minimal -->
+<div id="modalPro" style="position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center">
+  <div class="card" style="width:min(640px,92vw)">
+    <div class="hd"><b>Patch Manager</b><button class="btn" id="btnClosePro">✕</button></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="fld">
+          <label>Modo</label>
+          <select id="iMode"><option value="nuvem" selected>Nuvem (n8n)</option><option value="local">Local (WASM)</option><option value="neural">Neural (Servidor)</option></select>
+        </div>
+        <div class="fld"><label>Endpoint n8n (Webhook)</label><input id="iN8n" placeholder="https://SEU-N8N/webhook/dual"></div>
+        <div class="fld"><label>Endpoint Servidor Python</label><input id="iSrv" placeholder="https://SEU-SERVIDOR/api/dual"></div>
+        <div class="fld"><label>URL de Áudio (ASR)</label><input id="iAudioUrl" placeholder="https://.../audio.mp3"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnSave">💾 Salvar</button>
+        <button class="btn" id="btnReset">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = (s, c=document)=>c.querySelector(s);
+  const logEl = $('#console');
+  const outEl = $('#out');
+  const icons = Array.from(document.querySelectorAll('.ico'));
+  let arch = localStorage.getItem('nebU.arch') || 'Nova';
+  let mode = localStorage.getItem('nebU.mode') || 'nuvem';
+  let n8n = localStorage.getItem('nebU.n8n') || '';
+  let srv = localStorage.getItem('nebU.srv') || '';
+  let audioUrl = localStorage.getItem('nebU.audio') || '';
+  let theme = localStorage.getItem('nebU.theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+
+  function haptic(pattern=[35]){ if(navigator.vibrate) navigator.vibrate(pattern); }
+  function ringPulse(){
+    const ring = $('#ring');
+    ring.style.transition='none';
+    ring.style.width='0'; ring.style.height='0'; ring.style.opacity='1';
+    const rect = $('#btnRun').getBoundingClientRect();
+    ring.style.left = (rect.left + rect.width/2 - 1)+'px';
+    ring.style.top = (rect.top + rect.height/2 - 1)+'px';
+    requestAnimationFrame(()=>{
+      ring.style.transition='all .45s cubic-bezier(.2,.8,.2,1)';
+      ring.style.width='240px'; ring.style.height='240px';
+      ring.style.left = (rect.left + rect.width/2 - 120)+'px';
+      ring.style.top = (rect.top + rect.height/2 - 120)+'px';
+      ring.style.opacity='0';
+    });
+  }
+
+  function pick(name){
+    arch = name; localStorage.setItem('nebU.arch', arch);
+    icons.forEach(i=>i.classList.toggle('sel', i.dataset.name===arch));
+    haptic([12,18,12]);
+  }
+  icons.forEach(i=>{ i.onclick=()=> pick(i.dataset.name); });
+  pick(arch);
+
+  function log(tag, val){
+    const line = document.createElement('div'); line.className='line';
+    line.innerHTML = '<span class="tag">'+tag+'</span><span class="val">'+(typeof val==='string'?val:JSON.stringify(val,null,2))+'</span>';
+    logEl.appendChild(line); logEl.scrollTop = logEl.scrollHeight;
+  }
+  function speak(text){
+    try{ const u = new SpeechSynthesisUtterance(text); u.rate=1.02; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){}
+  }
+  function payload(){
+    const intent = $('#iIntent').value;
+    const texto = $('#iText').value.trim();
+    const udt = $('#iUDT').value;
+    return {
+      intencao:intent, arquetipo: arch, origem: intent==='ASR'?'voz':'texto', modo: mode==='local'?'Local':(mode==='nuvem'?'Nuvem':'Neural'),
+      destino:'PWA', memoria:['Estado 78K'],
+      input:{ texto, arquivoUrl: audioUrl, params:{ bpm:86, escala:'432Hz', sens:1.4 } },
+      device:{ ua:navigator.userAgent, ios:/iPhone|iPad|iPod/.test(navigator.userAgent), android:/Android/.test(navigator.userAgent) },
+      ui:{ unoDualTrinity: udt }
+    };
+  }
+  async function callNuvem(data){
+    if(!n8n){ alert('Defina o Endpoint n8n no Patch Manager.'); throw new Error('n8n vazio'); }
+    const r = await fetch(n8n, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    return await r.json();
+  }
+  async function callNeural(data){
+    if(!srv){ alert('Defina o Endpoint Servidor.'); throw new Error('srv vazio'); }
+    const r = await fetch(srv, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    return await r.json();
+  }
+  let pyodideLoaded=false;
+  async function ensurePyodide(){
+    if(pyodideLoaded) return true;
+    try{
+      if(!window.loadPyodide){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js'; document.head.appendChild(s); await new Promise(res=>s.onload=res); }
+      window._py = await loadPyodide(); pyodideLoaded=true; log('WASM','Pyodide ok'); return true;
+    }catch(e){ log('WASM','falhou; fallback'); return false; }
+  }
+  async function callLocal(data){
+    const ok = await ensurePyodide();
+    haptic([30,20,50]); ringPulse();
+    return { type:'ok', route:data.intencao, archetype:data.arquetipo, text:`[${data.arquetipo}] ${data.input.texto||'(local)'}` };
+  }
+  function render(resp){
+    outEl.innerHTML = '<pre style="white-space:pre-wrap">'+(resp.text||'(sem texto)')+'</pre>';
+    if(resp.audioUrl){ const a=new Audio(resp.audioUrl); a.play().catch(()=>{}); }
+  }
+
+  // Patch Manager
+  $('#btnPatch').onclick = ()=>{
+    $('#modalPro').style.display='flex';
+    $('#iMode').value = mode; $('#iN8n').value = n8n; $('#iSrv').value = srv; $('#iAudioUrl').value = audioUrl;
+  };
+  $('#btnClosePro').onclick = ()=> $('#modalPro').style.display='none';
+  $('#btnSave').onclick = ()=>{
+    mode = $('#iMode').value; n8n = $('#iN8n').value.trim(); srv = $('#iSrv').value.trim(); audioUrl = $('#iAudioUrl').value.trim();
+    localStorage.setItem('nebU.mode', mode); localStorage.setItem('nebU.n8n', n8n); localStorage.setItem('nebU.srv', srv); localStorage.setItem('nebU.audio', audioUrl);
+    $('#badgeMode').textContent = 'Modo: '+(mode==='local'?'Local (WASM)':(mode==='nuvem'?'Nuvem (n8n)':'Neural (Servidor)'));
+    log('SAVE','Config salva'); haptic([10,20,10]);
+  };
+  $('#btnReset').onclick = ()=>{
+    localStorage.removeItem('nebU.mode'); localStorage.removeItem('nebU.n8n'); localStorage.removeItem('nebU.srv'); localStorage.removeItem('nebU.audio');
+    mode='nuvem'; n8n=''; srv=''; audioUrl='';
+    $('#badgeMode').textContent='Modo: Nuvem (n8n)'; log('RESET','Config reset'); haptic([8,8,8]);
+  };
+
+  // Theme Toggle
+  $('#btnTheme').onclick = ()=>{
+    theme = (document.documentElement.getAttribute('data-theme')==='dark')?'purple':'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('nebU.theme', theme);
+    haptic([14,14,14]);
+  };
+
+  // Run
+  $('#btnRun').onclick = async()=>{
+    const data = payload(); log('SEND', data); haptic([16,32,16]); ringPulse();
+    try{
+      let resp;
+      if(mode==='nuvem') resp = await callNuvem(data);
+      else if(mode==='neural') resp = await callNeural(data);
+      else resp = await callLocal(data);
+      log('RECV', resp); render(resp);
+    }catch(e){ log('ERROR', e.message); render({text:'Falha na execução.'}); haptic([6,14,6,14,6]); }
+  };
+  $('#btnSpeak').onclick = ()=>{
+    const t = outEl.textContent.trim() || $('#iText').value.trim() || `Olá, ${arch}.`;
+    speak(t); haptic([8]);
+  };
+  $('#btnClear').onclick = ()=>{ outEl.innerHTML=''; logEl.innerHTML=''; $('#iText').value=''; haptic([6]); };
+
+  // init
+  $('#badgeMode').textContent = 'Modo: '+(mode==='local'?'Local (WASM)':(mode==='nuvem'?'Nuvem (n8n)':'Neural (Servidor)'));
+  log('BOOT','Nebula Unified — selecione arquétipo, escolha tema e toque ◉');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
+<title>Infodose · Procedural Live v2 — Splash</title>
+<meta name="theme-color" content="#12b4ff">
+<style>
+/* Reuse same base + extras */
+:root{
+  --bg:#04070b; --panel:#0c1018; --stroke:rgba(255,255,255,.12);
+  --txt:#e9effa; --dim:#9fb0c6;
+  --accent:#12b4ff; --accent2:#8a5cff;
+  --radius:18px; --blur:18px; --shadow:0 14px 44px rgba(0,0,0,.5);
+  --ringGlow: 0 0 36px rgba(18,180,255,.35), 0 0 72px rgba(138,92,255,.22);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; color:var(--txt); background:var(--bg); overflow:hidden; position:relative}
+body::before{content:""; position:fixed; inset:-14%; z-index:-1; background:
+  radial-gradient(110vw 90vh at 140% -10%, rgba(138,92,255,.16), rgba(138,92,255,0) 66%),
+  radial-gradient(95vw 80vh at -20% 110%, rgba(18,180,255,.18), rgba(18,180,255,0) 60%),
+  radial-gradient(85vw 70vh at 50% -10%, rgba(34,197,94,.10), rgba(34,197,94,0) 60%);
+  transform: translateZ(0); will-change: transform; pointer-events:none;
+}
+/* Spectrogram splash */
+#splash{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; z-index:10;
+  background:radial-gradient(80vw 60vh at 50% 40%, rgba(0,0,0,.35), rgba(0,0,0,.85) 70%), rgba(4,7,11,.96);
+  backdrop-filter: blur(12px);
+}
+#spectro{width:240px; height:120px; border-radius:14px; border:1px solid var(--stroke); background:rgba(255,255,255,.03)}
+.btn{padding:12px 16px; border-radius:14px; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(18,180,255,.35), rgba(18,180,255,.14)); color:var(--txt); font-weight:800}
+/* Reuse small subset styling for inner app mount */
+.mount{position:absolute; inset:0; display:grid; grid-template-rows:auto 1fr auto; height:100dvh; max-width:520px; margin:0 auto}
+header{position:sticky; top:0; z-index:2; backdrop-filter:blur(18px); background:linear-gradient(180deg, rgba(12,16,24,.86), rgba(12,16,24,.6)); border-bottom:1px solid var(--stroke)}
+.hwrap{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; gap:10px}
+.title{font-weight:800}
+.badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px dashed var(--stroke); color:#c7d2e0; font-size:12px}
+main{padding:12px; overflow:auto}
+.card{border:1px solid var(--stroke); border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); box-shadow:0 14px 44px rgba(0,0,0,.5); padding:12px; margin-bottom:12px;}
+.card h3{margin:2px 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:#b7c3d1}
+.row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.col{flex:1 1 140px; min-width:140px}
+.input,.select,.btn-small{padding:12px; border-radius:14px; border:1px solid var(--stroke); background:rgba(255,255,255,.04); color:inherit}
+.grid12{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.grid12 button{padding:12px; border-radius:12px; border:1px solid var(--stroke); background:rgba(255,255,255,.04); color:var(--txt); font-weight:800}
+.center{position:fixed; left:50%; bottom:98px; transform:translateX(-50%); z-index:3; display:flex; flex-direction:column; align-items:center; gap:8px}
+.ring{position:relative; width:98px; height:98px; border-radius:50%; border:1px solid var(--stroke); display:grid; place-items:center; box-shadow:0 0 36px rgba(18,180,255,.35), 0 0 72px rgba(138,92,255,.22); background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,.05) 60%, rgba(255,255,255,.02)); overflow:hidden}
+.ring canvas{position:absolute; inset:8px; border-radius:50%}
+#scopeBar{height:56px; border-radius:14px; border:1px solid var(--stroke); background:rgba(255,255,255,.03); display:block; width:100%}
+</style>
+</head>
+<body>
+<div id="splash">
+  <canvas id="spectro"></canvas>
+  <button class="btn" id="activateBtn">Ativar Áudio (TOCAR)</button>
+</div>
+
+<!-- Mount the same app structure as normal (lighter) -->
+<div class="mount" id="app">
+  <header>
+    <div class="hwrap">
+      <div>
+        <div class="title">Procedural Live — Subtrativa v2</div>
+        <div class="mono" id="paletteLbl">paleta ativa</div>
+      </div>
+      <span class="badge">PWA <strong class="mono" id="pwaFlag">ok</strong></span>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h3>🎮 Tríade dinâmica</h3>
+      <div class="row">
+        <div class="col">
+          <label class="hint">Movimento</label>
+          <div id="mov">
+            <button class="btn-small" data-mov="menos">− movimento</button>
+            <button class="btn-small" data-mov="mais">+ movimento</button>
+          </div>
+        </div>
+        <div class="col">
+          <label class="hint">Elemento</label>
+          <select class="select" id="elemento"><option>Água</option><option>Madeira</option><option>Fogo</option><option>Terra</option><option>Metal</option></select>
+        </div>
+        <div class="col">
+          <label class="hint">Loop Aberto</label>
+          <input type="checkbox" id="loopOpen"/>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>⚡ Quick‑12 (Banco A)</h3>
+      <div class="grid12" id="qgrid"></div>
+      <canvas id="scopeBar" aria-label="visualizador"></canvas>
+    </section>
+  </main>
+  <div class="center">
+    <div class="ring" id="homeBtn"><canvas id="scopeMini"></canvas></div>
+    <div class="mono" id="homeLbl">TOCAR</div>
+  </div>
+</div>
+
+<script>
+// Minimal shared (subset)
+const $=(q)=>document.querySelector(q);
+const ctxState={ctx:null,master:null,analyser:null};
+const state={playing:false,timer:null,next:0,look:0.05,interval:25,bpm:64,meter:"4/4",seed:Math.random()*1e6|0,density:.5,lfoDepth:.3,cutoff:1200,reso:.2,loopOpen:false,element:"Água"};
+const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11,H:11}; const midiToFreq=(m)=>440*Math.pow(2,(m-69)/12);
+function rnd(){state.seed=(state.seed*1664525+1013904223)>>>0;return (state.seed&0x7fffffff)/0x7fffffff;}
+async function initAudio(){ if(ctxState.ctx) return; const AC=window.AudioContext||window.webkitAudioContext; const ctx=new AC(); const master=ctx.createGain(); master.gain.value=.9; master.connect(ctx.destination); const an=ctx.createAnalyser(); an.fftSize=2048; an.smoothingTimeConstant=.6; master.connect(an); ctxState.ctx=ctx; ctxState.master=master; ctxState.analyser=an; }
+
+(function(){ // spectrogram splash
+  const cv=document.getElementById('spectro'); const c=cv.getContext('2d');
+  function loop(){ const W=cv.width=cv.clientWidth*devicePixelRatio, H=cv.height=cv.clientHeight*devicePixelRatio;
+    const img=c.getImageData(1,0,W-1,H); c.putImageData(img,0,0); c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(W-1,0,1,H);
+    const a=ctxState.analyser;
+    if(a){ const d=new Uint8Array(a.frequencyBinCount); a.getByteFrequencyData(d);
+      for(let i=0;i<H;i++){ const idx=Math.floor(i/H*d.length), v=d[idx]/255, y=H-1-i; const br=50+v*205|0; c.fillStyle='rgb('+br+',50,180)'; c.fillRect(W-1,y,1,1); }
+    } else { const t=Date.now()*0.002; for(let y=0;y<H;y+=2){ const v=(Math.sin(t+y*.02)+1)/2, br=60+v*160|0; c.fillStyle='rgb('+br+',60,180)'; c.fillRect(W-1,y,1,2);} }
+    requestAnimationFrame(loop);
+  } loop();
+  document.getElementById('activateBtn').addEventListener('click', async()=>{ await initAudio(); document.getElementById('splash').style.display='none'; });
+})();
+
+// tiny synth
+function buildPattern(bars=4){ const beats=4; const total=beats*bars; const notes=[]; for(let i=0;i<total;i++){ if(rnd()<state.density){ const midi=60+[0,2,4,5,7,9,11][(rnd()*7)|0]; notes.push({time:i,midi,len:rnd()<.7?.5:1}); } } return {beatsPerBar:4,totalBeats:total,notes}; }
+function makeVoice(){ const ctx=ctxState.ctx; const o=ctx.createOscillator(); o.type='sawtooth'; const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=state.cutoff; f.Q.value=state.reso*20; const g=ctx.createGain(); g.gain.value=0; o.connect(f).connect(g).connect(ctxState.master); o.start(); return {o,f,g}; }
+function trig(v,m,when,d){ v.g.gain.cancelScheduledValues(when); v.g.gain.setValueAtTime(0,when); v.g.gain.linearRampToValueAtTime(.9,when+.01); v.g.gain.linearRampToValueAtTime(.3,when+Math.max(.05,d*.35)); v.g.gain.linearRampToValueAtTime(.0001,when+d); v.o.frequency.setValueAtTime(midiToFreq(m),when); }
+function start(){ const ctx=ctxState.ctx; if(!ctx)return; state.loopOpen=document.getElementById('loopOpen').checked; const v=makeVoice(); state.next=ctx.currentTime+.05; let beat=0; let pat=buildPattern(4); const spb=()=>60/state.bpm; function sched(){ const now=ctx.currentTime; while(state.next<now+state.look){ pat.notes.filter(n=>n.time===beat).forEach(n=>trig(v,n.midi,state.next,spb()*n.len)); state.next+=spb(); beat++; if(beat>=pat.totalBeats){ beat=0; if(rnd()<.7) pat=buildPattern(4); if(!state.loopOpen){ stop(); return;} } } } state.playing=true; document.getElementById('homeLbl').textContent='PAUSAR'; if(state.timer)clearInterval(state.timer); state.timer=setInterval(sched,state.interval); }
+function stop(){ if(state.timer){clearInterval(state.timer); state.timer=null;} state.playing=false; document.getElementById('homeLbl').textContent='TOCAR'; }
+
+// quick12
+const A=["Inocente","Prestativo","Explorador","Rebelde","Herói","Amante","Criador","Bobo","Sábio","Mago","Governante","Cuidador"];
+function buildGrid(){ const el=document.getElementById('qgrid'); el.innerHTML=""; A.forEach(n=>{ const b=document.createElement('button'); b.textContent=n; b.onclick=async()=>{ await initAudio(); stop(); start(); }; el.appendChild(b);});}
+document.getElementById('homeBtn').addEventListener('click', async()=>{ await initAudio(); if(state.playing) stop(); else start(); });
+document.getElementById('mov').addEventListener('click', (e)=>{ if(e.target.tagName!=='BUTTON')return; [...document.querySelectorAll('#mov .btn-small')].forEach(b=>b.classList.remove('active')); e.target.classList.add('active'); state.density = e.target.dataset.mov==='mais' ? .85 : .45; });
+(function(){ // scopes
+  const cv=document.getElementById('scopeBar'), c=cv.getContext('2d');
+  function loop(){ const W=cv.width=cv.clientWidth*devicePixelRatio,H=cv.height=cv.clientHeight*devicePixelRatio; c.clearRect(0,0,W,H); const a=ctxState.analyser; if(!a){requestAnimationFrame(loop);return;} const d=new Uint8Array(a.frequencyBinCount); a.getByteFrequencyData(d); const step=Math.max(1,Math.floor(d.length/W)); c.beginPath(); for(let x=0;x<W;x++){const idx=Math.min(d.length-1,x*step), v=d[idx]/255, y=H-v*H; if(x===0)c.moveTo(x,y); else c.lineTo(x,y);} c.strokeStyle='rgba(18,180,255,.9)'; c.lineWidth=2; c.stroke(); requestAnimationFrame(loop);} loop();
+})(); buildGrid();
+</script>
+</body>
+</html>

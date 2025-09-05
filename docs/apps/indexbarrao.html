@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Hub JHBarros.Dual.Infodose — ASSERT</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root{--bg:#0d0f14;--fg:#e6f8ff;--muted:#a7c1cc;--card:#111827;--acc:#00d1ff;--radius:16px;}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 50% -10%, rgba(0,209,255,.12), transparent 60%), linear-gradient(180deg,#0a0c12 0%, #0d0f14 40%, #0a0b0f 100%);color:var(--fg);font-family:system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial}
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);background:rgba(13,15,20,.65);border-bottom:1px solid #ffffff14}
+    .inner{max-width:920px;margin:0 auto;padding:10px 14px;display:flex;gap:12px;align-items:center}
+    .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff6, transparent 60%), conic-gradient(from 0deg, var(--acc), #6ee7ff, var(--acc));position:relative;box-shadow:0 0 0 3px #0008,inset 0 0 20px #000;animation:pulse 2.6s infinite ease-in-out}
+    .logo:after{content:"A";display:grid;place-items:center;position:absolute;inset:0;font-weight:900;color:#001218;font-size:22px;text-shadow:0 0 12px #00d1ff88}
+    @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #00d1ff33}50%{transform:scale(1.06);box-shadow:0 0 0 12px #00d1ff18}}
+    h1{font-size:1.2rem;margin:0}
+    .kicker{font-size:.74rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+    .grid{max-width:920px;margin:16px auto 20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 14px}
+    @media (max-width:560px){ .grid{grid-template-columns:1fr} }
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid #ffffff12;border-radius:var(--radius);padding:14px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 25px rgba(0,0,0,.25)}
+    .icon{width:56px;height:56px;border-radius:14px;background:#0f1320;border:1px solid #00d1ff33;display:grid;place-items:center;font-size:26px}
+    .title{font-weight:800}
+    .muted{color:var(--muted);font-size:.9rem}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:none;background:linear-gradient(180deg,#13212e,#0e1924);border:1px solid #163142;color:#c8f3ff;padding:.6rem 1rem;border-radius:12px;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .viewer{position:fixed;inset:0;background:#000b;backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:10px;z-index:20}
+    .viewer.show{display:flex}
+    .frame{width:100%;max-width:1024px;height:86vh;border-radius:18px;border:1px solid #ffffff22;overflow:hidden;background:#0f1117;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .bar{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #ffffff18;background:linear-gradient(180deg,#0a0f14,#0b1116)}
+    .bar .left{display:flex;align-items:center;gap:8px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#00d1ff}
+    .iframe{width:100%;height:calc(86vh - 42px);border:0}
+    footer{color:#9bb4c4;font-size:.8rem;text-align:center;margin:18px 0}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="inner">
+      <div class="logo"></div>
+      <div style="flex:1">
+        <div class="kicker">JHBarros.Dual.Infodose • ASSERT</div>
+        <h1>Hub • Home</h1>
+      </div>
+      <button class="btn" id="btnInstall">⬇️ Instalar Hub</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <div class="card">
+      <div class="icon">⚡</div>
+      <div style="flex:1">
+        <div class="title">Manual Prático TICOs — NR10/NR35 (Ultra)</div>
+        <div class="muted">PWA offline, dashboard, lembrete e relatos com áudio.</div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" data-open="ticos">Abrir no Hub</button>
+          <button class="btn" data-open="ticos" data-newtab="1">Abrir em aba</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">🧩</div>
+      <div style="flex:1">
+        <div class="title">App 2 (substitua aqui)</div>
+        <div class="muted">Coloque seu HTML em <code>apps/app2.html</code> ou aponte para uma URL.</div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" data-open="app2">Abrir no Hub</button>
+          <button class="btn" data-open="app2" data-newtab="1">Abrir em aba</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>Hub ASSERT • “Central de apps Dual.Infodose”</footer>
+
+  <div class="viewer" id="viewer">
+    <div class="frame">
+      <div class="bar">
+        <div class="left"><div class="dot"></div><strong id="barTitle">App</strong></div>
+        <div class="row">
+          <button class="btn" id="btnHome">🏠 Home</button>
+          <a class="btn" id="btnExternal" href="#" target="_blank" rel="noopener">↗️ Abrir em aba</a>
+        </div>
+      </div>
+      <iframe class="iframe" id="appFrame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <script>
+  // Config de apps — ajuste as URLs aqui se necessário
+  const APPS = {
+    ticos: {
+      title: 'TICOs Ultra',
+      url: '../PWA_TICO_Ultra/index.html' // ajuste o caminho conforme sua estrutura
+    },
+    app2: {
+      title: 'App 2',
+      url: './apps/app2.html' // substitua este arquivo pelo seu app
+    }
+  };
+
+  const viewer = document.getElementById('viewer');
+  const frame  = document.getElementById('appFrame');
+  const barTitle = document.getElementById('barTitle');
+  const btnExternal = document.getElementById('btnExternal');
+
+  function openApp(key, newtab=false){
+    const app = APPS[key]; if(!app) return;
+    if(newtab){
+      window.open(app.url, '_blank', 'noopener');
+      return;
+    }
+    barTitle.textContent = app.title;
+    btnExternal.href = app.url;
+    frame.src = app.url;
+    viewer.classList.add('show');
+    location.hash = '#app=' + key;
+  }
+
+  // eventos dos botões
+  document.querySelectorAll('[data-open]').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const key = b.getAttribute('data-open');
+      const newtab = b.hasAttribute('data-newtab');
+      openApp(key, newtab);
+    });
+  });
+  document.getElementById('btnHome').onclick = ()=>{
+    frame.src = 'about:blank';
+    viewer.classList.remove('show');
+    history.pushState('', document.title, window.location.pathname + window.location.search);
+  };
+
+  // deep link via hash
+  function checkHash(){
+    const h = new URLSearchParams(location.hash.slice(1));
+    const app = h.get('app');
+    if(app) openApp(app, false);
+  }
+  window.addEventListener('hashchange', checkHash);
+  checkHash();
+
+  // PWA install
+  if('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js')); }
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
+  document.getElementById('btnInstall').onclick = async()=>{
+    if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+    else alert('Se o prompt não aparecer, use “Adicionar à Tela de Início”.');
+  };
+  </script>
+</body>
+</html>

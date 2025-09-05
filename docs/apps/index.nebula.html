@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Dual · Nebula Pro — n8n + WASM</title>
+<meta name="theme-color" content="#0b0e14">
+<style>
+  :root{
+    --bg:#070a12; --txt:#EAF2FF; --muted:#9fb1cc; --stroke:rgba(255,255,255,.12);
+    --a:#29d3ff; --b:#8a5cff; --ok:#2fe66a;
+    --r:18px; --shadow:0 16px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:
+     radial-gradient(1200px 700px at 20% -10%, rgba(41,211,255,.18), transparent 60%),
+     radial-gradient(1400px 900px at 120% 120%, rgba(138,92,255,.16), transparent 60%),
+     conic-gradient(from 180deg at 50% 50%, #0f1731, #0b0f22, #0a0d1c, #0f1731);
+     color:var(--txt); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+     background-attachment: fixed;
+  }
+  .wrap{min-height:100%; display:grid; grid-template-rows:auto auto 1fr auto; gap:14px; padding:16px}
+  header{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .brand{display:flex; align-items:center; gap:10px}
+  .logo{width:42px;height:42px;border-radius:14px;background:radial-gradient(circle at 30% 30%, rgba(41,211,255,.9), rgba(138,92,255,.6) 40%, transparent 60%);
+        box-shadow:0 0 0 2px var(--stroke) inset, 0 8px 22px rgba(0,0,0,.5)}
+  .title{font-weight:900;letter-spacing:.3px}
+  .gear{border:1px solid var(--stroke);border-radius:12px;padding:8px 10px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));cursor:pointer}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid var(--stroke); border-radius:var(--r); box-shadow:var(--shadow)}
+  .hd{padding:12px 14px; border-bottom:1px solid var(--stroke); display:flex; align-items:center; justify-content:space-between}
+  .bd{padding:12px 14px}
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{border:1px dashed var(--stroke); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+  .grid{display:grid; gap:10px}
+  .icons{grid-template-columns: repeat(3, 1fr)}
+  @media(min-width:460px){ .icons{grid-template-columns: repeat(4, 1fr)} }
+  .ico{display:grid; place-items:center; gap:6px; padding:12px; border:1px solid var(--stroke); border-radius:18px;
+       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); cursor:pointer; transition:.2s}
+  .ico:active{transform:translateY(1px)}
+  .ico .glyph{font-size:28px; line-height:1}
+  .ico .name{font-size:12px; opacity:.85}
+  .ico.sel{outline:2px solid var(--a); box-shadow:0 0 0 6px rgba(41,211,255,.1)}
+  .bigBtn{display:grid;place-items:center;width:120px;height:120px;border-radius:999px;border:1px solid var(--stroke);
+          background:radial-gradient(60px 60px at 50% 50%, rgba(41,211,255,.18), rgba(138,92,255,.12) 60%, transparent 62%),
+          linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+          box-shadow:0 0 0 6px rgba(41,211,255,.08), inset 0 0 40px rgba(138,92,255,.16); font-weight:900; letter-spacing:.3px}
+  .console{background:#0a111f;border:1px solid #0b1d38;border-radius:14px;padding:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'JetBrains Mono'; font-size:12px; max-height:180px; overflow:auto}
+  .line{display:flex; gap:8px; margin:2px 0}
+  .tag{padding:2px 8px;border-radius:8px;border:1px solid var(--stroke);font-size:11px;color:#a3b7d9;background:rgba(255,255,255,.03)}
+  .val{white-space:pre-wrap; word-wrap:break-word}
+  footer{opacity:.7; font-size:12px; text-align:center; padding-bottom:8px}
+  .toolbar{position:sticky;bottom:0;background:linear-gradient(180deg, rgba(1,7,18,0), rgba(1,7,18,.8));padding:8px;border:1px solid var(--stroke);
+           border-radius:14px;display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <div class="title">Dual · Nebula Pro</div>
+        <div style="opacity:.7;font-size:12px">n8n + WASM · 12 arquétipos · mobile-only</div>
+      </div>
+    </div>
+    <button class="gear" id="btnPatch">⚙︎ Pro</button>
+  </header>
+
+  <section class="card">
+    <div class="hd"><b>Selecione o arquétipo</b><div class="chips"><span class="chip">UNO</span><span class="chip">DUAL</span><span class="chip">TRINITY</span></div></div>
+    <div class="bd grid icons" id="icons">
+      <!-- 12 ícones videogame -->
+      <div class="ico" data-name="Nova"><div class="glyph">✨</div><div class="name">Nova</div></div>
+      <div class="ico" data-name="Elysha"><div class="glyph">🔮</div><div class="name">Elysha</div></div>
+      <div class="ico" data-name="Kaion"><div class="glyph">⚙️</div><div class="name">Kaion</div></div>
+      <div class="ico" data-name="Ignyra"><div class="glyph">🔥</div><div class="name">Ignyra</div></div>
+      <div class="ico" data-name="Luxara"><div class="glyph">🌟</div><div class="name">Luxara</div></div>
+      <div class="ico" data-name="Atlas"><div class="glyph">🗺️</div><div class="name">Atlas</div></div>
+      <div class="ico" data-name="Artemis"><div class="glyph">🎯</div><div class="name">Artemis</div></div>
+      <div class="ico" data-name="Serena"><div class="glyph">🌊</div><div class="name">Serena</div></div>
+      <div class="ico" data-name="Vitalis"><div class="glyph">🌱</div><div class="name">Vitalis</div></div>
+      <div class="ico" data-name="Aion"><div class="glyph">⏳</div><div class="name">Aion</div></div>
+      <div class="ico" data-name="Genus"><div class="glyph">🧬</div><div class="name">Genus</div></div>
+      <div class="ico" data-name="Rhea"><div class="glyph">🕊️</div><div class="name">Rhea</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Intenção</b><span class="chip" id="badgeMode">Modo: Nuvem (n8n)</span></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="fld">
+          <label>INTENÇÃO</label>
+          <select id="iIntent">
+            <option>TTS</option><option>RAG</option><option>MISSAO</option><option>ASR</option>
+          </select>
+        </div>
+        <div class="fld">
+          <label>UNO/DUAL/TRINITY</label>
+          <select id="iUDT"><option>UNO</option><option>DUAL</option><option>TRINITY</option></select>
+        </div>
+        <div class="fld" style="grid-column:1/-1">
+          <label>Texto | (ASR usa URL de áudio em input)</label>
+          <textarea id="iText" placeholder="Diga ao Dual..."></textarea>
+        </div>
+      </div>
+      <div class="center" style="margin:12px 0 14px">
+        <button class="bigBtn" id="btnRun">◉</button>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnSpeak">🗣️ Falar</button>
+        <button class="btn" id="btnClear">Limpar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Console</b><small class="chip">logs</small></div>
+    <div class="bd console" id="console"></div>
+  </section>
+
+  <section class="card">
+    <div class="hd"><b>Saída</b><small style="color:#b6ffd0">Kodux</small></div>
+    <div class="bd" id="out" style="color:#b6ffd0"></div>
+  </section>
+
+  <footer>Do seu jeito. Sempre único, sempre seu.</footer>
+</div>
+
+<!-- Patch Manager minimal -->
+<div id="modalPro" style="position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center">
+  <div class="card" style="width:min(640px,92vw)">
+    <div class="hd"><b>Patch Manager</b><button class="btn" id="btnClosePro">✕</button></div>
+    <div class="bd">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="fld">
+          <label>Modo</label>
+          <select id="iMode"><option value="nuvem" selected>Nuvem (n8n)</option><option value="local">Local (WASM)</option><option value="neural">Neural (Servidor)</option></select>
+        </div>
+        <div class="fld"><label>Endpoint n8n (Webhook)</label><input id="iN8n" placeholder="https://SEU-N8N/webhook/dual"></div>
+        <div class="fld"><label>Endpoint Servidor Python</label><input id="iSrv" placeholder="https://SEU-SERVIDOR/api/dual"></div>
+        <div class="fld"><label>URL de Áudio (ASR)</label><input id="iAudioUrl" placeholder="https://.../audio.mp3"></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnSave">💾 Salvar</button>
+        <button class="btn" id="btnReset">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = (s, c=document)=>c.querySelector(s);
+  const logEl = $('#console');
+  const outEl = $('#out');
+  const icons = Array.from(document.querySelectorAll('.ico'));
+  let arch = localStorage.getItem('neb.arch') || 'Nova';
+  let mode = localStorage.getItem('neb.mode') || 'nuvem';
+  let n8n = localStorage.getItem('neb.n8n') || '';
+  let srv = localStorage.getItem('neb.srv') || '';
+  let audioUrl = localStorage.getItem('neb.audio') || '';
+
+  function pick(name){
+    arch = name; localStorage.setItem('neb.arch', arch);
+    icons.forEach(i=>i.classList.toggle('sel', i.dataset.name===arch));
+  }
+  icons.forEach(i=>{ i.onclick=()=> pick(i.dataset.name); });
+  pick(arch);
+
+  function log(tag, val){
+    const line = document.createElement('div'); line.className='line';
+    line.innerHTML = '<span class="tag">'+tag+'</span><span class="val">'+(typeof val==='string'?val:JSON.stringify(val,null,2))+'</span>';
+    logEl.appendChild(line); logEl.scrollTop = logEl.scrollHeight;
+  }
+  function speak(text){
+    try{ const u = new SpeechSynthesisUtterance(text); u.rate=1.02; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){}
+  }
+  function payload(){
+    const intent = $('#iIntent').value;
+    const texto = $('#iText').value.trim();
+    const udt = $('#iUDT').value;
+    return {
+      intencao:intent, arquetipo: arch, origem: intent==='ASR'?'voz':'texto', modo: mode==='local'?'Local':(mode==='nuvem'?'Nuvem':'Neural'),
+      destino:'PWA', memoria:['Estado 78K'],
+      input:{ texto, arquivoUrl: audioUrl, params:{ bpm:86, escala:'432Hz', sens:1.4 } },
+      device:{ ua:navigator.userAgent, ios:/iPhone|iPad|iPod/.test(navigator.userAgent), android:/Android/.test(navigator.userAgent) },
+      ui:{ unoDualTrinity: udt }
+    };
+  }
+  async function callNuvem(data){
+    if(!n8n){ alert('Defina o Endpoint n8n no Patch Manager.'); throw new Error('n8n vazio'); }
+    const r = await fetch(n8n, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    return await r.json();
+  }
+  async function callNeural(data){
+    if(!srv){ alert('Defina o Endpoint Servidor.'); throw new Error('srv vazio'); }
+    const r = await fetch(srv, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    return await r.json();
+  }
+  let pyodideLoaded=false;
+  async function ensurePyodide(){
+    if(pyodideLoaded) return true;
+    try{
+      if(!window.loadPyodide){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js'; document.head.appendChild(s); await new Promise(res=>s.onload=res); }
+      window._py = await loadPyodide(); pyodideLoaded=true; log('WASM','Pyodide ok'); return true;
+    }catch(e){ log('WASM','falhou; fallback'); return false; }
+  }
+  async function callLocal(data){
+    const ok = await ensurePyodide();
+    return { type:'ok', route:data.intencao, archetype:data.arquetipo, text:`[${data.arquetipo}] ${data.input.texto||'(local)'}` };
+  }
+  function render(resp){
+    outEl.innerHTML = '<pre style="white-space:pre-wrap">'+(resp.text||'(sem texto)')+'</pre>';
+    if(resp.audioUrl){ const a=new Audio(resp.audioUrl); a.play().catch(()=>{}); }
+  }
+
+  $('#btnPatch').onclick = ()=>{
+    $('#modalPro').style.display='flex';
+    $('#iMode').value = mode; $('#iN8n').value = n8n; $('#iSrv').value = srv; $('#iAudioUrl').value = audioUrl;
+  };
+  $('#btnClosePro').onclick = ()=> $('#modalPro').style.display='none';
+  $('#btnSave').onclick = ()=>{
+    mode = $('#iMode').value; n8n = $('#iN8n').value.trim(); srv = $('#iSrv').value.trim(); audioUrl = $('#iAudioUrl').value.trim();
+    localStorage.setItem('neb.mode', mode); localStorage.setItem('neb.n8n', n8n); localStorage.setItem('neb.srv', srv); localStorage.setItem('neb.audio', audioUrl);
+    $('#badgeMode').textContent = 'Modo: '+(mode==='local'?'Local (WASM)':(mode==='nuvem'?'Nuvem (n8n)':'Neural (Servidor)'));
+    log('SAVE','Config salva');
+  };
+  $('#btnReset').onclick = ()=>{
+    localStorage.removeItem('neb.mode'); localStorage.removeItem('neb.n8n'); localStorage.removeItem('neb.srv'); localStorage.removeItem('neb.audio');
+    mode='nuvem'; n8n=''; srv=''; audioUrl='';
+    $('#badgeMode').textContent='Modo: Nuvem (n8n)'; log('RESET','Config reset');
+  };
+
+  $('#btnRun').onclick = async()=>{
+    const data = payload(); log('SEND', data);
+    try{
+      let resp;
+      if(mode==='nuvem') resp = await callNuvem(data);
+      else if(mode==='neural') resp = await callNeural(data);
+      else resp = await callLocal(data);
+      log('RECV', resp); render(resp);
+    }catch(e){ log('ERROR', e.message); render({text:'Falha na execução.'}); }
+  };
+  $('#btnSpeak').onclick = ()=>{
+    const t = outEl.textContent.trim() || $('#iText').value.trim() || `Olá, ${arch}.`;
+    speak(t);
+  };
+  $('#btnClear').onclick = ()=>{ outEl.innerHTML=''; logEl.innerHTML=''; $('#iText').value=''; };
+
+  // init
+  $('#badgeMode').textContent = 'Modo: '+(mode==='local'?'Local (WASM)':(mode==='nuvem'?'Nuvem (n8n)':'Neural (Servidor)'));
+  log('BOOT','Nebula Pro pronto — escolha arquétipo e toque ◉');
+})();
+</script>
+</body>
+</html>
