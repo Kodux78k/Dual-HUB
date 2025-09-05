@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"/>
+<title>Dual Hub — Vertical Lock</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#0a0c12; --bg2:#0d0f14; --fg:#eaf6ff; --muted:#9ab4c4;
+  --acc:#00d1ff; --gold:#D4AF37; --card:#121521; --ring:#00d1ff66;
+  --radius:22px; --maxw:420px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent}
+html,body{height:100%}
+body{
+  margin:0; color:var(--fg);
+  font-family: ui-sans-serif, -apple-system, Inter, Segoe UI, Roboto, Arial;
+  background: radial-gradient(900px 600px at 50% -10%, rgba(0,209,255,.10), transparent 60%),
+             linear-gradient(180deg,var(--bg) 0%, var(--bg2) 60%, #090b10 100%);
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  display:flex; flex-direction:column; min-height:100vh;
+}
+/* Header só aparece DEPOIS que o app é aberto */
+.header{ position:sticky; top:0; z-index:10; display:none;
+  backdrop-filter:saturate(160%) blur(14px);
+  background:rgba(13,15,20,.55);
+  border-bottom:1px solid #ffffff12;
+  padding-top: env(safe-area-inset-top);
+}
+.header.show{ display:block }
+.inner{
+  max-width:var(--maxw); margin:0 auto; padding:10px 14px;
+  display:flex; gap:10px; align-items:center;
+}
+.logo{width:36px;height:36px;border-radius:12px;
+  background:conic-gradient(from 0deg,var(--acc),#6ee7ff,var(--acc));
+  position:relative; box-shadow:0 0 0 2px #0008, inset 0 0 20px #000; }
+.logo::after{content:"A";position:absolute; inset:0; display:grid; place-items:center;
+  font-weight:900; color:#001218; font-size:18px; text-shadow:0 0 12px #00d1ff88}
+h1{ margin:0; font-size:1.06rem; font-weight:900; letter-spacing:.2px }
+.kicker{ font-size:.72rem; letter-spacing:.1em; color:var(--muted); text-transform:uppercase }
+
+/* SPLASH: Lock Menu vertical */
+.splash{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding: clamp(16px, 4vh, 28px) 16px calc(18px + env(safe-area-inset-bottom));
+}
+.lock{
+  width:100%; max-width:var(--maxw);
+  display:flex; flex-direction:column; gap:14px;
+}
+.brand{
+  display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:6px;
+  opacity:.9;
+}
+.brand .mark{width:52px;height:52px;border-radius:16px;
+  background: radial-gradient(circle at 30% 30%, #fff6, transparent 60%),
+              conic-gradient(from 0deg, var(--acc), #6ee7ff, var(--acc));}
+.brand strong{font-size:1.1rem; letter-spacing:.3px}
+.lockCard{
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid #ffffff12; border-radius:var(--radius);
+  padding:14px 14px 12px; box-shadow:0 14px 32px rgba(0,0,0,.35);
+}
+.lockHead{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.lockTitle{ font-weight:900 }
+.toggle{
+  appearance:none; width:52px; height:30px; border-radius:30px; position:relative; cursor:pointer;
+  background:#0f1723; border:1px solid #1a2b33;
+}
+.toggle::after{
+  content:""; position:absolute; top:3px; left:3px; width:24px;height:24px;border-radius:50%;
+  background:#e8f7ff; box-shadow:0 1px 2px rgba(0,0,0,.5); transition:.2s ease;
+}
+.toggle:checked{ background:#172b38; box-shadow:0 0 0 2px var(--ring) inset }
+.toggle:checked::after{ left:25px; background:#00d1ff }
+.lockBody{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .22s ease }
+.lockBody > div{ overflow:hidden }
+.toggle:checked ~ .lockBody{ grid-template-rows:1fr }
+.lockList{ display:grid; gap:10px; padding-top:10px }
+.lockBtn{
+  appearance:none; border:1px solid #1a2b33; background:#111826; color:#cdefff;
+  padding:12px 14px; border-radius:14px; font-weight:800; text-align:left;
+  display:flex; align-items:center; gap:10px; justify-content:space-between;
+}
+.lockBtn .hint{ color:#9ab4c4; font-weight:600; font-size:.86rem }
+
+/* GRID de Cards (aparece após sair do splash) */
+main{ display:none }
+main.show{ display:flex; align-items:center; justify-content:center;
+  padding: clamp(16px, 4vh, 28px) 16px calc(18px + env(safe-area-inset-bottom)); }
+.grid{ width:100%; max-width:var(--maxw); display:grid; gap:14px }
+.card{
+  display:flex; gap:12px; align-items:center;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid #ffffff12; border-radius:var(--radius); padding:16px;
+  box-shadow:0 14px 32px rgba(0,0,0,.35); transition:transform .14s ease, box-shadow .14s ease;
+}
+.card:active{ transform:scale(.985); box-shadow:0 8px 22px rgba(0,0,0,.35) }
+.icon{ width:62px;height:62px;border-radius:18px; overflow:hidden;
+  background:#0f1320; border:1px solid #00d1ff33; display:grid; place-items:center; }
+.title{ font-weight:900; letter-spacing:.2px; font-size:1.02rem }
+.muted{ color:var(--muted); font-size:.88rem }
+.row{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px }
+.btn{ appearance:none; border:none; cursor:pointer; width:100%;
+  background:linear-gradient(180deg,#f7f7f7,#e8e8e8);
+  color:#0d0f14; font-weight:800; border-radius:14px; padding:12px 14px; letter-spacing:.2px; }
+.btn.secondary{ background:linear-gradient(180deg,#162231,#0f1723); color:#cdefff; border:1px solid #1a2b33 }
+
+footer{ color:#9bb4c4; font-size:.78rem; text-align:center; padding:10px 0 calc(10px + env(safe-area-inset-bottom)); }
+
+/* Viewer fullscreen com swipe-down */
+.viewer{ position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center;
+  padding:0; background:#000b; backdrop-filter:blur(6px); }
+.viewer.show{ display:flex }
+.frame{ width:100%; height:100vh; border:0; overflow:hidden; background:#0f1117; display:flex; flex-direction:column; }
+.bar{ display:flex; align-items:center; justify-content:space-between;
+  padding: 10px 12px calc(10px + env(safe-area-inset-top));
+  border-bottom:1px solid #ffffff18; background:linear-gradient(180deg,#0a0f14,#0b1116); }
+.bar .left{ display:flex; align-items:center; gap:10px }
+.dot{ width:10px; height:10px; border-radius:50%; background:#00d1ff }
+.iframe{ flex:1; width:100%; border:0 }
+.loader{ position:absolute; inset:48px 0 0 0; display:grid; place-items:center;
+  background:linear-gradient(180deg,#0a0f14ee,#0b0f14dd); backdrop-filter:blur(2px); transition:opacity .25s ease;
+  opacity:0; pointer-events:none }
+.loader.show{ opacity:1; pointer-events:auto }
+.spinner{ width:48px;height:48px;border-radius:50%;border:3px solid #1f2a37;border-top-color:#00d1ff; animation:spin 1s linear infinite }
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+@media (max-width:380px){
+  .icon{ width:56px;height:56px;border-radius:16px }
+}
+
+/* ——— Extras: Arquétipos + Stepper + Haptics ——— */
+.arch{
+  display:grid; gap:10px; grid-template-columns: repeat(3, minmax(0,1fr)); margin-top:10px;
+}
+.arch .chip{
+  appearance:none; border:1px solid #1a2b33; background:#0f1623; color:#cdefff;
+  padding:10px 10px; border-radius:14px; font-weight:800; text-align:center; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.chip .sym{ font-size:18px; line-height:1 }
+.chip .nm{ font-size:.78rem; color:#9ab4c4 }
+.chip.active{ box-shadow:0 0 0 2px var(--ring) inset; background:#121c2b }
+
+/* Paletas por arquétipo (mock) */
+:root{
+  --arch-Atlas:#7dd3fc; --arch-Nova:#fca5a5; --arch-Elysha:#c4b5fd;
+  --arch-Kaion:#86efac; --arch-Genus:#fde68a; --arch-Lumine:#fbbf24;
+  --arch-Artemis:#f472b6; --arch-Serena:#93c5fd; --arch-Aion:#a7f3d0;
+  --arch-Rhea:#f9a8d4; --arch-Horus:#f87171; --arch-Kaos:#60a5fa;
+}
+
+/* Stepper modal */
+.stepper{
+  position:fixed; inset:0; z-index:30; display:none; align-items:center; justify-content:center;
+  background:#000b; backdrop-filter: blur(6px);
+}
+.stepper.show{ display:flex }
+.stepbox{
+  width:min(420px, 92vw); border-radius:20px;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid #ffffff18; padding:16px; box-shadow:0 18px 40px rgba(0,0,0,.4);
+}
+.steptitle{ font-weight:900; margin-bottom:10px }
+.stepdesc{ color:#9ab4c4; font-size:.9rem; margin-bottom:12px }
+.stepbar{ height:6px; background:#0f1723; border-radius:999px; overflow:hidden; margin-bottom:12px; border:1px solid #1a2b33 }
+.stepbar > div{ height:100%; width:0%; background:linear-gradient(90deg, var(--acc), #6ee7ff); transition: width .25s ease }
+.steprow{ display:grid; gap:10px }
+.stepactions{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px }
+.stepbtn{ appearance:none; border:none; border-radius:12px; padding:12px; font-weight:800; cursor:pointer }
+.stepbtn.primary{ background:linear-gradient(180deg,#f7f7f7,#e8e8e8); color:#0d0f14 }
+.stepbtn.secondary{ background:linear-gradient(180deg,#162231,#0f1723); color:#cdefff; border:1px solid #1a2b33 }
+
+</style>
+</head>
+<body>
+
+<header class="header" id="header">
+  <div class="inner">
+    <div class="logo" aria-hidden="true"></div>
+    <div style="flex:1">
+      <div class="kicker">Dual.Infodose • ASSERT</div>
+      <h1>Hub • Home</h1>
+    </div>
+    <div class="seg" role="tablist" aria-label="Tema">
+      <button class="tbtn active" id="themeCyan" role="tab" aria-selected="true">ASSERT</button>
+      <button class="tbtn" id="themeLux" role="tab" aria-selected="false">Lux</button>
+    </div>
+  </div>
+</header>
+
+<!-- SPLASH — Lock Menu vertical (jogável) -->
+<section class="splash" id="splash">
+  <div class="lock" role="menu" aria-label="Menu de ativações">
+    <div class="brand"><div class="mark"></div><strong>Hub Dual.Infodose</strong></div>
+
+    <!-- 1) Modo / Tema -->
+    <div class="lockCard">
+      <div class="lockHead">
+        <div class="lockTitle">Tema</div>
+        <input type="checkbox" class="toggle" id="tg-theme" aria-controls="body-theme" aria-expanded="false"/>
+      </div>
+      <div class="lockBody" id="body-theme"><div>
+        <div class="lockList">
+          <button class="lockBtn" data-theme="assert">ASSERT <span class="hint">ciano</span></button>
+          <button class="lockBtn" data-theme="lux">Luxara <span class="hint">dourado</span></button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 2) Ativações -->
+    <div class="lockCard">
+      <div class="lockHead">
+        <div class="lockTitle">Ativações</div>
+        <input type="checkbox" class="toggle" id="tg-acts" aria-controls="body-acts" aria-expanded="false"/>
+      </div>
+      <div class="lockBody" id="body-acts"><div>
+        <div class="lockList">
+          <button class="lockBtn" data-activation="resume">Retomar último app <span class="hint">#resume</span></button>
+          <button class="lockBtn" data-activation="open-grid">Abrir Hub <span class="hint">cards</span></button>
+          <button class="lockBtn" data-activation="install">Instalar PWA <span class="hint">iOS/Android</span></button>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- 3) Apps rápidos -->
+    <!-- 4) Arquétipos -->
+    <!-- 5) Base de Apps -->
+    <div class="lockCard">
+      <div class="lockHead">
+        <div class="lockTitle">Base de Apps</div>
+        <input type="checkbox" class="toggle" id="tg-bases" aria-controls="body-bases" aria-expanded="false"/>
+      </div>
+      <div class="lockBody" id="body-bases"><div>
+        <div class="lockList">
+          <button class="lockBtn" data-base="local">Local <span class="hint">./apps/apps.json</span></button>
+          <button class="lockBtn" data-base="prod">Produção <span class="hint">https://meusite.com/apps.json</span></button>
+          <button class="lockBtn" data-base="github">GitHub <span class="hint">https://user.github.io/apps.json</span></button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="lockCard">
+      <div class="lockHead">
+        <div class="lockTitle">Arquétipos</div>
+        <input type="checkbox" class="toggle" id="tg-arch" aria-controls="body-arch" aria-expanded="false"/>
+      </div>
+      <div class="lockBody" id="body-arch"><div>
+        <div class="arch" id="arch-chips">
+          <button class="chip" data-arch="Atlas" style="--ring: var(--arch-Atlas)"><span class="sym">◐</span><span class="nm">Atlas</span></button>
+          <button class="chip" data-arch="Nova" style="--ring: var(--arch-Nova)"><span class="sym">✦</span><span class="nm">Nova</span></button>
+          <button class="chip" data-arch="Elysha" style="--ring: var(--arch-Elysha)"><span class="sym">✹</span><span class="nm">Elysha</span></button>
+          <button class="chip" data-arch="Kaion" style="--ring: var(--arch-Kaion)"><span class="sym">⚙</span><span class="nm">Kaion</span></button>
+          <button class="chip" data-arch="Genus" style="--ring: var(--arch-Genus)"><span class="sym">◎</span><span class="nm">Genus</span></button>
+          <button class="chip" data-arch="Lumine" style="--ring: var(--arch-Lumine)"><span class="sym">☼</span><span class="nm">Lumine</span></button>
+          <button class="chip" data-arch="Artemis" style="--ring: var(--arch-Artemis)"><span class="sym">⇢</span><span class="nm">Artemis</span></button>
+          <button class="chip" data-arch="Serena" style="--ring: var(--arch-Serena)"><span class="sym">ღ</span><span class="nm">Serena</span></button>
+          <button class="chip" data-arch="Aion" style="--ring: var(--arch-Aion)"><span class="sym">∞</span><span class="nm">Aion</span></button>
+          <button class="chip" data-arch="Rhea" style="--ring: var(--arch-Rhea)"><span class="sym">❁</span><span class="nm">Rhea</span></button>
+          <button class="chip" data-arch="Horus" style="--ring: var(--arch-Horus)"><span class="sym">𓅃</span><span class="nm">Horus</span></button>
+          <button class="chip" data-arch="Kaos" style="--ring: var(--arch-Kaos)"><span class="sym">ψ</span><span class="nm">Kaos</span></button>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="lockCard">
+      <div class="lockHead">
+        <div class="lockTitle">Apps rápidos</div>
+        <input type="checkbox" class="toggle" id="tg-apps" aria-controls="body-apps" aria-expanded="false"/>
+      </div>
+      <div class="lockBody" id="body-apps"><div>
+        <div class="lockList" id="quick-apps">
+          <!-- preenchido via JS -->
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GRID principal (aparece após "Abrir Hub") -->
+<main id="main">
+  <div class="grid" id="cards" aria-live="polite" aria-busy="true"></div>
+</main>
+
+<footer id="footer">Hub ASSERT • Central Dual.Infodose</footer>
+
+<!-- Viewer -->
+<div class="viewer" id="viewer" aria-hidden="true">
+  <div class="frame">
+    <div class="bar">
+      <div class="left"><div class="dot"></div><strong id="barTitle">App</strong></div>
+      <div class="row" style="grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; width:min(var(--maxw),92vw)">
+        <button class="btn secondary" id="btnHome" aria-label="Fechar e voltar">Fechar</button>
+        <a class="btn" id="btnExternal" href="#" target="_blank" rel="noopener" aria-label="Abrir em nova aba">Abrir em aba</a>
+      </div>
+    </div>
+    <div class="loader" id="loader"><div class="spinner" role="progressbar" aria-label="Carregando"></div></div>
+    <iframe class="iframe" id="appFrame" src="about:blank" title="App em exibição"></iframe>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (sel, p=document) => p.querySelector(sel);
+  const $$ = (sel, p=document) => Array.from(p.querySelectorAll(sel));
+
+  const header = $("#header");
+  const splash = $("#splash");
+  const main   = $("#main");
+  const cardsRoot = $("#cards");
+  const quickApps = $("#quick-apps");
+
+  
+// === Bases externas ===
+const BASES = {
+  local: './apps/apps.json',
+  prod:  'https://meusite.com/apps.json',
+  github:'https://user.github.io/apps.json'
+};
+let baseUrl = localStorage.getItem('hub.base_url') || 'local';
+document.querySelectorAll("[data-base]").forEach(b=>{
+  b.addEventListener('click', ()=>{
+    baseUrl = b.getAttribute('data-base');
+    localStorage.setItem('hub.base_url', baseUrl);
+    vibrate(10);
+  });
+});
+
+// PWA install
+  if('serviceWorker' in navigator){ window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js')); }
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
+
+  // Tema
+  const root = document.body;
+  function applyTheme(t){
+    root.classList.toggle('theme-lux', t==='lux');
+    localStorage.setItem('hub.theme', t);
+  }
+  const saved = localStorage.getItem('hub.theme') || 'assert';
+  applyTheme(saved);
+  $("[data-theme='assert']")?.addEventListener('click', ()=>applyTheme('assert'));
+  $("[data-theme='lux']")?.addEventListener('click', ()=>applyTheme('lux'));
+
+  // Ativações
+  $("[data-activation='open-grid']").addEventListener('click', async ()=>{
+    splash.style.display="none";
+    main.classList.add('show');
+    header.classList.add('show');
+    await loadApps();
+  });
+  $("[data-activation='resume']").addEventListener('click', async ()=>{
+    const last = localStorage.getItem('hub.last');
+    splash.style.display="none"; main.classList.add('show'); header.classList.add('show');
+    await loadApps();
+    if(last){ openByKey(last, false, window.__apps || []); }
+  });
+  $("[data-activation='install']").addEventListener('click', async ()=>{
+    if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
+    else alert('No iOS, use “Adicionar à Tela de Início”.');
+  });
+
+  // Carregar apps e preencher quick list
+  async function loadApps(){
+    try{
+      const res = await fetch('./apps/apps.json', {cache:'no-store'});
+      const data = await res.json();
+      const apps = data.apps||[];
+      window.__apps = apps;
+      renderQuick(apps);
+      renderCards(apps);
+      cardsRoot.setAttribute('aria-busy','false');
+    }catch(e){
+      cardsRoot.innerHTML = '<div style="padding:14px;color:#a7c1cc">Não foi possível carregar a lista de apps.</div>';
+      cardsRoot.setAttribute('aria-busy','false');
+    }
+  }
+  function renderQuick(apps){
+    quickApps.innerHTML = '';
+    apps.slice(0,4).forEach(app=>{
+      const b = document.createElement('button');
+      b.className = 'lockBtn';
+      b.innerHTML = `<span>${app.title||app.key}</span><span class="hint">Abrir</span>`;
+      b.addEventListener('click', ()=> openApp(app, false));
+      quickApps.appendChild(b);
+    });
+  }
+  function renderCards(apps){
+    cardsRoot.innerHTML = '';
+    apps.forEach(app => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="icon"><img src="${app.icon||'icons/icon-192.png'}" alt="" style="width:100%;height:100%;object-fit:cover"/></div>
+        <div style="flex:1">
+          <div class="title">${app.title||app.key}</div>
+          <div class="muted">${app.desc||''}</div>
+          <div class="row">
+            <button class="btn" data-open="${app.key}">Abrir no Hub</button>
+            <button class="btn secondary" data-open="${app.key}" data-newtab="1">Abrir em aba</button>
+          </div>
+        </div>`;
+      cardsRoot.appendChild(card);
+    });
+    $$("[data-open]").forEach(b=>{
+      b.onclick = ()=>{
+        const key = b.getAttribute('data-open');
+        const newtab = b.hasAttribute('data-newtab');
+        openByKey(key, newtab, window.__apps || []);
+      };
+    });
+  }
+
+  
+// Power state
+const power = JSON.parse(localStorage.getItem('hub.power')||'{}');
+
+// Override renderCards to include power switch
+function renderCards(apps){
+  cardsRoot.innerHTML = '';
+  apps.forEach(app => {
+    const enabled = power[app.key] !== false;
+    const card = document.createElement('div');
+    card.className = 'card';
+    if(!enabled) card.style.opacity = .5;
+    card.innerHTML = `
+      <div class="icon"><img src="${app.icon||'icons/icon-192.png'}" alt="" style="width:100%;height:100%;object-fit:cover"/></div>
+      <div style="flex:1">
+        <div class="title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>${app.title||app.key}</span>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:#9ab4c4">
+            <input type="checkbox" ${enabled?'checked':''} data-power="${app.key}" style="accent-color:#00d1ff"/> ligar
+          </label>
+        </div>
+        <div class="muted">${app.desc||''}</div>
+        <div class="row">
+          <button class="btn" data-open="${app.key}" ${enabled?'':'disabled'}>Abrir no Hub</button>
+          <button class="btn secondary" data-open="${app.key}" data-newtab="1">Abrir em aba</button>
+        </div>
+      </div>`;
+    cardsRoot.appendChild(card);
+  });
+  document.querySelectorAll('[data-power]').forEach(ch=>{
+    ch.onchange = ()=>{
+      power[ch.getAttribute('data-power')] = ch.checked;
+      localStorage.setItem('hub.power', JSON.stringify(power));
+      renderCards(window.__apps||[]);
+    };
+  });
+  document.querySelectorAll('[data-open]').forEach(b=>{
+    b.onclick = ()=>{
+      const key = b.getAttribute('data-open');
+      const newtab = b.hasAttribute('data-newtab');
+      if(power[key]===false && !newtab) return;
+      openByKey(key, newtab, window.__apps || []);
+    };
+  });
+}
+
+// Viewer + swipe down
+  const viewer = $("#viewer");
+  const frame  = $("#appFrame");
+  const barTitle = $("#barTitle");
+  const btnExternal = $("#btnExternal");
+  const loader = $("#loader");
+
+  function openApp(app, newtab=false){
+    if(newtab){ window.open(app.url, '_blank', 'noopener'); return; }
+    barTitle.textContent = app.title||app.key;
+    btnExternal.href = app.url;
+    loader.classList.add('show');
+    
+    frame.onload = ()=>{
+      setTimeout(()=> loader.classList.remove('show'), 140);
+      const payload = {
+        type:'DUAL_HUB_CONTEXT',
+        theme: localStorage.getItem('hub.theme')==='lux'?'lux':'assert',
+        archetype: localStorage.getItem('hub.arch')||null,
+        source:'dual-hub'
+      };
+      try{ frame.contentWindow.postMessage(payload,'*'); }catch(_){}
+    };
+
+    frame.src = app.url;
+    viewer.classList.add('show');
+    viewer.setAttribute('aria-hidden','false');
+    localStorage.setItem('hub.last', app.key);
+    location.hash = '#app=' + app.key;
+  }
+  function openByKey(key, newtab, apps){
+    const app = (apps||[]).find(x=>x.key===key);
+    if(app) openApp(app, newtab);
+  }
+  $("#btnHome").onclick = closeViewer;
+  function closeViewer(){
+    frame.src = 'about:blank';
+    viewer.classList.remove('show');
+    viewer.setAttribute('aria-hidden','true');
+    history.pushState('', document.title, window.location.pathname + window.location.search);
+  }
+  let startY=null, currentY=null, swiping=false;
+  viewer.addEventListener('touchstart', (e)=>{ startY = e.touches[0].clientY; swiping=true; }, {passive:true});
+  viewer.addEventListener('touchmove', (e)=>{
+    if(!swiping) return; currentY = e.touches[0].clientY; const dy = currentY - startY;
+    if(dy>0){ const t = Math.min(dy, 160); viewer.style.transform = `translateY(${t}px)`; viewer.style.opacity = String(1 - Math.min(dy/220, 0.4)); }
+  }, {passive:true});
+  viewer.addEventListener('touchend', ()=>{
+    if(!swiping) return; const dy = (currentY??0) - (startY??0);
+    viewer.style.transform=''; viewer.style.opacity=''; swiping=false; if(dy>90) closeViewer();
+  });
+
+  // ---- Extras ----
+  // 1) Mock arquétipos no lock menu
+  const lockActs = document.getElementById('tg-acts').closest('.lockCard').querySelector('.lockList');
+  const archetypes = [
+    {name:'Atlas',color:'#29d3ff'},
+    {name:'Nova',color:'#ff4d9d'},
+    {name:'Kaion',color:'#8a5cff'}
+  ];
+  const archContainer = document.createElement('div');
+  archContainer.style.display='flex'; archContainer.style.gap='6px'; archContainer.style.marginTop='6px';
+  archetypes.forEach(ar=>{
+    const span=document.createElement('span');
+    span.textContent=ar.name;
+    span.style.background=ar.color; span.style.color='#fff'; span.style.padding='4px 8px'; span.style.borderRadius='10px';
+    span.style.fontSize='0.8rem'; span.style.flex='1'; span.style.textAlign='center';
+    archContainer.appendChild(span);
+  });
+  lockActs.appendChild(archContainer);
+
+  // 2) Haptics leves em toggles e botões
+  const vibrate = (ms=15)=>{ if(navigator.vibrate) navigator.vibrate(ms); };
+  document.querySelectorAll('input.toggle, button.lockBtn, .btn').forEach(el=>{
+    el.addEventListener('click', ()=>vibrate(20));
+  });
+
+  // 3) Progress step-by-step antes de abrir Hub
+  let step=0;
+  const steps=['Escolha um tema','Selecione uma ativação','Confirme'];
+  const prog = document.createElement('div');
+  prog.style.cssText='margin:10px auto;text-align:center;color:#9ab4c4;font-size:0.9rem;font-weight:600';
+  prog.textContent=steps[0];
+  document.querySelector('.lock').prepend(prog);
+  function advanceStep(){
+    if(step<steps.length-1){ step++; prog.textContent=steps[step]; }
+    else{ prog.textContent='✔ Pronto!'; setTimeout(()=>prog.remove(),1000); }
+  }
+  document.querySelectorAll('[data-theme], [data-activation], [data-open]').forEach(el=>{
+    el.addEventListener('click', advanceStep);
+  });
+
+})();
+
+// ——— Extras: Haptics + Stepper + Archetypes ———
+const vibrate = (p)=> (navigator.vibrate ? navigator.vibrate(p) : void 0);
+
+// Seleção de arquétipo (mock)
+let selectedArch = localStorage.getItem('hub.arch') || null;
+const archChips = document.querySelectorAll('#arch-chips .chip');
+archChips.forEach(ch => {
+  if(ch.dataset.arch === selectedArch) ch.classList.add('active');
+  ch.addEventListener('click', ()=>{
+    archChips.forEach(k=>k.classList.remove('active'));
+    ch.classList.add('active');
+    selectedArch = ch.dataset.arch;
+    localStorage.setItem('hub.arch', selectedArch);
+    vibrate(10);
+  });
+});
+
+// Haptics nos toggles
+document.querySelectorAll('.toggle').forEach(tg=>{
+  tg.addEventListener('change', ()=> vibrate([5,15,5]));
+});
+
+// Stepper
+const stepper = document.getElementById('stepper');
+const stepbarfill = document.getElementById('stepbarfill');
+const stepcontent = document.getElementById('stepcontent');
+const steptitle = document.getElementById('steptitle');
+const stepdesc = document.getElementById('stepdesc');
+const stepBack = document.getElementById('stepBack');
+const stepNext = document.getElementById('stepNext');
+
+let step = 0;
+const steps = [
+  { title:'Escolha de Arquétipo', desc:'Selecione um arquétipo para influenciar a paleta e as ativações.',
+    render: ()=>{
+      stepcontent.innerHTML = document.getElementById('arch-chips').outerHTML;
+      // rebind clicks para a cópia
+      stepcontent.querySelectorAll('.chip').forEach(ch=>{
+        if(ch.dataset.arch === selectedArch) ch.classList.add('active');
+        ch.addEventListener('click', ()=>{
+          stepcontent.querySelectorAll('.chip').forEach(k=>k.classList.remove('active'));
+          ch.classList.add('active');
+          selectedArch = ch.dataset.arch;
+          localStorage.setItem('hub.arch', selectedArch);
+          vibrate(10);
+        });
+      });
+    }
+  },
+  { title:'Tema Visual', desc:'Escolha rapidamente o tema para esta sessão (pode mudar depois).',
+    render: ()=>{
+      stepcontent.innerHTML = '<div class="lockList">        <button class="lockBtn" id="st-assert">ASSERT <span class="hint">ciano</span></button>        <button class="lockBtn" id="st-lux">Luxara <span class="hint">dourado</span></button>      </div>';
+      stepcontent.querySelector('#st-assert').addEventListener('click', ()=>{ localStorage.setItem('hub.theme','assert'); document.body.classList.remove('theme-lux'); vibrate(8); });
+      stepcontent.querySelector('#st-lux').addEventListener('click', ()=>{ localStorage.setItem('hub.theme','lux'); document.body.classList.add('theme-lux'); vibrate(8); });
+    }
+  },
+  { title:'Pronto para Entrar', desc:'Confirme para abrir o Hub vertical com suas preferências.',
+    render: ()=>{
+      const arch = selectedArch ? `<strong>${selectedArch}</strong>` : '<em>padrão</em>';
+      const theme = localStorage.getItem('hub.theme')==='lux' ? 'Luxara' : 'ASSERT';
+      stepcontent.innerHTML = `<div class="stepdesc">Arquétipo: ${arch}<br/>Tema: <strong>${theme}</strong></div>`;
+    }
+  }
+];
+
+function setStep(i){
+  step = Math.max(0, Math.min(steps.length-1, i));
+  const pct = ((step+1)/steps.length)*100;
+  stepbarfill.style.width = pct + '%';
+  steptitle.textContent = steps[step].title;
+  stepdesc.textContent = steps[step].desc;
+  steps[step].render();
+  stepBack.disabled = (step===0);
+}
+
+stepBack.addEventListener('click', ()=>{ vibrate(8); setStep(step-1); });
+stepNext.addEventListener('click', async ()=>{
+  vibrate(12);
+  if(step < steps.length-1){ setStep(step+1); }
+  else {
+    // finalizar -> abrir Hub (equivale a clicar em "Abrir Hub")
+    document.getElementById('splash').style.display="none";
+    document.getElementById('main').classList.add('show');
+    document.getElementById('header').classList.add('show');
+    stepper.classList.remove('show'); stepper.setAttribute('aria-hidden','true');
+    if(typeof loadApps === 'function'){ await loadApps(); }
+  }
+});
+
+// Substituir ação original de "Abrir Hub" para abrir o stepper
+const actOpenGrid = document.querySelector("[data-activation='open-grid']");
+if(actOpenGrid){
+  actOpenGrid.addEventListener('click', (ev)=>{
+    ev.preventDefault(); ev.stopPropagation();
+    stepper.classList.add('show'); stepper.setAttribute('aria-hidden','false');
+    setStep(0);
+  }, {once:true});
+}
+
+
+
+// === Bases de Apps ===
+const BASES = {
+  local: './apps/apps.json',
+  prod:  'https://meusite.com/apps.json',
+  github:'https://user.github.io/apps.json'
+};
+let baseUrl = localStorage.getItem('hub.base_url') || 'local';
+
+document.querySelectorAll("[data-base]").forEach(b=>{
+  b.addEventListener('click', ()=>{
+    baseUrl = b.getAttribute('data-base');
+    localStorage.setItem('hub.base_url', baseUrl);
+    vibrate && vibrate(10);
+  });
+});
+
+// === Power por app (on/off por card) ===
+let power = {};
+try { power = JSON.parse(localStorage.getItem('hub.power')||'{}'); } catch(_) { power = {}; }
+
+// Override renderCards to incluir power switch
+const _renderCards_original = typeof renderCards === 'function' ? renderCards : null;
+function renderCards(apps){
+  const root = document.getElementById('cards') || cardsRoot;
+  root.innerHTML = '';
+  apps.forEach(app=>{
+    const enabled = power[app.key] !== false; // default ligado
+    const card = document.createElement('div');
+    card.className = 'card';
+    if(!enabled) card.style.opacity = .5;
+    card.innerHTML = `
+      <div class="icon"><img src="${app.icon||'icons/icon-192.png'}" alt="" style="width:100%;height:100%;object-fit:cover"/></div>
+      <div style="flex:1">
+        <div class="title" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>${app.title||app.key}</span>
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:.86rem;color:#9ab4c4">
+            <input type="checkbox" ${enabled?'checked':''} data-power="${app.key}" style="accent-color:#00d1ff"/> ligar
+          </label>
+        </div>
+        <div class="muted">${app.desc||''}</div>
+        <div class="row">
+          <button class="btn" data-open="${app.key}" ${enabled?'':'disabled'}>Abrir no Hub</button>
+          <button class="btn secondary" data-open="${app.key}" data-newtab="1">Abrir em aba</button>
+        </div>
+      </div>`;
+    root.appendChild(card);
+  });
+
+  document.querySelectorAll('[data-power]').forEach(ch=>{
+    ch.onchange = ()=>{
+      power[ch.getAttribute('data-power')] = ch.checked;
+      localStorage.setItem('hub.power', JSON.stringify(power));
+      renderCards(apps);
+    };
+  });
+
+  document.querySelectorAll('[data-open]').forEach(b=>{
+    b.onclick = ()=>{
+      const key = b.getAttribute('data-open');
+      const newtab = b.hasAttribute('data-newtab');
+      if(power[key] === false && !newtab) return;
+      openByKey(key, newtab, apps);
+    };
+  });
+}
+
+// Override loadApps para usar base selecionada com fallback local
+const _loadApps_original = typeof loadApps === 'function' ? loadApps : null;
+async function loadApps(){
+  const url = (typeof BASES!=='undefined' && BASES[baseUrl]) ? BASES[baseUrl] : './apps/apps.json';
+  try{
+    const res = await fetch(url, {cache:'no-store'});
+    const data = await res.json();
+    const apps = data.apps||[];
+    if(typeof renderQuick === 'function') renderQuick(apps);
+    renderCards(apps);
+    window.__apps = apps;
+    (cardsRoot||document.getElementById('cards')).setAttribute('aria-busy','false');
+  }catch(e){
+    try{
+      const res2 = await fetch('./apps/apps.json', {cache:'no-store'});
+      const data2 = await res2.json();
+      const apps2 = data2.apps||[];
+      if(typeof renderQuick === 'function') renderQuick(apps2);
+      renderCards(apps2);
+      window.__apps = apps2;
+    }catch(_){
+      (cardsRoot||document.getElementById('cards')).innerHTML = '<div style="padding:14px;color:#a7c1cc">Não foi possível carregar a lista de apps.</div>';
+    }
+    (cardsRoot||document.getElementById('cards')).setAttribute('aria-busy','false');
+  }
+}
+
+// postMessage contrato dentro de openApp
+const _openApp_original = typeof openApp === 'function' ? openApp : null;
+function openApp(app, newtab=false){
+  if(newtab){ window.open(app.url, '_blank', 'noopener'); return; }
+  const viewer = document.getElementById('viewer');
+  const frame  = document.getElementById('appFrame');
+  const barTitle = document.getElementById('barTitle');
+  const btnExternal = document.getElementById('btnExternal');
+  const loader = document.getElementById('loader');
+
+  barTitle.textContent = app.title||app.key;
+  btnExternal.href = app.url;
+  loader.classList.add('show');
+  frame.onload = ()=> {
+    setTimeout(()=> loader.classList.remove('show'), 140);
+    const payload = {
+      type: 'DUAL_HUB_CONTEXT',
+      theme: localStorage.getItem('hub.theme')==='lux' ? 'lux' : 'assert',
+      archetype: localStorage.getItem('hub.arch') || null,
+      source: 'dual-hub'
+    };
+    try { frame.contentWindow?.postMessage(payload, '*'); } catch(_){}
+  };
+  frame.src = app.url;
+  viewer.classList.add('show');
+  viewer.setAttribute('aria-hidden','false');
+  localStorage.setItem('hub.last', app.key);
+  location.hash = '#app=' + app.key;
+}
+
+// expose for other handlers if needed
+window.openApp = openApp;
+window.loadApps = loadApps;
+
+</script>
+
+<!-- Stepper modal -->
+<div class="stepper" id="stepper" aria-hidden="true">
+  <div class="stepbox" role="dialog" aria-modal="true" aria-labelledby="steptitle">
+    <div class="steptitle" id="steptitle">Configurar entrada</div>
+    <div class="stepdesc" id="stepdesc">Escolha seu arquétipo favorito para esta sessão.</div>
+    <div class="stepbar"><div id="stepbarfill"></div></div>
+    <div class="steprow" id="stepcontent">
+      <!-- Dinâmico via JS -->
+    </div>
+    <div class="stepactions">
+      <button class="stepbtn secondary" id="stepBack">Voltar</button>
+      <button class="stepbtn primary" id="stepNext">Continuar</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
