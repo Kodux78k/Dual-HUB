@@ -1,0 +1,25 @@
+{
+  "apps": [
+    {
+      "key": "dual-chat",
+      "title": "Dual Chat",
+      "desc": "Conversas e IA simbólica.",
+      "url": "https://example.com/dual-chat",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "dual-player",
+      "title": "Dual Player",
+      "desc": "Toca faixas e TTS.",
+      "url": "https://example.com/dual-player",
+      "icon": "icons/icon-192.png"
+    },
+    {
+      "key": "dual-labs",
+      "title": "Dual Labs",
+      "desc": "Experimentos e patches.",
+      "url": "https://example.com/dual-labs",
+      "icon": "icons/icon-192.png"
+    }
+  ]
+}
