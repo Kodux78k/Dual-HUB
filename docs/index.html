@@ -15,7 +15,6 @@
       --stroke:rgba(255,235,180,.20); --stroke-soft:rgba(255,235,180,.12);
       --blur:22px; --radius:18px; --dock-space:84px; --maxw:980px;
     }
-    /* Base */
     html,body{height:100%;margin:0}
     html{background:var(--bg)}
     body{
@@ -23,15 +22,7 @@
       font-family:ui-rounded,system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial;
       min-height:100vh; min-height:100svh;
     }
-    /* Header */
-    .header{
-      position:sticky;top:0;z-index:10;
-      backdrop-filter:blur(var(--blur)) saturate(150%);
-      background:rgba(0,0,0,.45);
-      border-bottom:1px solid var(--stroke);
-      box-shadow:0 12px 34px rgba(0,0,0,.42);
-      padding-top:env(safe-area-inset-top)
-    }
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:blur(var(--blur)) saturate(150%);background:rgba(0,0,0,.45);border-bottom:1px solid var(--stroke);box-shadow:0 12px 34px rgba(0,0,0,.42);padding-top:env(safe-area-inset-top)}
     .inner{max-width:var(--maxw);margin:0 auto;padding:14px;display:flex;gap:14px;align-items:center}
     .logo{width:46px;height:46px;border-radius:50%;display:inline-grid;place-items:center;position:relative;background:rgba(0,0,0,.25)}
     .ring{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;animation:spin 6s linear infinite}
@@ -40,45 +31,32 @@
     @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
     h1{font-size:1.16rem;margin:.12rem 0 0;font-weight:800}
     .kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
-    /* Toolbar */
     .toolbar{max-width:var(--maxw);margin:10px auto 0;padding:0 14px 8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{border:1px solid var(--stroke-soft);border-radius:999px;padding:.5rem .8rem;background:rgba(255,255,255,.04);font-weight:700}
     .input{flex:1;min-width:180px;border:1px solid var(--stroke-soft);border-radius:999px;padding:.6rem .9rem;background:rgba(255,255,255,.06);color:#fff;outline:none}
     .select{border:1px solid var(--stroke-soft);border-radius:999px;padding:.56rem .9rem;background:rgba(255,255,255,.06);color:#fff}
-    .toggle{display:flex;gap:8px;align-items:center}
-    /* Section */
     .section{max-width:var(--maxw);margin:14px auto 6px;padding:0 14px}
-    .section h2{
-      font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;
-      color:#e6e6e6;margin:14px 0 8px;opacity:.9
-    }
-    /* Grid/cards */
+    .section h2{font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;color:#e6e6e6;margin:14px 0 8px;opacity:.9}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     @media(max-width:560px){.grid{grid-template-columns:1fr}}
-    .card{
-      background:rgba(0,0,0,.32); border:1px solid var(--stroke-soft);
-      border-radius:18px; padding:12px; display:flex; gap:12px; align-items:center;
-      box-shadow:0 6px 18px rgba(0,0,0,.45)
-    }
+    .card{background:rgba(0,0,0,.32);border:1px solid var(--stroke-soft);border-radius:18px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45)}
     .icon{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft)}
     .icon img{width:100%;height:100%;object-fit:cover;display:block}
-    .title{font-weight:800;margin-bottom:2px}
+    .title{font-weight:800;margin-bottom:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .badges{display:flex;gap:6px;flex-wrap:wrap}
+    .badge{font-size:.72rem;padding:.16rem .5rem;border-radius:999px;border:1px solid var(--stroke-soft);background:rgba(255,255,255,.06);color:#eaf6ff}
     .muted{color:var(--muted);font-size:.86rem}
-    .row{margin-top:8px}
+    .row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
     .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:999px;font-weight:800}
     .btn.primary{background:linear-gradient(90deg,#9f7cff,#29d3ff);border-color:transparent}
-    /* Bottom Dock */
     .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:block}
-    .dock-inner{
-      max-width:var(--maxw);margin:0 auto;
-      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
-      display:flex;gap:8px;justify-content:space-between;align-items:center;
-      backdrop-filter:blur(18px) saturate(140%); background:rgba(0,0,0,.50);
-      border-top:1px solid var(--stroke); box-shadow:0 -10px 30px rgba(0,0,0,.45)
-    }
+    .dock-inner{max-width:var(--maxw);margin:0 auto;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:space-between;align-items:center;backdrop-filter:blur(18px) saturate(140%);background:rgba(0,0,0,.50);border-top:1px solid var(--stroke);box-shadow:0 -10px 30px rgba(0,0,0,.45)}
     .dbtn{appearance:none;border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
     footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0 calc(18px + var(--dock-space));opacity:.9}
     .spacer{height:calc(var(--dock-space) + env(safe-area-inset-bottom) + 8px)}
+    .viewer{position:fixed;inset:0;z-index:50;background:#000}
+    .viewer iframe{position:absolute;inset:0 0 60px 0;border:0;width:100%;height:calc(100% - 60px)}
+    .viewer-footer{position:fixed;left:0;right:0;bottom:0;height:60px;display:flex;gap:8px;align-items:center;justify-content:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(18px) saturate(140%);background:rgba(0,0,0,.65);border-top:1px solid var(--stroke)}
   </style>
 </head>
 <body>
@@ -89,22 +67,20 @@
         <div class="kicker">Infodose • Hub Principal</div>
         <h1>Infodose Hub Ultra</h1>
       </div>
-      <nav aria-label="Instalar">
-        <button class="btn primary" id="btnInstall" type="button">⬇️ Instalar</button>
+      <nav aria-label="Ações">
+        <button class="btn primary" id="btnDownloadLoader" type="button">⤓ Baixar Loader</button>
       </nav>
     </div>
   </header>
 
   <div class="toolbar">
-    <input id="search" class="input" type="search" placeholder="Buscar apps por nome/URL…" autocomplete="off"/>
+    <input id="search" class="input" type="search" placeholder="Buscar e filtrar por nome, url, tag…" autocomplete="off"/>
     <select id="sort" class="select" title="Ordenação">
       <option value="group">Ordenar por grupos</option>
       <option value="az">A → Z</option>
       <option value="za">Z → A</option>
     </select>
-    <label class="toggle pill">
-      <input id="sameTab" type="checkbox" style="accent-color:#29d3ff"> Abrir na mesma aba
-    </label>
+    <div class="pill" style="opacity:.6">Viewer ativo</div>
     <div class="pill" id="countApps">Carregando…</div>
   </div>
 
@@ -115,296 +91,60 @@
     <div class="dock-inner">
       <button class="dbtn" id="dockHome" type="button">Home</button>
       <button class="dbtn" id="dockInfodose" type="button">Infodose</button>
-      <button class="dbtn" id="dockInstall" type="button">Instalar</button>
+      <button class="dbtn" id="dockInstall" type="button">⤓ Baixar Loader</button>
     </div>
   </div>
 
 <script>
-/** ===== util ===== **/
 const $ = (q,root=document)=>root.querySelector(q);
 const $content = $('#content');
 const $count = $('#countApps');
 const $search = $('#search');
 const $sort = $('#sort');
-const $sameTab = $('#sameTab');
 
-/** ===== ícones: usa os seus PNGs se existirem no JSON; senão, fallback local ===== **/
-const FALLBACK_ICONS = {
-  base:   'icons/icon-192.png',
-  chats:  'icons/icon-192-chats.png',
-  editors:'icons/icon-192-editors.png',
-  indexrs:'icons/icon-192-indexrs.png'
-};
+const FALLBACK_ICONS = {base:'icons/icon-192.png',chats:'icons/icon-192-chats.png',editors:'icons/icon-192-editors.png',indexrs:'icons/icon-192-indexrs.png'};
 
-/** ===== títulos e ordem dos grupos ===== **/
-const GROUP_TITLES = {
-  index_hubs: 'Index / Hubs',
-  chats: 'Chats / Render',
-  editors_tools: 'Editors & Tools',
-  menus: 'Menus',
-  tutorials: 'Tutoriais',
-  visual_splash: 'Visual / Splash',
-  docs: 'Docs',
-  players: 'Players',
-  others: 'Outros'
-};
-const GROUP_ORDER = ['index_hubs','chats','editors_tools','menus','tutorials','visual_splash','docs','players','others'];
-
-/** ===== regras de classificação inteligente (regex) ===== **/
-const RULES = [
-  { key:'index_hubs',    rx: /(index|hub|nebula|metalux|s[üu]mb[üu]s|barrao)/i },
-  { key:'chats',         rx: /(chat|render[-_ ]?response|autoload|kobllux)/i },
-  { key:'editors_tools', rx: /(editor|labs|xml|conv|converter|apps\.json|kblx|sigma|metalux)/i },
-  { key:'menus',         rx: /(^|[-_ ])menu([-_ ]|$)/i },
-  { key:'tutorials',     rx: /(tutorial|ativa[cç][oõ]es|v7\b)/i },
-  { key:'visual_splash', rx: /splash/i },
-  { key:'docs',          rx: /(book|oidual|\.txt\b)/i },
-  { key:'players',       rx: /(player|audio|tts)/i }
-];
-
-/** ===== helpers ===== **/
 function safe(v){ return (v||'').toString(); }
-function sourceString(app){
-  const k = [app.key, app.title, app.desc, app.url].map(safe).join(' ').toLowerCase();
-  // Tenta extrair nome de arquivo da URL também
-  try {
-    const u = new URL(app.url, location.href);
-    return k + ' ' + (u.pathname.split('/').pop()||'').toLowerCase();
-  } catch { return k; }
-}
-function classify(app){
-  const s = sourceString(app);
-  for (const r of RULES) if (r.rx.test(s)) return r.key;
-  return 'others';
-}
-function groupIconFor(key, defaults){
-  return (defaults && defaults[key]) || ({
-    index_hubs: defaults?.indexrs || FALLBACK_ICONS.indexrs,
-    chats: defaults?.chats || FALLBACK_ICONS.chats,
-    editors_tools: defaults?.editors || FALLBACK_ICONS.editors,
-    menus: defaults?.editors || FALLBACK_ICONS.editors,
-    tutorials: defaults?.base || FALLBACK_ICONS.base,
-    visual_splash: defaults?.base || FALLBACK_ICONS.base,
-    docs: defaults?.base || FALLBACK_ICONS.base,
-    players: defaults?.base || FALLBACK_ICONS.base,
-    others: defaults?.base || FALLBACK_ICONS.base
-  })[key] || FALLBACK_ICONS.base;
-}
-function pickIcon(app, groupKey, defaults){
-  if (app.icon && app.icon.trim()) return app.icon;
-  return groupIconFor(groupKey, defaults);
-}
+function lastFile(url){try{ const u = new URL(url, location.href); return (u.pathname.split('/').pop()||'').toLowerCase(); }catch{ return (url||'').split('/').pop()?.toLowerCase() || ''; }}
 
-/** ===== UI builders ===== **/
-function sectionWrap(title, key){
-  const sec = document.createElement('section');
-  sec.className = 'section';
-  sec.dataset.group = key;
-  sec.innerHTML = `<h2>${title}</h2><div class="grid"></div>`;
-  return sec;
-}
-function card(app, groupKey, defaults){
-  const el = document.createElement('div');
-  el.className = 'card';
-  const iconSrc = pickIcon(app, groupKey, defaults);
-  el.innerHTML = `
-    <div class="icon"><img src="${iconSrc}" alt=""></div>
+function card(app){
+  const c = document.createElement('div');
+  c.className = 'card';
+  c.innerHTML = `
+    <div class="icon"><img src="${app.icon||FALLBACK_ICONS.base}" alt=""></div>
     <div style="flex:1">
-      <div class="title">${app.title || app.key}</div>
-      <div class="muted">${app.desc || ''}</div>
+      <div class="title">${safe(app.title||app.key)}</div>
+      <div class="muted">${safe(app.desc||'')}</div>
       <div class="row">
-        <button class="btn" type="button">Abrir</button>
+        <button class="btn">Abrir</button>
+        <button class="btn">⎘ Injection</button>
       </div>
     </div>`;
-  el.querySelector('.btn').addEventListener('click', ()=>{
-    if(!app.url) return;
-    if($sameTab.checked) location.href = app.url;
-    else window.open(app.url,'_blank','noopener');
-  });
-  return el;
+  c.querySelector('.btn').addEventListener('click', ()=> openApp(app));
+  c.querySelectorAll('.btn')[1].addEventListener('click', ()=> copyInjection(app));
+  return c;
 }
 
-/** ===== render ===== **/
-function renderGrouped(groups, defaults){
-  $content.innerHTML = '';
-  let total = 0;
-  GROUP_ORDER.forEach(gk=>{
-    const list = groups[gk];
-    if(Array.isArray(list) && list.length){
-      total += list.length;
-      const sec = sectionWrap(GROUP_TITLES[gk] || gk, gk);
-      const grid = sec.querySelector('.grid');
-      list.forEach(app => grid.appendChild(card(app, gk, defaults)));
-      $content.appendChild(sec);
-    }
-  });
-  // grupos não previstos
-  Object.keys(groups).forEach(gk=>{
-    if(!GROUP_ORDER.includes(gk)){
-      const list = groups[gk];
-      if(Array.isArray(list) && list.length){
-        total += list.length;
-        const sec = sectionWrap(GROUP_TITLES[gk] || gk, gk);
-        const grid = sec.querySelector('.grid');
-        list.forEach(app => grid.appendChild(card(app, gk, defaults)));
-        $content.appendChild(sec);
-      }
-    }
-  });
-  const spacer = document.createElement('div'); spacer.className='spacer'; $content.appendChild(spacer);
-  $count.textContent = `${total} itens organizados`;
+function openApp(app){
+  const v = document.createElement('div');
+  v.className = 'viewer';
+  v.innerHTML = `
+    <iframe src="${app.url}" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+    <div class="viewer-footer">
+      <button class="btn" id="backHub">⬅ Voltar ao Hub</button>
+      <button class="btn" id="dlHtml">⤓ Baixar HTML (com Injections)</button>
+      <button class="btn" id="copyInj">⎘ Copiar Injection</button>
+    </div>`;
+  document.body.appendChild(v);
+  v.querySelector('#backHub').addEventListener('click', ()=> v.remove());
+  v.querySelector('#dlHtml').addEventListener('click', ()=> downloadInjected(app));
+  v.querySelector('#copyInj').addEventListener('click', ()=> copyInjection(app));
 }
 
-function renderFlat(apps, defaults){
-  // Se flat, aplica classificação → grupos
-  const groups = {};
-  for(const app of apps){
-    const gk = classify(app);
-    (groups[gk] ||= []).push(app);
-  }
-  // ordenação de grupos e apps conforme select
-  const mode = $sort.value;
-  if (mode === 'az' || mode === 'za'){
-    const dir = (mode==='az') ? 1 : -1;
-    Object.keys(groups).forEach(k=>{
-      groups[k].sort((a,b)=> (safe(a.title||a.key)).localeCompare(safe(b.title||b.key)) * dir);
-    });
-  } else {
-    // por grupo: mantém a ordem de inserção; pode ordenar A→Z dentro de cada
-    Object.keys(groups).forEach(k=>{
-      groups[k].sort((a,b)=> safe(a.title||a.key).localeCompare(safe(b.title||b.key)));
-    });
-  }
-  renderGrouped(groups, defaults);
-}
+function injectionSnippet(){return `<div class="infodose-footer"><button class="btn" onclick="location.href='index.html'">⬅ Voltar ao Hub</button></div>`;}
 
-/** ===== filtro/busca ===== **/
-function applySearchFilter(original, isGrouped){
-  const q = $search.value.trim().toLowerCase();
-  if(!q) return original;
+function copyInjection(app){navigator.clipboard.writeText(injectionSnippet());}
 
-  const matchApp = app=>{
-    const s = (safe(app.key)+' '+safe(app.title)+' '+safe(app.desc)+' '+safe(app.url)).toLowerCase();
-    return s.includes(q);
-  };
-
-  if(isGrouped){
-    const out = {};
-    Object.entries(original).forEach(([gk,list])=>{
-      const f = list.filter(matchApp);
-      if(f.length) out[gk] = f;
-    });
-    return out;
-  } else {
-    return original.filter(matchApp);
-  }
-}
-
-/** ===== load ===== **/
-let RAW = null; // armazena JSON original carregado
-let DEFAULTS = null;
-
-async function load(){
-  try{
-    const res = await fetch('./apps/apps.json', {cache:'no-store'});
-    const data = await res.json();
-    RAW = data;
-
-    // defaults vindos do json (caso exista data.defaultIcons ou data.groups.defaultIcons)
-    DEFAULTS = data.defaultIcons || data.groups?.defaultIcons || {
-      base: FALLBACK_ICONS.base,
-      chats: FALLBACK_ICONS.chats,
-      editors: FALLBACK_ICONS.editors,
-      indexrs: FALLBACK_ICONS.indexrs,
-      // mapeamento direto por groupKey opcional:
-      index_hubs: FALLBACK_ICONS.indexrs
-    };
-
-    render();
-  }catch(e){
-    console.error(e);
-    $content.innerHTML = `
-      <section class="section">
-        <div class="card">
-          <div class="icon">⚠️</div>
-          <div>
-            <div class="title">Falha ao carregar apps</div>
-            <div class="muted">apps/apps.json não encontrado ou inválido.</div>
-          </div>
-        </div>
-      </section>`;
-    $count.textContent = 'Erro no apps.json';
-  }
-}
-
-function render(){
-  if(!RAW) return;
-  const mode = $sort.value;
-
-  // se vier agrupado
-  if (RAW.groups && typeof RAW.groups === 'object'){
-    let groups = RAW.groups;
-    // filtrar
-    groups = applySearchFilter(groups, true);
-    // ordenação alfabetica opcional
-    if (mode==='az' || mode==='za'){
-      const dir = (mode==='az') ? 1 : -1;
-      const g2 = {};
-      Object.keys(groups).forEach(gk=>{
-        g2[gk] = [...groups[gk]].sort((a,b)=> (safe(a.title||a.key)).localeCompare(safe(b.title||b.key))*dir);
-      });
-      groups = g2;
-    }
-    renderGrouped(groups, DEFAULTS);
-  }
-  // se vier plano
-  else if (Array.isArray(RAW.apps)){
-    let list = RAW.apps;
-    // filtro sobre flat
-    list = applySearchFilter(list, false);
-    renderFlat(list, DEFAULTS);
-  } else {
-    $content.innerHTML = `
-      <section class="section">
-        <div class="card">
-          <div class="icon">⚠️</div>
-          <div>
-            <div class="title">Formato não reconhecido</div>
-            <div class="muted">Use {groups:{...}} ou {apps:[...]}</div>
-          </div>
-        </div>
-      </section>`;
-  }
-}
-
-/** ===== eventos UI ===== **/
-$search.addEventListener('input', ()=> render());
-$sort.addEventListener('change', ()=> render());
-
-/** ===== ações Dock/PWA ===== **/
-$('#dockHome').addEventListener('click', ()=>{
-  window.scrollTo({top:0, behavior:'smooth'});
-  history.pushState('', document.title, window.location.pathname + window.location.search);
-});
-$('#dockInfodose').addEventListener('click', ()=> window.open('https://infodose.com.br','_blank','noopener'));
-
-// PWA install
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=> {
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  });
-}
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; });
-async function doInstall(){
-  if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; }
-  else alert('Use “Adicionar à Tela de Início”.');
-}
-$('#btnInstall').addEventListener('click', doInstall);
-$('#dockInstall').addEventListener('click', doInstall);
-
-// init
-load();
 </script>
 </body>
 </html>
