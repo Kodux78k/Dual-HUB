@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>INFODOSE • Gerador Simbiótico (Mobile)</title>
+<meta name="theme-color" content="#0b0c10"/>
+<style>
+  :root{
+    --bg:#0b0c10;--fg:#e5e7eb;--mut:#9ca3af;--card:#111827;--stroke:#1f2937;--acc:#7c3aed;--ok:#22c55e;--warn:#f59e0b;
+    --mono: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#1b2440 0%,#0b0c10 60%);color:var(--fg);font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  header{position:sticky;top:0;z-index:20;backdrop-filter:blur(8px);background:rgba(10,12,16,.7);border-bottom:1px solid var(--stroke);padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+  h1{margin:0;font-size:18px;letter-spacing:.06em}
+  .pill{padding:6px 10px;border:1px solid var(--stroke);border-radius:999px;font-size:12px;color:#c4b5fd;background:#171b2b}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{cursor:pointer;border:1px solid var(--stroke);background:#141a2a;color:var(--fg);border-radius:10px;padding:8px 11px;font-weight:700}
+  .btn:hover{border-color:#6366f1}
+  .btn.ok{border-color:var(--ok);color:#bbf7d0;background:#0f1b16}
+  .btn.ghost{background:#0f1424}
+  main{display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;height:calc(100% - 56px)}
+  section.card{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:12px}
+  label{font-size:12px;color:var(--mut)}
+  select,input,textarea{background:#0b1020;border:1px solid #2a3347;color:var(--fg);border-radius:10px;padding:8px}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .slider{accent-color:#7c3aed;width:100%}
+  .ascii{white-space:pre-wrap;background:#0a0f1f;border:1px solid #1f2a40;border-radius:12px;padding:10px;font-family:var(--mono);font-size:13px;line-height:1.35}
+  .tag{display:inline-flex;gap:8px;align-items:center;border:1px solid #2a3347;border-radius:999px;padding:6px 10px;background:#0b1020;font-size:12px}
+  .dot{width:14px;height:14px;border-radius:50%;border:1px solid #334155;display:inline-block}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .small{font-size:12px;color:var(--mut)}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f172a;border:1px solid #26334d;padding:10px 14px;border-radius:10px;display:none}
+  .ok{color:#bbf7d0;border-color:#184b34;background:#0f1b16}
+  .warn{color:#ffecc7;border-color:#5a4309;background:#221807}
+  .rowv{display:flex;flex-direction:column;gap:6px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{cursor:pointer;border:1px solid #334155;border-radius:999px;padding:6px 10px;background:#0b1020}
+  .chip.active{border-color:#c084fc;box-shadow:0 0 0 2px rgba(124,58,237,.25) inset}
+  .cardsX{display:flex;gap:12px;overflow:auto;padding-bottom:6px}
+  .mini{font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>INFODOSE • Gerador Simbiótico</h1>
+  <div class="row">
+    <span class="pill">⊙ UNO ⇄ DUAL △ TRINITY</span>
+    <button class="btn ghost" id="copyHeader">Header</button>
+  </div>
+</header>
+
+<main>
+  <!-- MENU PRINCIPAL: 3 perguntas + sliders dinâmicos -->
+  <section class="card grid">
+    <div class="grid g3">
+      <div class="rowv">
+        <label>Cor que vem agora</label>
+        <select id="qColor">
+          <option value="">Selecione…</option>
+          <option>Amarelo</option><option>Azul</option><option>Vermelho</option>
+          <option>Verde</option><option>Roxo</option><option>Laranja</option>
+          <option>Preto</option><option>Branco/Cinza</option>
+        </select>
+      </div>
+      <div class="rowv">
+        <label>Movimento</label>
+        <select id="qMove">
+          <option value="">Selecione…</option>
+          <option>Mais movimento</option>
+          <option>Menos movimento</option>
+        </select>
+      </div>
+      <div class="rowv">
+        <label>Elemento</label>
+        <select id="qElem">
+          <option value="">Selecione…</option>
+          <option>Fogo</option><option>Água</option><option>Terra</option>
+          <option>Madeira</option><option>Metal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="rowv">
+        <label>BPM (dinâmico)</label>
+        <input id="bpm" type="range" class="slider" min="60" max="180" step="1" value="120"/>
+        <div class="small">Valor: <span id="bpmVal">120</span></div>
+      </div>
+      <div class="rowv">
+        <label>Intensidade/Mood</label>
+        <input id="intensity" type="range" class="slider" min="0" max="100" step="1" value="50"/>
+        <div class="small">Valor: <span id="intVal">50</span></div>
+      </div>
+    </div>
+
+    <div class="grid g2">
+      <div class="rowv">
+        <label>Gênero (base — editável)</label>
+        <select id="genre">
+          <option>Ambient</option><option>Organic House</option><option>Progressive House</option>
+          <option>Chillwave</option><option>Industrial/Experimental</option>
+          <option>EDM/Hardstyle</option><option>Tropical House</option><option>Neo-classical</option>
+          <option>Drone/Trance</option><option>World/Tribal</option>
+        </select>
+      </div>
+      <div class="rowv">
+        <label>Tonalidade (Key)</label>
+        <select id="key">
+          <option>C</option><option>C#m</option><option>D</option><option>Dm</option>
+          <option>E</option><option>Em</option><option>F#m</option><option>G</option>
+          <option>Gm</option><option>A</option><option>Am</option><option>B</option><option>Bm</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="bar">
+      <button class="btn" id="suggest">Sugerir Arquétipos</button>
+      <button class="btn ok" id="apply">Aplicar & Gerar</button>
+      <button class="btn ghost" id="reset">Limpar</button>
+    </div>
+  </section>
+
+  <!-- SELETOR DE ARQUÉTIPOS (clicáveis) -->
+  <section class="card grid">
+    <div class="bar small"><span>Selecione arquétipos (toque):</span></div>
+    <div id="chips" class="chips"></div>
+    <div class="small">Ativações-base: <span class="tag">⚡ ψ ◐</span> <span class="tag">⊙ ⇄ △</span></div>
+  </section>
+
+  <!-- ASCII / detalhes & prompt -->
+  <section class="card grid">
+    <div class="cardsX" id="asciiWrap"></div>
+    <div class="bar">
+      <button class="btn ghost" id="toggleASCII">Alternar Selos ASCII</button>
+      <button class="btn ghost" id="copyPrompt">Copiar Prompt</button>
+      <button class="btn" id="save">Salvar</button>
+      <button class="btn" id="load">Carregar</button>
+      <button class="btn ghost" id="share">Link</button>
+    </div>
+    <pre class="ascii" id="promptBox">[Aguardando…]</pre>
+  </section>
+
+  <section class="card grid">
+    <div class="small">Header Global</div>
+    <pre class="ascii" id="headerPre">[ACTIVATE] ⊙UNO█▀█ ⇄DUAL╔═╗ △TRINITY☆彡 :: SÜMBÜS_FIRMWARE=0x012123456789ABC :: MODE=TRINITY :: ARCH=INFODOSE12</pre>
+  </section>
+
+  <div class="toast" id="toast">Copiado ✔</div>
+</main>
+
+<script>
+/* ================== DADOS BASE ================== */
+const headerStr = "[ACTIVATE] ⊙UNO█▀█ ⇄DUAL╔═╗ △TRINITY☆彡 :: SÜMBÜS_FIRMWARE=0x012123456789ABC :: MODE=TRINITY :: ARCH=INFODOSE12";
+
+const ARCHS = [
+  {k:"NOVA", i:"✧", color:"#FF4FCB", aroma:"Criação 🍊", ascii:`   .✧.\n .✧✧✧.   faísca\n'  ✧  '`, desc:"Inspiração e expansão criativa."},
+  {k:"ATLAS", i:"⚙", color:"#1E3A8A", aroma:"Mente Lúcida 🌿", ascii:`╔═╦═╗\n║ ║ ║  pilares\n╚═╩═╝`, desc:"Clareza, foco, estabilidade."},
+  {k:"VITALIS", i:"🔥", color:"#DC2626", aroma:"Triunfo 🌶️", ascii:`  /\\\n /🔥\\   vital\n/____\\`, desc:"Força, energia pulsante."},
+  {k:"PULSE", i:"🎶", color:"#7C3AED", aroma:"Vibração 🌸", ascii:`~^~~^^~  onda\n__/\\/__  ressona`, desc:"Emoção profunda, ressonância."},
+  {k:"ARTEMIS", i:"🏹", color:"#16A34A", aroma:"Novos Caminhos 🌲", ascii:`-->==>  mira\n  ||    foco`, desc:"Exploração, jornada, liberdade."},
+  {k:"SERENA", i:"♥", color:"#F472B6", aroma:"Lar que Acolhe 🌹", ascii:` .♥.   colo\n(   )  cuidado\n ' '`, desc:"Acolhimento, suavidade."},
+  {k:"KAOS", i:"⚡", color:"#111827", aroma:"Revolução 🌑", ascii:`/\\/\\   ruptura\n\\/\\/   choque`, desc:"Ruptura, experimentação."},
+  {k:"GENUS", i:"🧩", color:"#FB923C", aroma:"Construção 🍂", ascii:`[ ][ ]  montar\n[ ][ ]  criar`, desc:"Construção progressiva."},
+  {k:"LUMINE", i:"🌅", color:"#FACC15", aroma:"Inspiração 🌞", ascii:`~~~~~~ mar\n\\ | /  aurora`, desc:"Alegria, brilho."},
+  {k:"RHEA", i:"🌿", color:"#065F46", aroma:"Raízes 🌱", ascii:` \\|/   folhas\n--*--  raízes\n /|\\`, desc:"Pertencimento, terra."},
+  {k:"SOLUS", i:"🕯", color:"#9CA3AF", aroma:"Proteção 🕯️", ascii:`  |\n [|]   silêncio\n _|_   luz`, desc:"Introspecção e silêncio ativo."},
+  {k:"AION", i:"∞", color:"#4F46E5", aroma:"Eterno 🌌", ascii:` ∞∞    eterno`, desc:"Loop infinito, hipnose."}
+];
+
+const GENRE_SUGG = {
+  base:(c,m,e)=>"Ambient",
+  "NOVA":"Ambient",
+  "ATLAS":"Minimal Techno",
+  "VITALIS":"EDM/Hardstyle",
+  "PULSE":"Chillwave",
+  "ARTEMIS":"World/Tribal",
+  "SERENA":"Neo-classical",
+  "KAOS":"Industrial/Experimental",
+  "GENUS":"Progressive House",
+  "LUMINE":"Tropical House",
+  "RHEA":"Organic House",
+  "SOLUS":"Drone",
+  "AION":"Drone/Trance"
+};
+
+/* ================== UI ================== */
+const qColor = document.getElementById('qColor');
+const qMove  = document.getElementById('qMove');
+const qElem  = document.getElementById('qElem');
+const bpm    = document.getElementById('bpm');
+const bpmVal = document.getElementById('bpmVal');
+const intensity = document.getElementById('intensity');
+const intVal = document.getElementById('intVal');
+const genre = document.getElementById('genre');
+const keySel = document.getElementById('key');
+const chips  = document.getElementById('chips');
+const asciiWrap = document.getElementById('asciiWrap');
+const promptBox = document.getElementById('promptBox');
+const toast = document.getElementById('toast');
+
+bpm.oninput = ()=> bpmVal.textContent = bpm.value;
+intensity.oninput = ()=> intVal.textContent = intensity.value;
+
+/* construir chips de arquétipos */
+const selected = new Set();
+ARCHS.forEach(a=>{
+  const c = document.createElement('button');
+  c.className='chip';
+  c.style.borderColor = a.color+'55';
+  c.innerHTML = `${a.i} ${a.k}`;
+  c.onclick = ()=>toggle(a,c);
+  chips.appendChild(c);
+});
+function toggle(a,btn){
+  if(selected.has(a.k)){ selected.delete(a.k); btn.classList.remove('active'); removeAscii(a.k); }
+  else { selected.add(a.k); btn.classList.add('active'); addAscii(a); }
+}
+function addAscii(a){
+  const card = document.createElement('div');
+  card.className='card'; card.dataset.k=a.k;
+  card.innerHTML = `
+    <div class="bar small"><span class="tag"><span class="dot" style="background:${a.color}"></span>${a.i} ${a.k} • ${a.aroma}</span></div>
+    <pre class="ascii mini">${a.desc}</pre>
+    <pre class="ascii">${a.ascii}</pre>
+  `;
+  asciiWrap.appendChild(card);
+}
+function removeAscii(k){
+  const el=[...asciiWrap.children].find(e=>e.dataset.k===k);
+  if(el) asciiWrap.removeChild(el);
+}
+
+/* ================== LÓGICA DE SUGESTÃO (3 perguntas) ================== */
+function suggestFromQ(color, move, elem){
+  const out = new Set();
+
+  // Cor
+  const byColor = {
+    "Amarelo":["LUMINE","NOVA"],
+    "Azul":["ATLAS","SOLUS"],
+    "Vermelho":["VITALIS","KAOS"],
+    "Verde":["ARTEMIS","RHEA"],
+    "Roxo":["PULSE","AION"],
+    "Laranja":["GENUS","NOVA"],
+    "Preto":["KAOS","SOLUS"],
+    "Branco/Cinza":["SOLUS","ATLAS"]
+  };
+  (byColor[color]||[]).forEach(k=>out.add(k));
+
+  // Movimento
+  if(move==="Mais movimento"){["VITALIS","LUMINE","GENUS","ARTEMIS"].forEach(k=>out.add(k));}
+  if(move==="Menos movimento"){["SOLUS","PULSE","RHEA","ATLAS"].forEach(k=>out.add(k));}
+
+  // Elemento (mapeamento simbólico)
+  const byElem = {
+    "Fogo":["VITALIS","KAOS","NOVA"],
+    "Água":["PULSE","SOLUS","AION"],
+    "Terra":["RHEA","ATLAS","GENUS"],
+    "Madeira":["ARTEMIS","GENUS","LUMINE"],
+    "Metal":["ATLAS","SOLUS","AION"]
+  };
+  (byElem[elem]||[]).forEach(k=>out.add(k));
+
+  // limitar a 4-6 sugestões
+  return [...out].slice(0,6);
+}
+
+/* ================== PROMPT BUILDER ================== */
+const headerBase = "[ACTIVATE] ⊙ ⇄ △ :: KOBLLUX.Dual Infodose ⚡ ψ ◐ :: MODE=TRINITY";
+
+function buildTrackBlock(k, bpmVal, key, gen){
+  const a = ARCHS.find(x=>x.k===k);
+  const g = GENRE_SUGG[k] || gen || "Ambient";
+  return `
+[ACTIVATE] ⊙ ⇄ △ ${a.i} ${a.k} A.Infodose
+Mood: ${a.desc}
+Aroma: ${a.aroma}
+Cor: ${a.color}
+Estilo: ${gen || g}
+Instruções: BPM ${bpmVal}, tonalidade ${key}.
+
+ASCII Selo:
+${a.ascii}`.trim();
+}
+
+function generatePrompt(){
+  if(selected.size===0){ setPrompt("[Selecione 1+ arquétipos ou use Sugerir]"); return; }
+  const keys = [...selected];
+  const core = `⊙UNO█▀█ ⇄DUAL╔═╗ △TRINITY☆彡`;
+  const head = `${headerBase}\n${core}\n\n— Linha Simbiótica —\n${keys.map(k=>ARCHS.find(a=>a.k===k).i + k).join(' ')}`;
+  const blocks = keys.map(k=>buildTrackBlock(k, bpm.value, keySel.value, genre.value)).join("\n\n---\n\n");
+  setPrompt(`${head}\n\n${blocks}`);
+}
+
+/* ================== EVENTS ================== */
+document.getElementById('suggest').onclick=()=>{
+  const sugg = suggestFromQ(qColor.value, qMove.value, qElem.value);
+  if(sugg.length===0){ flash('Responda as 3 perguntas','warn'); return; }
+  // limpar seleção atual
+  selected.clear(); asciiWrap.innerHTML=''; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  // marcar sugeridos
+  sugg.forEach(k=>{
+    selected.add(k);
+    const btn=[...document.querySelectorAll('.chip')].find(x=>x.textContent.includes(k));
+    if(btn) btn.classList.add('active');
+    const a=ARCHS.find(x=>x.k===k); addAscii(a);
+  });
+  // ajustar gênero base pela primeira runa
+  const k0 = sugg[0]; const g0 = GENRE_SUGG[k0] || "Ambient";
+  genre.value = [...genre.options].some(o=>o.text===g0)? g0 : genre.value;
+  flash('Sugestão aplicada','ok');
+};
+
+document.getElementById('apply').onclick=generatePrompt;
+document.getElementById('copyPrompt').onclick=()=>copy(promptBox.textContent);
+document.getElementById('copyHeader').onclick=()=>copy(headerStr);
+document.getElementById('reset').onclick=()=>{
+  selected.clear(); asciiWrap.innerHTML=''; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  setPrompt('[Aguardando…]');
+};
+
+document.getElementById('save').onclick=()=>{
+  const data = {
+    color:qColor.value, move:qMove.value, elem:qElem.value,
+    bpm:bpm.value, intensity:intensity.value, genre:genre.value, key:keySel.value,
+    sel:[...selected], prompt:promptBox.textContent
+  };
+  localStorage.setItem('INFODOSE_DYN', JSON.stringify(data));
+  flash('Salvo ✔','ok');
+};
+
+document.getElementById('load').onclick=()=>{
+  const raw=localStorage.getItem('INFODOSE_DYN'); if(!raw){flash('Nada salvo','warn');return;}
+  const d=JSON.parse(raw);
+  qColor.value=d.color||""; qMove.value=d.move||""; qElem.value=d.elem||"";
+  bpm.value=d.bpm||120; bpmVal.textContent=bpm.value;
+  intensity.value=d.intensity||50; intVal.textContent=intensity.value;
+  genre.value=d.genre||"Ambient"; keySel.value=d.key||"C";
+  selected.clear(); asciiWrap.innerHTML=''; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  (d.sel||[]).forEach(k=>{
+    selected.add(k);
+    const btn=[...document.querySelectorAll('.chip')].find(x=>x.textContent.includes(k));
+    if(btn) btn.classList.add('active');
+    const a=ARCHS.find(x=>x.k===k); if(a) addAscii(a);
+  });
+  setPrompt(d.prompt||'[Aguardando…]');
+  flash('Carregado ✔','ok');
+};
+
+document.getElementById('share').onclick=()=>{
+  const payload = {
+    color:qColor.value, move:qMove.value, elem:qElem.value,
+    bpm:bpm.value, intensity:intensity.value, genre:genre.value, key:keySel.value,
+    sel:[...selected]
+  };
+  const url = location.origin+location.pathname+'#'+btoa(encodeURIComponent(JSON.stringify(payload)));
+  copy(url); flash('Link copiado','ok'); 
+};
+
+document.getElementById('toggleASCII').onclick=()=>{
+  const showing = asciiWrap.style.display!=='none';
+  asciiWrap.style.display = showing ? 'none' : '';
+};
+
+(function restoreFromHash(){
+  if(location.hash.length>1){
+    try{
+      const data = JSON.parse(decodeURIComponent(atob(location.hash.slice(1))));
+      qColor.value=data.color||""; qMove.value=data.move||""; qElem.value=data.elem||"";
+      bpm.value=data.bpm||120; bpmVal.textContent=bpm.value;
+      intensity.value=data.intensity||50; intVal.textContent=intensity.value;
+      genre.value=data.genre||"Ambient"; keySel.value=data.key||"C";
+      (data.sel||[]).forEach(k=>{
+        selected.add(k);
+        const btn=[...document.querySelectorAll('.chip')].find(x=>x.textContent.includes(k));
+        if(btn) btn.classList.add('active');
+        const a=ARCHS.find(x=>x.k===k); if(a) addAscii(a);
+      });
+      generatePrompt();
+    }catch(e){}
+  }
+})();
+
+/* utils */
+function setPrompt(t){ promptBox.textContent=t; }
+function copy(t){ navigator.clipboard.writeText(t).then(()=>flash('Copiado ✔','ok')).catch(()=>flash('Falhou :(','warn')); }
+function flash(msg,cls){ toast.textContent=msg; toast.className='toast '+(cls||''); toast.style.display='block'; setTimeout(()=>toast.style.display='none',900); }
+</script>
+</body>
+</html>

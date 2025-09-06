@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>Dual.Infodose — Nebula Pro Mobile</title>
+  <meta name="theme-color" content="#0b0b0f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <style>
+    :root{
+      --bg1:#0b0b0f;
+      --panel:#10121a;
+      --ink:#eef2ff;
+      --muted:#aeb7d6;
+      --acc:#cde2ff;
+      --radius:18px;
+      --safe: env(safe-area-inset-bottom, 16px);
+      --glow:0 0 28px rgba(255,255,255,.14), 0 0 64px rgba(255,255,255,.10);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 50% -20%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(900px 900px at 50% 120%, rgba(255,255,255,.05), transparent 60%),
+        linear-gradient(42deg, #f0f, #0ff);
+      background-attachment: fixed;
+      color:var(--ink); font: 400 16px/1.38 ui-rounded, system-ui, -apple-system, Inter, Segoe UI, Roboto, Arial;
+      display:flex; flex-direction:column;
+    }
+    .veil{position:fixed; inset:0; background:rgba(0,0,0,.60); pointer-events:none}
+    header{
+      position:sticky; top:0; z-index:5;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px calc(10px + var(--safe)) 16px;
+      background:linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.25) 70%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .brand{display:flex; gap:10px; align-items:center}
+    .pill{
+      width:90px; height:40px; border-radius:24px; overflow:hidden; position:relative;
+      display:grid; place-items:center; background:#07070a;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.10), var(--glow);
+    }
+    .pill::after{
+      content:""; position:absolute; inset:-1px; border-radius:24px;
+      background: conic-gradient(from 0deg, rgba(255,255,255,.0), rgba(255,255,255,.14), rgba(255,255,255,.0) 30%);
+      animation: sweep 3.6s linear infinite;
+      mix-blend-mode: screen; pointer-events:none;
+    }
+    @keyframes sweep{to{transform:rotate(360deg)}}
+    .menuBtn{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.08);display:grid;place-items:center;border:1px solid rgba(255,255,255,.16);box-shadow:var(--glow)}
+    .menuBtn:active{transform:scale(.98)}
+    main{flex:1; display:flex; flex-direction:column; padding:12px 14px 0 14px; gap:12px;}
+    .card{background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.16); border-radius:var(--radius); padding:12px; box-shadow:var(--glow); backdrop-filter: blur(8px)}
+    .center{display:grid; place-items:center}
+    .symbolPad{
+      width:min(86vw, 440px); aspect-ratio: 2.2 / 1; position:relative; display:grid; place-items:center;
+      border-radius:30px; background:#07070a; overflow:hidden; box-shadow:inset 0 0 0 2px rgba(255,255,255,.12), var(--glow);
+    }
+    .symbolPad .ring{position:absolute; inset:0; border-radius:30px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.10)}
+    .symbolPad .ring.r2{inset:8px; animation:pulse 3.4s ease-in-out infinite}
+    .symbolPad .ring.r3{inset:16px; animation:pulse 3.4s ease-in-out .9s infinite}
+    @keyframes pulse{0%,100%{box-shadow:inset 0 0 0 2px rgba(255,255,255,.10)}50%{box-shadow:inset 0 0 0 2px rgba(255,255,255,.26)}}
+    .row{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap}
+    .chip{flex:1 1 auto; min-width:120px; display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 14px; border-radius:16px; border:1px solid rgba(255,255,255,.16); background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04))}
+    .chip:active{transform:translateY(1px)}
+    #chat{display:flex; flex-direction:column; gap:8px; height:48vh}
+    .log{flex:1; overflow:auto; padding:10px 6px; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth}
+    .msg{max-width:86%; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.14); box-shadow:var(--glow)}
+    .you{align-self:flex-end; background:rgba(255,255,255,.10)}
+    .ai{align-self:flex-start; background:rgba(0,0,0,.25)}
+    .bar{display:flex; gap:8px; align-items:center}
+    input, textarea{background:#0b0b12; color:var(--ink); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:12px 12px; width:100%}
+    textarea{min-height:84px; resize:none}
+    button{background:#0e0e16; color:var(--ink); border:1px solid rgba(255,255,255,.22); border-radius:12px; padding:12px 16px; font-weight:700}
+    small{color:var(--muted)}
+    /* Bottom sheet */
+    .sheet{position:fixed;left:0;right:0;bottom:0;z-index:12;translate:0 110%;background:linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.76));border-top-left-radius:16px;border-top-right-radius:16px;border-top:1px solid rgba(255,255,255,.16);padding:14px 14px calc(12px + var(--safe));transition:translate .28s ease; backdrop-filter: blur(16px)}
+    .sheet.open{translate:0 0}
+    .sheet .grab{height:5px;width:46px;background:rgba(255,255,255,.3);margin:0 auto 8px;border-radius:6px}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+    .hidden{display:none !important}
+    .tiny{font-size:12px}
+    svg{fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    /* Radial menu */
+    .radial{position:fixed; inset:0; display:grid; place-items:center; pointer-events:none; z-index:11}
+    .radial .halo{position:absolute;width:220px;height:220px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 80px rgba(255,255,255,.22) inset, 0 0 32px rgba(255,255,255,.18);animation:spin 16s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .radial button{position:absolute; width:58px; height:58px; border-radius:16px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.55); backdrop-filter: blur(8px); display:grid; place-items:center; pointer-events:auto; box-shadow:var(--glow)}
+    .radial .b1{transform:translate(-94px,-4px)}
+    .radial .b2{transform:translate(0px,-110px)}
+    .radial .b3{transform:translate(94px,-4px)}
+    .radial .b4{transform:translate(0px,110px)}
+    .fade{animation:fade .22s ease}
+    @keyframes fade{from{opacity:0; transform:scale(.96)}}
+    .footerPad{height:max(20px, var(--safe))}
+  </style>
+</head>
+<body>
+  <div class="veil"></div>
+  <header>
+    <div class="brand">
+      <div class="pill" id="homePill" title="Dual Symbol">
+        <svg id="svgWaves" viewBox="0 0 120 40" width="76" height="26" aria-hidden="true">
+          <path d="M10 24c12-12 22-12 34 0s22 12 34 0" stroke-width="4"/>
+          <path d="M10 28c12-12 22-12 34 0s22 12 34 0" stroke-width="3" opacity=".9"/>
+          <circle cx="45" cy="21" r="2.4" fill="white" stroke="none"/>
+          <path d="M89 19l6 3-6 3z" fill="white" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-weight:900; letter-spacing:.4px">Dual.Infodose</div>
+        <small style="color:#e0faff">Nebula Pro • touch-first</small>
+      </div>
+    </div>
+    <button class="menuBtn" id="menuBtn" aria-label="Abrir menu">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="center">
+      <div class="symbolPad" id="symbolPad" role="button" aria-label="Ativar símbolo">
+        <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <svg id="svgFace" viewBox="0 0 120 120" width="84" height="84">
+          <circle cx="60" cy="60" r="44" stroke-width="10"/>
+          <ellipse cx="46" cy="56" rx="7" ry="11" fill="white" stroke="none"/>
+          <ellipse cx="74" cy="56" rx="7" ry="11" fill="white" stroke="none"/>
+          <rect x="50" y="78" width="20" height="12" rx="3" fill="white" stroke="none"/>
+          <path d="M16 60a44 44 0 0 1 88 0" stroke-width="10" opacity=".25"/>
+        </svg>
+      </div>
+    </section>
+
+    <section id="chat" class="card">
+      <div class="row" style="justify-content:space-between">
+        <strong>Conversas</strong>
+        <div class="tiny">
+          <label><input type="checkbox" id="autoTTS"> TTS</label>
+          <label style="margin-left:8px"><input type="checkbox" id="persistHistory" checked> Salvar</label>
+        </div>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <div class="bar">
+        <input id="prompt" type="text" placeholder="Toque e fale com a AA…"/>
+        <button id="send">Enviar</button>
+      </div>
+      <small>Menu radial: toque na pill ou no pad.</small>
+    </section>
+
+    <section class="row">
+      <button class="chip" id="chipClear">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 6h18M19 6l-2 14H7L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Limpar
+      </button>
+      <button class="chip" id="chipModel">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
+        Modelo
+      </button>
+      <button class="chip" id="chipSystem">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 20v-8m0 0V4m0 8h8M12 12H4"/></svg>
+        System
+      </button>
+      <button class="chip" id="chipStream">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M3 12h18M7 8h10M7 16h10"/></svg>
+        Stream Editor
+      </button>
+    </section>
+    <div class="footerPad"></div>
+  </main>
+
+  <!-- Bottom Sheet -->
+  <div class="sheet" id="sheet">
+    <div class="grab"></div>
+    <h3>Menu Rápido</h3>
+    <div class="grid">
+      <button class="chip" id="btnSettings">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 3.2 17.9l.06-.06c.46-.46.6-1.14.33-1.74a1.65 1.65 0 0 0-1.51-1H2a2 2 0 1 1 0-4h.09c.65 0 1.24-.4 1.51-1Z"/></svg>
+        Configurações
+      </button>
+      <button class="chip" id="btnExport">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 17V3m0 0L7 8m5-5 5 5"/><path d="M5 21h14"/></svg>
+        Exportar JSON
+      </button>
+      <button class="chip" id="btnImport">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 7v14m0 0 5-5m-5 5-5-5"/><path d="M19 3H5"/></svg>
+        Importar JSON
+      </button>
+      <button class="chip" id="btnAbout">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 8v6"/><circle cx="12" cy="7" r="1"/></svg>
+        Sobre
+      </button>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="hidden">
+      <h3>Configurações</h3>
+      <div class="card" style="padding:10px">
+        <label class="tiny">OpenRouter API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-or-v1-..."/>
+        <div style="height:8px"></div>
+        <label class="tiny">Modelo</label>
+        <input id="model" type="text" value="openrouter/auto"/>
+        <div style="height:8px"></div>
+        <label class="tiny">System prompt (padrão)</label>
+        <textarea id="system">Você é a AA Dual.Infodose. Responda curto, útil, amigável, em pt-BR, com foco mobile.</textarea>
+        <div style="height:8px"></div>
+        <button id="saveCfg">Salvar</button>
+      </div>
+    </div>
+
+    <!-- Stream Editor 3/6/9 -->
+    <div id="streamEditor" class="hidden">
+      <h3>Stream Editor — 3/6/9</h3>
+      <div class="card" style="padding:10px">
+        <small>Edite prompts por fase (3, 6, 9). Eles são encadeados antes do prompt do usuário.</small>
+        <div style="height:8px"></div>
+        <label class="tiny">Fase 3</label>
+        <textarea id="slot3">[3] Atenção, foco e clareza. Seja direto e elegante.</textarea>
+        <label class="tiny">Fase 6</label>
+        <textarea id="slot6">[6] Criatividade simbólica. Conecte arquétipos quando útil.</textarea>
+        <label class="tiny">Fase 9</label>
+        <textarea id="slot9">[9] Encerrar com convite/ação breve. Sem exageros.</textarea>
+        <div style="height:8px"></div>
+        <button id="saveStream">Salvar slots</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Radial menu -->
+  <div class="radial hidden" id="radial">
+    <div class="halo"></div>
+    <button class="b1 fade" id="rSettings" title="Configurações">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 3.2 17.9l.06-.06c.46-.46.6-1.14.33-1.74a1.65 1.65 0 0 0-1.51-1H2a2 2 0 1 1 0-4h.09c.65 0 1.24-.4 1.51-1Z"/></svg>
+    </button>
+    <button class="b2 fade" id="rStream" title="Stream Editor">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 12h18M7 8h10M7 16h10"/></svg>
+    </button>
+    <button class="b3 fade" id="rExport" title="Exportar JSON">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 17V3m0 0L7 8m5-5 5 5"/><path d="M5 21h14"/></svg>
+    </button>
+    <button class="b4 fade" id="rImport" title="Importar JSON">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 7v14m0 0 5-5m-5 5-5-5"/><path d="M19 3H5"/></svg>
+    </button>
+  </div>
+
+  <input id="filePick" type="file" accept="application/json" class="hidden"/>
+
+  <script>
+    // Dynamic manifest with maskable icons (inline SVG data URLs)
+    const manifest = {
+      name: "Dual.Infodose — Nebula Pro",
+      short_name: "Dual Nebula",
+      start_url: ".",
+      display: "standalone",
+      theme_color: "#0b0b0f",
+      background_color: "#0b0b0f",
+      icons: [
+        { src: makeIcon(192), sizes:"192x192", type:"image/svg+xml", purpose:"any maskable"},
+        { src: makeIcon(512), sizes:"512x512", type:"image/svg+xml", purpose:"any maskable"}
+      ]
+    };
+    function makeIcon(size){
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 100 100'>
+        <defs><radialGradient id='g' cx='50%' cy='50%' r='60%'>
+          <stop offset='0%' stop-color='#fff'/><stop offset='100%' stop-color='#b0b0ff'/></radialGradient></defs>
+        <rect rx='24' ry='24' x='6' y='6' width='88' height='88' fill='black' stroke='white' stroke-opacity='.18'/>
+        <rect rx='18' ry='18' x='19' y='36' width='62' height='28' fill='#08080c' stroke='white' stroke-opacity='.22'/>
+        <path d='M30 54c8-8 14-8 22 0s14 8 22 0' stroke='white' stroke-width='5' fill='none'/>
+        <path d='M30 58c8-8 14-8 22 0s14 8 22 0' stroke='white' stroke-width='4' fill='none' opacity='.9'/>
+        <circle cx='47' cy='50' r='2.8' fill='white'/>
+        <polygon points='74,48 81,51 74,54' fill='white'/>
+      </svg>`;
+      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+    }
+    const blob = new Blob([JSON.stringify(manifest)], {type: "application/json"});
+    const link = document.createElement("link"); link.rel="manifest"; link.href = URL.createObjectURL(blob); document.head.appendChild(link);
+
+    const $ = (q)=>document.querySelector(q);
+    const logEl = $('#log'), promptEl=$('#prompt'), sendBtn=$('#send');
+    const menuBtn=$('#menuBtn'), homePill=$('#homePill'), symbolPad=$('#symbolPad');
+    const sheet=$('#sheet'), settings=$('#settings'), streamEditor=$('#streamEditor');
+    const apiKeyEl=$('#apiKey'), modelEl=$('#model'), systemEl=$('#system');
+    const autoTTSEl=$('#autoTTS'), persistHistoryEl=$('#persistHistory');
+    const filePick=$('#filePick'), radial=$('#radial');
+
+    const store = {
+      get cfg(){ try{return JSON.parse(localStorage.getItem('dual_cfg')||'{}');}catch(e){return{};} },
+      set cfg(v){ localStorage.setItem('dual_cfg', JSON.stringify(v)); },
+      get hist(){ try{return JSON.parse(localStorage.getItem('dual_hist')||'[]');}catch(e){return[];} },
+      set hist(v){ localStorage.setItem('dual_hist', JSON.stringify(v)); },
+      get slots(){ try{return JSON.parse(localStorage.getItem('dual_slots')||'{}');}catch(e){return{};} },
+      set slots(v){ localStorage.setItem('dual_slots', JSON.stringify(v)); }
+    };
+
+    function haptic(ms=12){ try{ if(navigator.vibrate) navigator.vibrate(ms);}catch(_){} }
+    function speak(text){ try{ if(!autoTTSEl.checked) return; const u=new SpeechSynthesisUtterance(text); u.lang='pt-BR'; speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+    function addMsg(role, content){ const div=document.createElement('div'); div.className='msg '+(role==='user'?'you':'ai'); div.textContent=content; logEl.appendChild(div); logEl.scrollTop=logEl.scrollHeight; }
+    function pushHist(role, content){ if(!persistHistoryEl.checked) return; const h=store.hist; h.push({role, content}); store.hist=h.slice(-64); }
+
+    function load(){
+      const {apiKey='', model='openrouter/auto', system='Você é a AA Dual.Infodose. Responda curto, útil, amigável, em pt-BR, com foco mobile.', persist=true, autoTTS=false} = store.cfg;
+      apiKeyEl.value=apiKey; modelEl.value=model; systemEl.value=system;
+      persistHistoryEl.checked=!!persist; autoTTSEl.checked=!!autoTTS;
+      const s=store.slots; $('#slot3').value=s.s3||$('#slot3').value; $('#slot6').value=s.s6||$('#slot6').value; $('#slot9').value=s.s9||$('#slot9').value;
+      store.hist.forEach(m=> addMsg(m.role,m.content));
+    }
+    load();
+
+    function toggleSheet(open){ sheet.classList[open?'add':'remove']('open'); }
+    menuBtn.addEventListener('click', ()=>{ toggleSheet(true); haptic(); });
+    homePill.addEventListener('click', ()=> openRadial());
+    symbolPad.addEventListener('click', ()=> openRadial());
+
+    // Radial
+    function openRadial(){ radial.classList.remove('hidden'); haptic(20); setTimeout(()=>{document.body.addEventListener('click', closeRadialOnce, {once:true});},0); }
+    function closeRadial(){ radial.classList.add('hidden'); }
+    function closeRadialOnce(){ closeRadial(); }
+    $('#rSettings').onclick=()=>{ closeRadial(); toggleSheet(true); settings.classList.remove('hidden'); streamEditor.classList.add('hidden'); };
+    $('#rStream').onclick=()=>{ closeRadial(); toggleSheet(true); settings.classList.add('hidden'); streamEditor.classList.remove('hidden'); };
+    $('#rExport').onclick=()=>{ closeRadial(); exportData(); };
+    $('#rImport').onclick=()=>{ closeRadial(); filePick.click(); };
+
+    // Sheet buttons
+    $('#btnSettings').onclick=()=>{ settings.classList.toggle('hidden'); streamEditor.classList.add('hidden'); };
+    $('#btnAbout').onclick=()=> alert('Dual Nebula Pro — PWA minimalista com menu radial, haptics, Stream Editor (3/6/9).');
+    $('#btnExport').onclick=exportData; $('#btnImport').onclick=()=> filePick.click();
+    $('#saveCfg').onclick=()=>{ store.cfg={ apiKey:apiKeyEl.value.trim(), model:modelEl.value.trim(), system:systemEl.value, persist: persistHistoryEl.checked, autoTTS: autoTTSEl.checked }; alert('Configurações salvas.'); haptic(); };
+    $('#saveStream').onclick=()=>{ store.slots={ s3:$('#slot3').value, s6:$('#slot6').value, s9:$('#slot9').value }; alert('Slots salvos.'); haptic(); };
+
+    function exportData(){
+      const data={ cfg:store.cfg, hist:store.hist, slots:store.slots };
+      const blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dual_nebula_export.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+    filePick.addEventListener('change', e=>{
+      const f=e.target.files[0]; if(!f) return;
+      const r=new FileReader(); r.onload=()=>{ try{ const data=JSON.parse(r.result); if(data.cfg) store.cfg=data.cfg; if(data.hist) store.hist=data.hist; if(data.slots) store.slots=data.slots; logEl.innerHTML=''; load(); alert('Importado.'); }catch(_){ alert('JSON inválido'); } };
+      r.readAsText(f);
+    });
+
+    // Quick chips
+    $('#chipClear').onclick=()=>{ logEl.innerHTML=''; if(persistHistoryEl.checked) store.hist=[]; haptic(); };
+    $('#chipModel').onclick=()=>{ toggleSheet(true); settings.classList.remove('hidden'); modelEl.focus(); haptic(); };
+    $('#chipSystem').onclick=()=>{ toggleSheet(true); settings.classList.remove('hidden'); systemEl.focus(); haptic(); };
+    $('#chipStream').onclick=()=>{ toggleSheet(true); settings.classList.add('hidden'); streamEditor.classList.remove('hidden'); haptic(); };
+
+    // Chat
+    async function callOpenRouter(messages){
+      const {apiKey, model='openrouter/auto'} = store.cfg;
+      if(!apiKey){ alert('Informe a OpenRouter API Key em Configurações.'); toggleSheet(true); settings.classList.remove('hidden'); return null; }
+      try{
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization': 'Bearer ' + apiKey,
+            'HTTP-Referer': location.href,
+            'X-Title': 'Dual Nebula Pro'
+          },
+          body: JSON.stringify({ model, messages, temperature:0.7 })
+        });
+        const data = await res.json();
+        if(data.error){ throw new Error(data.error.message || 'Erro na API'); }
+        return (data.choices?.[0]?.message?.content||'').trim();
+      }catch(err){ alert('Falha na API: '+err.message); return null; }
+    }
+    function buildMessages(q){
+      const base=[ {role:'system', content: store.cfg.system || 'Você é a AA Dual.Infodose. Curta e útil.'} ];
+      const s=store.slots;
+      const chain = [s.s3, s.s6, s.s9].filter(Boolean).map(t=>({role:'system', content:t}));
+      const hist = persistHistoryEl.checked ? store.hist.filter(m=>m.role!=='system').slice(-10) : [];
+      return base.concat(chain).concat(hist).concat([{role:'user', content:q}]);
+    }
+    async function send(){
+      const q=promptEl.value.trim(); if(!q) return;
+      promptEl.value=''; addMsg('user', q); pushHist('user', q); haptic();
+      sendBtn.disabled=true; sendBtn.textContent='…';
+      const r=await callOpenRouter(buildMessages(q));
+      sendBtn.disabled=false; sendBtn.textContent='Enviar';
+      if(r!=null){ addMsg('assistant', r); pushHist('assistant', r); speak(r); }
+    }
+    sendBtn.onclick=send; promptEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+    // Sheet drag close
+    let startY=null;
+    sheet.addEventListener('touchstart', e=>{ startY=e.touches[0].clientY; }, {passive:true});
+    sheet.addEventListener('touchmove', e=>{ if(startY==null) return; const dy=e.touches[0].clientY - startY; if(dy>40) sheet.classList.remove('open'); }, {passive:true});
+  </script>
+</body>
+</html>

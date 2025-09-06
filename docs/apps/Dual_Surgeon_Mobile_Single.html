@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light">
+  <title>Dual • CSS Surgeon Mobile (Retrato)</title>
+  <style>
+  /* =========================================================
+     DUAL • SKIN MOBILE SINGLE-FILE (retrato, rolável, PWA-like)
+     — NÃO altera DOM da sua app original; apenas estilo/comportamento UI
+     ========================================================= */
+  :root{
+    --bg:#090b12; --bg-2:#0b0f1c; --panel:#111629;
+    --ink:#e8ecf1; --muted:#9aa4b2; --acc:#7df9ff; --acc-2:#f0f;
+    --ok:#48e59b; --warn:#ffc857; --err:#ff6b6b;
+    --radius:16px; --radius-sm:12px;
+    --shadow:0 12px 40px rgba(0,0,0,.35);
+    --glass:rgba(8,12,24,.55);
+    --glass-2:rgba(8,12,24,.72);
+    --blur:10px;
+    --t-fast:.18s; --t-med:.34s; --t-slow:.6s;
+    --gap:12px; --gap-lg:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  :where(html,body){
+    background:linear-gradient(180deg,var(--bg),#090c16 60%,var(--bg));
+    color:var(--ink);
+    margin:0;
+    font:14px/1.6 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;
+  }
+  :where(img,svg,object,canvas){max-width:100%;height:auto}
+  a{color:var(--acc);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Shell base */
+  .app-shell{
+    position:relative;
+    min-height:100%;
+    padding-bottom:160px; /* espaço para o input fixo */
+  }
+
+  /* Header simbólico (opcional) */
+  .hero-header{
+    position:sticky; top:0; z-index:1;
+    padding:14px 12px 6px;
+    background:linear-gradient(180deg,rgba(9,11,18,.9),rgba(9,11,18,0));
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border-bottom:1px solid rgba(125,249,255,.08);
+  }
+  .brandline{
+    font-weight:700; letter-spacing:.3px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .brandline .pill{font-size:12px; padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid rgba(125,249,255,.2)}
+  .brandline .mode{font-size:12px; opacity:.8}
+
+  /* Área de respostas */
+  .response-container{
+    position: fixed; left: 12px; right: 12px;
+    bottom: 100px;
+    padding: 12px;
+    max-height: calc(100vh - 200px);
+    overflow: auto;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+    border: 1px solid rgba(125,249,255,.15);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: background var(--t-slow), border-color var(--t-med);
+  }
+  .response-list{display:flex;flex-direction:column; gap:12px}
+  .response-block{
+    margin: 0; padding: 14px 14px 12px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(0,255,255,.10), rgba(240,0,255,.06));
+    border-left: 4px solid #0ff22a0a; transition: box-shadow var(--t-fast), transform var(--t-fast);
+    word-wrap: break-word;
+  }
+  .response-block:hover{ box-shadow: 0 0 0 1px rgba(125,249,255,.15), 0 8px 22px rgba(0,0,0,.35); }
+  .response-block .meta{font-size:11px; color:var(--muted); margin-bottom:6px}
+
+  .footer-text{
+    display:block; margin: 0 auto; padding: 4px 8px;
+    background: transparent; color: var(--muted); text-align:center; opacity:.7;
+    transition: opacity var(--t-fast), transform var(--t-fast);
+  }
+  .footer-text:hover{ opacity:.9; transform: translateY(-1px); }
+
+  /* Input fixo */
+  .input-container{
+    position: fixed; left: 12px; right: 12px; bottom: 24px;
+    display: grid; grid-template-columns: 1fr 56px 56px; gap: 6px;
+    z-index: 3;
+  }
+  .input-container input[type="text"]{
+    background: rgba(255,255,255,.08);
+    color: var(--ink);
+    border: 1px solid rgba(125,249,255,.15);
+    border-radius: 999px;
+    padding: 12px 14px;
+    outline: none; transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .input-container input[type="text"]::placeholder{color:rgba(232,236,241,.55)}
+  .input-container input[type="text"]:focus{ border-color: rgba(125,249,255,.35); background: rgba(255,255,255,.12); }
+  .input-container button{
+    border-radius: 999px; border: 1px solid rgba(125,249,255,.15);
+    background: linear-gradient(42deg,#0ff,#f0f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-size: 28px; line-height: 1;
+    transition: transform var(--t-med), box-shadow var(--t-fast);
+  }
+  .input-container button:hover{ transform: translateY(-1px) scale(1.03); }
+
+  /* Barra de símbolos */
+  .symbol-bar{ position: fixed; right: 10px; top: 45%; transform: translateY(-50%); gap: 10px; display: flex; flex-direction: column; z-index: 4;}
+  .symbol-button{
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--glass-2);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border: 1px solid rgba(125,249,255,.18);
+    color: var(--ink); font-weight: 600;
+    transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+  }
+  .symbol-button:hover{ transform: scale(1.06); border-color: rgba(125,249,255,.38); }
+
+  /* Botão Ritual (◉) */
+  #btn-expandir-ritual{
+    position: fixed; right: 24px; bottom: 30px;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid rgba(125,249,255,.2);
+    background: radial-gradient(120% 120% at 50% 30%, rgba(240,0,255,.25), rgba(0,255,255,.18));
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    -webkit-text-fill-color: transparent; color: transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 0 1px rgba(240,0,255,.08), 0 8px 30px rgba(0,0,0,.35);
+    transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+  }
+  #btn-expandir-ritual:hover{
+    transform: scale(1.05);
+    border-color: rgba(125,249,255,.35);
+    box-shadow: 0 0 0 1px rgba(240,0,255,.15), 0 10px 38px rgba(0,0,0,.45);
+  }
+
+  /* Player (mock funcional) */
+  #koblluxPlayer{
+    position: fixed; top: 18px; left: 12px; z-index: 6;
+    background: var(--glass-2);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(125,249,255,.15);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    color: var(--ink);
+    padding: 12px; max-width: 280px; display: flex; flex-direction: column; gap: 10px;
+  }
+  #koblluxPlayer .row{display:flex;align-items:center;gap:8px}
+  #koblluxPlayer button, #koblluxPlayer select, #koblluxPlayer input[type="range"]{
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(125,249,255,.15);
+    border-radius: 10px; color: var(--ink);
+    transition: background var(--t-fast), transform var(--t-fast), border-color var(--t-fast);
+  }
+  #koblluxPlayer button:hover, #koblluxPlayer select:hover{ background: rgba(255,255,255,.12); border-color: rgba(125,249,255,.35); }
+  #togglePlayer{ width: 40px; height: 40px; border-radius: 50%; }
+
+  /* Temas via body */
+  body.light  .response-container{background: rgba(255,255,255,.28);}
+  body.medium .response-container{background: rgba(0,0,0,.22);}
+  body.vibe   .response-container{background: rgba(255,255,255,.18);}
+
+  /* Acessibilidade */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{scroll-behavior:auto; transition:none!important; animation:none!important}
+  }
+  </style>
+</head>
+<body class="medium">
+  <div class="app-shell">
+
+    <!-- Cabeçalho simbólico -->
+    <header class="hero-header" aria-label="Cabeçalho simbólico Dual">
+      <div class="brandline">
+        <span>⊙UNO█▀█ ⇄DUAL╔═╗ △TRINITY☆彡</span>
+        <span class="pill">SÜMBÜS_FIRMWARE=0x012123456789ABC</span>
+        <span class="mode">MODE=TRINITY · ARCH=INFODOSE12</span>
+      </div>
+    </header>
+
+    <!-- Player mock -->
+    <aside id="koblluxPlayer" aria-label="KOBLLUX Player">
+      <div class="row">
+        <button id="togglePlayer" title="Play/Pause">▶</button>
+        <strong style="flex:1">KOBLLUX Player</strong>
+        <button id="minPlayer" title="Minimizar">–</button>
+      </div>
+      <div class="row">
+        <label for="voiceSel" style="font-size:12px;opacity:.8">Voz</label>
+        <select id="voiceSel" style="flex:1">
+          <option>Kodux Dual</option>
+          <option>Elysha</option>
+          <option>Nova</option>
+          <option>Kaion</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="volRange" style="font-size:12px;opacity:.8">Vol</label>
+        <input id="volRange" type="range" min="0" max="100" value="70" style="flex:1">
+      </div>
+      <div class="row">
+        <button id="themeLight">☼</button>
+        <button id="themeMedium">◐</button>
+        <button id="themeVibe">✦</button>
+        <small style="opacity:.7;margin-left:auto">Tema</small>
+      </div>
+    </aside>
+
+    <!-- Lista de respostas -->
+    <main class="response-container" aria-live="polite">
+      <div class="response-list" id="responseList">
+        <article class="response-block intro">
+          <div class="meta">Dual • 12:00</div>
+          <div>Fusão Simbólica Ativada: <strong>Artemis (Exploração)</strong> + <strong>Genus (Criação)</strong> — modo mobile retrato, CSS cirúrgico aplicado. <em>Sempre único, sempre seu.</em></div>
+        </article>
+      </div>
+      <small class="footer-text">Você já veio do que está por vir.</small>
+    </main>
+
+    <!-- Input fixo -->
+    <footer class="input-container" aria-label="Entrada de mensagem">
+      <input id="userInput" type="text" autocomplete="off" placeholder="Escreva sua intenção..." />
+      <button id="btnSend" title="Enviar">➤</button>
+      <button id="btnMic" title="Falar">🎙</button>
+    </footer>
+
+    <!-- Barra de símbolos -->
+    <nav class="symbol-bar" aria-label="Atalhos simbólicos">
+      <button class="symbol-button" data-sym="⚡" title="Pulso">⚡</button>
+      <button class="symbol-button" data-sym="⭕" title="Centro">⭕</button>
+      <button class="symbol-button" data-sym="ψ"  title="Mente">ψ</button>
+    </nav>
+
+    <!-- Botão ritual -->
+    <button id="btn-expandir-ritual" title="Abrir Ritual">◉</button>
+
+  </div>
+
+  <script>
+  // =========================================================
+  //  DUAL • JS embutido (comportamento mínimo, sem backend)
+  //  Mantém estrutura estável, opera só na UI.
+  // =========================================================
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+  const responseList = $('#responseList');
+  const userInput    = $('#userInput');
+  const btnSend      = $('#btnSend');
+  const btnMic       = $('#btnMic');
+  const btnRitual    = $('#btn-expandir-ritual');
+
+  const togglePlayer = $('#togglePlayer');
+  const minPlayer    = $('#minPlayer');
+  const player       = $('#koblluxPlayer');
+
+  const themeLight  = $('#themeLight');
+  const themeMedium = $('#themeMedium');
+  const themeVibe   = $('#themeVibe');
+
+  // Utilitário: adicionar um bloco de resposta
+  function pushResponse(text, role='Você'){
+    const el = document.createElement('article');
+    el.className = 'response-block';
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    const t = new Date();
+    meta.textContent = (role==='Dual'?'Dual':'Você') + ' • ' + String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+    el.appendChild(meta);
+    const body = document.createElement('div');
+    body.textContent = text;
+    el.appendChild(body);
+    responseList.appendChild(el);
+    // scroll bottom
+    const container = document.querySelector('.response-container');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  // Enviar com botão/Enter
+  function handleSend(){
+    const v = userInput.value.trim();
+    if(!v) return;
+    pushResponse(v, 'Você');
+    userInput.value='';
+    // Simulação de resposta do Dual (placeholder; aqui você integraria seu backend)
+    setTimeout(()=>{
+      pushResponse('Ativado: ' + v + ' → portal visual aplicado sem tocar no DOM.', 'Dual');
+    }, 300);
+  }
+  btnSend.addEventListener('click', handleSend);
+  userInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); handleSend(); }
+  });
+
+  // Mic (placeholder)
+  btnMic.addEventListener('click', ()=>{
+    pushResponse('🎙️ Captura de voz (simulada). Conecte ao TTS/ASR do seu backend.', 'Dual');
+  });
+
+  // Símbolos rápidos
+  $$('.symbol-button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const sym = b.dataset.sym || b.textContent.trim();
+      userInput.value = (userInput.value + ' ' + sym).trim();
+      userInput.focus();
+    });
+  });
+
+  // Ritual (mock)
+  btnRitual.addEventListener('click', ()=>{
+    pushResponse('Ritual aberto: intensidade modulada. Ajuste suas camadas simbólicas.', 'Dual');
+  });
+
+  // Player básico
+  let playing=false;
+  togglePlayer.addEventListener('click', ()=>{
+    playing=!playing;
+    togglePlayer.textContent = playing ? '⏸' : '▶';
+  });
+  minPlayer.addEventListener('click', ()=>{
+    const collapsed = player.getAttribute('data-collapsed') === '1';
+    if(collapsed){
+      player.style.maxHeight='';
+      player.style.overflow='';
+      player.setAttribute('data-collapsed','0');
+      minPlayer.textContent='–';
+    }else{
+      player.style.maxHeight='48px';
+      player.style.overflow='hidden';
+      player.setAttribute('data-collapsed','1');
+      minPlayer.textContent='◫';
+    }
+  });
+
+  // Temas
+  themeLight.addEventListener('click', ()=>{ document.body.classList.remove('medium','vibe'); document.body.classList.add('light'); });
+  themeMedium.addEventListener('click',()=>{ document.body.classList.remove('light','vibe'); document.body.classList.add('medium'); });
+  themeVibe.addEventListener('click', ()=>{ document.body.classList.remove('light','medium'); document.body.classList.add('vibe'); });
+
+  // Resize safe area para iOS notch
+  function applySafeArea(){
+    const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-bottom)'))||0;
+    document.documentElement.style.setProperty('--safe-bottom', safeBottom + 'px');
+  }
+  applySafeArea(); window.addEventListener('resize', applySafeArea);
+
+  // Mensagem inicial (apenas 1x por sessão)
+  if(!sessionStorage.getItem('dual_welcome')){
+    sessionStorage.setItem('dual_welcome','1');
+    setTimeout(()=>{
+      pushResponse('Bem-vindo ao modo “CSS Surgeon Mobile”. Tudo que você estilizar aqui respeita ids/classes originais. Pronto para colar no seu app.', 'Dual');
+    }, 600);
+  }
+  </script>
+</body>
+</html>

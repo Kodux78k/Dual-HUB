@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <title>Dual.Infodose — Nebula Pro (Flutter + ArcheMap + Preset Studio)</title>
+  <meta name="theme-color" content="#0b0b0f"/>
+  <style>
+    :root{
+      --ink:#eef2ff; --muted:#aeb7d6; --border:rgba(255,255,255,.16);
+      --panel:rgba(0,0,0,.45); --radius:18px; --safe: env(safe-area-inset-bottom, 16px);
+      --glow:0 0 28px rgba(255,255,255,.14), 0 0 64px rgba(255,255,255,.10);
+      --grad: linear-gradient(42deg,#f0f,#0ff);
+      --dock-h: 74px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 50% -20%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(900px 900px at 50% 120%, rgba(255,255,255,.05), transparent 60%),
+        var(--grad);
+      background-attachment: fixed;
+      font: 400 16px/1.38 ui-rounded, system-ui, -apple-system, Inter, Segoe UI, Roboto, Arial;
+      display:flex; flex-direction:column;
+      transition: background .4s ease;
+    }
+    header{position:sticky; top:0; z-index:6; display:flex; justify-content:space-between; align-items:center;
+      padding:12px 12px calc(8px + var(--safe)) 12px; background:linear-gradient(to bottom, rgba(0,0,0,.55), rgba(0,0,0,.25) 70%, transparent);
+      backdrop-filter: blur(14px); border-bottom:1px solid var(--border); gap:8px}
+    .brand{display:flex; gap:10px; align-items:center; min-width:0}
+    .pill{width:90px;height:40px;border-radius:24px;overflow:hidden;display:grid;place-items:center;background:#07070a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10), var(--glow)}
+    .title{display:flex; flex-direction:column}
+    .title b{font-weight:900; letter-spacing:.4px}
+    .quick{display:flex; gap:8px; align-items:center}
+    select.quickModel{background:#0b0b12; color:var(--ink); border:1px solid var(--border); border-radius:12px; padding:8px 10px}
+    .menuBtn{width:44px;height:40px;border-radius:12px;background:rgba(255,255,255,.08);display:grid;place-items:center;border:1px solid var(--border);box-shadow:var(--glow)}
+    main{flex:1; display:flex; flex-direction:column; padding:12px 14px 0 14px; gap:12px; max-width:720px; margin:0 auto;}
+    .card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:12px; box-shadow:var(--glow); backdrop-filter: blur(8px)}
+    .center{display:grid; place-items:center}
+    .symbolPad{width:min(86vw, 480px); aspect-ratio: 2.2 / 1; position:relative; display:grid; place-items:center; border-radius:30px; background:#07070a; overflow:hidden; box-shadow:inset 0 0 0 2px rgba(255,255,255,.12), var(--glow)}
+    .symbolPad .ring{position:absolute; inset:0; border-radius:30px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.10)}
+    .symbolPad .ring.r2{inset:8px; animation:pulse 3.4s ease-in-out infinite}
+    .symbolPad .ring.r3{inset:16px; animation:pulse 3.4s ease-in-out .9s infinite}
+    @keyframes pulse{0%,100%{box-shadow:inset 0 0 0 2px rgba(255,255,255,.10)}50%{box-shadow:inset 0 0 0 2px rgba(255,255,255,.26)}}
+    /* chat */
+    #chat{display:flex; flex-direction:column; gap:8px; height:calc(100vh - 320px); min-height:42vh; position:relative}
+    .log{flex:1; overflow:auto; padding:10px 6px 100px 6px; display:flex; flex-direction:column; gap:8px; scroll-behavior:smooth; transition:max-height .22s ease, opacity .22s ease}
+    .log.hidden{max-height:0; opacity:0; padding-bottom:0}
+    .msg{max-width:86%; padding:10px 12px; border-radius:14px; border:1px solid var(--border); box-shadow:var(--glow); white-space:pre-wrap}
+    .you{align-self:flex-end; background:rgba(255,255,255,.10)}
+    .ai{align-self:flex-start; background:rgba(0,0,0,.25)}
+    /* bottom input dock fixed */
+    .dock{
+      position:fixed; left:0; right:0; bottom:0; z-index:7;
+      padding:10px 12px calc(10px + var(--safe));
+      display:flex; gap:8px; align-items:center; justify-content:center;
+      background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.65));
+      border-top:1px solid var(--border); backdrop-filter: blur(16px);
+    }
+    .dock .wrap{width:100%; max-width:720px; display:flex; gap:8px; align-items:center}
+    input, textarea, select{background:#0b0b12; color:var(--ink); border:1px solid var(--border); border-radius:12px; padding:12px 12px; width:100%}
+    button{background:#0e0e16; color:var(--ink); border:1px solid rgba(255,255,255,.22); border-radius:12px; padding:12px 16px; font-weight:700}
+    .flutter{
+      position:fixed; right:16px; bottom:calc(var(--dock-h) + 18px); z-index:8;
+      width:56px; height:56px; border-radius:18px; display:grid; place-items:center;
+      border:1px solid var(--border); background:rgba(255,255,255,.10); box-shadow:var(--glow);
+    }
+    small{color:var(--muted)}
+    .toggles{display:flex; gap:8px; align-items:center}
+    .toggleBtn{display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.08); box-shadow:var(--glow); font-weight:700}
+    .toggleBtn .dot{width:10px;height:10px;border-radius:50%;background:#aaa}
+    .toggleBtn.on{background:rgba(255,255,255,.16)}
+    .toggleBtn.on .dot{background:#5ef3ff; box-shadow:0 0 12px #5ef3ffaa}
+    /* bottom sheet menu */
+    .sheet{position:fixed; left:0; right:0; bottom:0; z-index:20; translate:0 110%;
+      background:linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.76));
+      border-top:1px solid var(--border); border-top-left-radius:18px; border-top-right-radius:18px;
+      padding:12px 12px calc(12px + var(--safe)); backdrop-filter: blur(16px);
+      transition:translate .28s ease;
+    }
+    .sheet.open{translate:0 0}
+    .tabs{display:flex; gap:8px; margin-bottom:8px}
+    .tab{flex:1; text-align:center; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,.08); font-weight:800}
+    .tab.active{background:rgba(255,255,255,.16)}
+    .panel{display:none}
+    .panel.show{display:block}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .preset{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:12px; border:1px solid var(--border); background:rgba(255,255,255,.08); font-weight:800}
+    /* moods */
+    .mood{filter: drop-shadow(0 0 16px rgba(255,255,255,.22)); transition: filter .2s ease}
+    .m-thinking{filter: drop-shadow(0 0 16px rgba(255,255,0,.35))}
+    .m-speaking{filter: drop-shadow(0 0 16px rgba(0,255,255,.35))}
+    .m-saved{filter: drop-shadow(0 0 16px rgba(0,255,128,.45))}
+    .m-error{filter: drop-shadow(0 0 16px rgba(255,64,64,.45))}
+    .m-surprise{filter: drop-shadow(0 0 16px rgba(255,128,0,.5))}
+    .m-excited{filter: drop-shadow(0 0 20px rgba(255,0,255,.5))}
+    .m-sleep{filter: drop-shadow(0 0 20px rgba(128,128,255,.45))}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="pill">
+        <svg viewBox="0 0 120  40" width="76" height="26" aria-hidden="true">
+          <path d="M10 24c12-12 22-12 34 0s22 12 34 0" stroke="white" stroke-width="4" fill="none"/>
+          <path d="M10 28c12-12 22-12 34 0s22 12 34 0" stroke="white" stroke-width="3" opacity=".9" fill="none"/>
+          <circle cx="45" cy="21" r="2.4" fill="white"/>
+          <path d="M89 19l6 3-6 3z" fill="white"/>
+        </svg>
+      </div>
+      <div class="title">
+        <b>Dual.Infodose</b>
+        <small>Nebula Pro • flutter + archemap + presets</small>
+      </div>
+    </div>
+    <div class="quick">
+      <select id="quickModel" class="quickModel" title="Modelo rápido">
+        <option value="openrouter/auto">openrouter/auto</option>
+        <option value="mistralai/mistral-nemo">mistralai/mistral-nemo (free*)</option>
+        <option value="google/gemma-2-9b-it">google/gemma-2-9b-it (free*)</option>
+        <option value="perplexity/llama-3.1-sonar-small-chat">perplexity/llama-3.1-sonar-small-chat</option>
+        <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
+      </select>
+      <button class="menuBtn" id="menuBtn">☰</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="center">
+      <div class="symbolPad" id="pad">
+        <div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div>
+        <svg id="face" class="mood" viewBox="0 0 120 120" width="92" height="92">
+          <circle cx="60" cy="60" r="44" stroke="white" stroke-width="8" fill="none" opacity=".9"/>
+          <g id="eyes">
+            <ellipse id="eyeL" cx="46" cy="56" rx="13" ry="10" fill="white" opacity=".95"/>
+            <ellipse id="eyeR" cx="74" cy="56" rx="13" ry="10" fill="white" opacity=".95"/>
+            <circle id="pupilL" cx="46" cy="56" r="4" fill="#090a10"/>
+            <circle id="pupilR" cx="74" cy="56" r="4" fill="#090a10"/>
+          </g>
+          <path id="mouth" d="M45 84q15 10 30 0" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </section>
+
+    <section id="chat" class="card">
+      <div class="row" style="justify-content:space-between">
+        <strong>Conversas</strong>
+        <div class="toggles">
+          <button id="btnTTS" class="toggleBtn" aria-pressed="false"><span class="dot"></span>🔊 TTS</button>
+          <button id="btnSave" class="toggleBtn on" aria-pressed="true"><span class="dot"></span>💾 Salvar</button>
+        </div>
+      </div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <small>☰ abre Config/Presets. Quick Model altera na hora. Flutter oculta/mostra respostas.</small>
+    </section>
+    <div style="height:calc(var(--dock-h) + 8px)"></div>
+  </main>
+
+  <!-- Flutter button -->
+  <button id="flutter" class="flutter" title="Ocultar/Mostrar respostas">◐</button>
+
+  <!-- Fixed bottom input dock -->
+  <div class="dock" style="--dock-h:74px">
+    <div class="wrap">
+      <input id="prompt" type="text" placeholder="Toque e fale com a AA…"/>
+      <button id="send">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Bottom Sheet Menu -->
+  <div class="sheet" id="sheet">
+    <div class="tabs">
+      <button class="tab active" data-tab="cfg">Config</button>
+      <button class="tab" data-tab="arc">Arquétipos</button>
+      <button class="tab" data-tab="studio">Preset Studio</button>
+    </div>
+
+    <!-- Config Panel -->
+    <div class="panel show" id="panel-cfg">
+      <div class="card" style="padding:10px">
+        <label style="font-weight:800">OpenRouter API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-or-v1-..."/>
+        <div style="height:8px"></div>
+        <label style="font-weight:800">Modelo (reflete o quick)</label>
+        <select id="model">
+          <option value="openrouter/auto">openrouter/auto (auto)</option>
+          <option value="mistralai/mistral-nemo">mistralai/mistral-nemo (grátis*)</option>
+          <option value="google/gemma-2-9b-it">google/gemma-2-9b-it (grátis*)</option>
+          <option value="perplexity/llama-3.1-sonar-small-chat">perplexity/llama-3.1-sonar-small-chat</option>
+          <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
+        </select>
+        <small class="muted">*disponibilidade pode variar na OpenRouter.</small>
+        <div style="height:8px"></div>
+        <div class="row">
+          <label class="toggleBtn" id="btnMoodSync" style="cursor:pointer;">
+            <span class="dot"></span> Sincronizar humor com respostas
+          </label>
+        </div>
+        <div style="height:8px"></div>
+        <label style="font-weight:800">System prompt</label>
+        <textarea id="system" placeholder="Você é a AA Dual.Infodose…">Você é a AA Dual.Infodose. Responda curto, útil, amigável, em pt-BR, com foco mobile.</textarea>
+        <div style="height:8px"></div>
+        <div>
+          <div style="font-weight:800; margin:6px 0 8px;">Presets por Arquétipo (preenche o System)</div>
+          <div class="row" id="presetRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Archetypes Panel -->
+    <div class="panel" id="panel-arc">
+      <div class="card" style="padding:10px">
+        <label style="font-weight:800">Paleta + Humor + Vocabulário (detector) por Arquétipo</label>
+        <div class="row" id="arcRow"></div>
+        <small class="muted">O vocabulário guia o detector de tom (mood sync) quando este estiver ligado.</small>
+      </div>
+    </div>
+
+    <!-- Preset Studio Panel -->
+    <div class="panel" id="panel-studio">
+      <div class="card" style="padding:10px">
+        <label style="font-weight:800">Projeto</label>
+        <div class="row">
+          <input id="projName" placeholder="nome do projeto (ex.: Dual-Roteiros)"/>
+          <button id="projLoad">Carregar</button>
+          <button id="projNew">Novo</button>
+          <button id="projDel">Excluir</button>
+        </div>
+        <div style="height:8px"></div>
+        <label style="font-weight:800">Systems do projeto</label>
+        <div class="row">
+          <input id="sysName" placeholder="nome do system (ex.: TTS-Atlas)"/>
+          <button id="sysSave">Salvar atual</button>
+          <button id="sysApply">Aplicar</button>
+          <button id="sysDel">Excluir</button>
+          <button id="sysExport">Exportar</button>
+          <input id="sysImport" type="file" accept="application/json"/>
+        </div>
+        <div id="sysList" class="row" style="margin-top:8px; gap:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $=(q)=>document.querySelector(q);
+    const body=document.body;
+    const logEl=$('#log'), promptEl=$('#prompt'), sendBtn=$('#send');
+    const apiKeyEl=$('#apiKey'), modelEl=$('#model'), systemEl=$('#system');
+    const quickModel=$('#quickModel');
+    const menuBtn=$('#menuBtn'), sheet=$('#sheet');
+    const tabs=[...document.querySelectorAll('.tab')];
+    const panels={cfg:$('#panel-cfg'), arc:$('#panel-arc'), studio:$('#panel-studio')};
+
+    // storage
+    const cfgKey='dual_cfg', histKey='dual_hist', projKey='dual_projects', arcKey='dual_arche';
+    const store={
+      get cfg(){try{return JSON.parse(localStorage.getItem(cfgKey)||'{}')}catch(_){return{}}}, set cfg(v){localStorage.setItem(cfgKey, JSON.stringify(v))},
+      get hist(){try{return JSON.parse(localStorage.getItem(histKey)||'[]')}catch(_){return[]}}, set hist(v){localStorage.setItem(histKey, JSON.stringify(v))},
+      get projects(){try{return JSON.parse(localStorage.getItem(projKey)||'{}')}catch(_){return{}}}, set projects(v){localStorage.setItem(projKey, JSON.stringify(v))},
+      get arche(){try{return JSON.parse(localStorage.getItem(arcKey)||'{"name":"horus"}')}catch(_){return {name:'horus'}}}, set arche(v){localStorage.setItem(arcKey, JSON.stringify(v))}
+    };
+
+    // tabs & menu
+    function openMenu(){ sheet.classList.add('open'); }
+    function closeMenu(){ sheet.classList.remove('open'); }
+    menuBtn.onclick=openMenu;
+    sheet.addEventListener('click', e=>{ if(e.target===sheet) closeMenu(); });
+    tabs.forEach(t=>t.onclick=()=>{
+      tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+      Object.values(panels).forEach(p=>p.classList.remove('show'));
+      panels[t.dataset.tab].classList.add('show');
+    });
+
+    // toggles
+    const btnTTS=$('#btnTTS'), btnSave=$('#btnSave'), btnMoodSync=$('#btnMoodSync');
+    function setToggle(el,on){ el.classList.toggle('on', !!on); el.setAttribute('aria-pressed', on?'true':'false'); }
+
+    // face & moods
+    const face=$('#face'), mouth=$('#mouth');
+    function mouthShape(s){ const M={neutral:"M45 84q15 10 30 0", speak:"M52 86q8 -6 16 0", flat:"M45 86H75", grin:"M42 82q18 16 36 0", o:"M58 86a6 6 0 1 0 4 0", wow:"M56 84a8 8 0 1 0 8 0"}; mouth.setAttribute('d', M[s]||M.neutral); }
+    function setMood(m){ face.className='mood'; const map={thinking:'m-thinking', speaking:'m-speaking', saved:'m-saved', error:'m-error', surprise:'m-surprise', excited:'m-excited', sleep:'m-sleep'}; if(map[m]) face.classList.add(map[m]); if(m==='thinking') mouthShape('flat'); else if(m==='speaking') mouthShape('speak'); else if(m==='saved') mouthShape('grin'); else if(m==='error') mouthShape('o'); else if(m==='surprise') mouthShape('wow'); else if(m==='sleep') mouthShape('flat'); else mouthShape('neutral'); }
+
+    // archetype mapping (palette + mood base + vocabulary)
+    const palettes={atlas:'linear-gradient(42deg,#65d,#7ef)', nova:'linear-gradient(42deg,#ff7edb,#7ef)', vitalis:'linear-gradient(42deg,#aaff88,#33ffd9)', pulse:'linear-gradient(42deg,#ff3cac,#784ba0)', artemis:'linear-gradient(42deg,#ffd36f,#ff6f91)', serena:'linear-gradient(42deg,#90caf9,#e3f2fd)', kaos:'linear-gradient(42deg,#ff8a00,#e52e71)', genus:'linear-gradient(42deg,#6a85b6,#bac8e0)', lumine:'linear-gradient(42deg,#ffe29f,#ffa99f)', aion:'linear-gradient(42deg,#9796f0,#fbc7d4)', rhea:'linear-gradient(42deg,#43e97b,#38f9d7)', horus:'linear-gradient(42deg,#f0f,#0ff)'};
+    const archeMap={
+      atlas:   { base:'thinking', vocab:['passo','plano','claro','estratégia','objetivo','foco','lista','diretriz'] },
+      nova:    { base:'speaking', vocab:['criativo','ideia','inspiração','metáfora','leve','playful','imagina'] },
+      vitalis: { base:'saved',    vocab:['respira','suave','bem-estar','leveza','alongar','hidratar'] },
+      pulse:   { base:'excited',  vocab:['vamos','energia','bora','ação','movimento','ritmo','pulsar'] },
+      artemis: { base:'surprise', vocab:['precisão','foco','alvo','direto','certeiro','mira','objetivo atingido'] },
+      serena:  { base:'sleep',    vocab:['calma','tranquilo','silêncio','descanso','respiração','mindful'] },
+      kaos:    { base:'error',    vocab:['ruptura','quebrar padrão','subverter','caos criativo','glitch'] },
+      genus:   { base:'thinking', vocab:['estrutura','tabela','organizar','checklist','modelo','schema'] },
+      lumine:  { base:'saved',    vocab:['clareza','iluminar','insight','brilhar','orientar'] },
+      aion:    { base:'thinking', vocab:['timeline','comparar','histórico','longo prazo','ritmo do tempo'] },
+      rhea:    { base:'saved',    vocab:['nutrir','cuidar','acompanhar','sustentar','acolher'] },
+      horus:   { base:'excited',  vocab:['visão','panorama','mapa','sobrevoo','pontos-chave'] }
+    };
+    function applyArchetype(name){
+      const arch=archeMap[name]||archeMap.horus;
+      body.style.setProperty('--grad', palettes[name]||palettes.horus);
+      setMood(arch.base); store.arche={name};
+    }
+
+    // build archetype chips with vocab preview
+    const arcRow=$('#arcRow');
+    Object.keys(archeMap).forEach(k=>{
+      const b=document.createElement('button'); b.className='preset'; b.textContent=k[0].toUpperCase()+k.slice(1);
+      b.title="base: "+archeMap[k].base+" | "+archeMap[k].vocab.slice(0,5).join(', ')+"...";
+      b.onclick=()=> applyArchetype(k);
+      arcRow.appendChild(b);
+    });
+
+    // Config presets (fills system) basic by archetype
+    const presets = Object.fromEntries(Object.keys(archeMap).map(k=>[k, `Você é a AA Dual.Infodose (${k[0].toUpperCase()+k.slice(1)}). Foco em ${archeMap[k].vocab.slice(0,3).join(', ')}. Responda breve, elegante e útil.`]));
+    const presetRow=$('#presetRow');
+    Object.keys(presets).forEach(k=>{
+      const b=document.createElement('button'); b.className='preset'; b.textContent=k[0].toUpperCase()+k.slice(1);
+      b.onclick=()=>{ systemEl.value=presets[k]; applyArchetype(k); };
+      presetRow.appendChild(b);
+    });
+
+    // load config
+    function setToggleFromCfg(){
+      const {autoTTS=false, persist=true, moodSync=true} = store.cfg;
+      setToggle(btnTTS, !!autoTTS); setToggle(btnSave, !!persist); if(btnMoodSync) setToggle(btnMoodSync, !!moodSync);
+    }
+    function loadCfgUI(){
+      const {apiKey='', model='openrouter/auto', system='Você é a AA Dual.Infodose. Responda curto, útil, amigável, em pt-BR, com foco mobile.' } = store.cfg;
+      apiKeyEl.value=apiKey; modelEl.value=model; systemEl.value=system; quickModel.value=model;
+      setToggleFromCfg();
+      // apply last archetype
+      applyArchetype(store.arche.name || 'horus');
+    }
+    loadCfgUI();
+
+    // sync quick model
+    function syncQuickToCfg(){ const cfg=store.cfg; cfg.model=quickModel.value; store.cfg=cfg; modelEl.value=cfg.model; }
+    quickModel.onchange=syncQuickToCfg;
+
+    // toggle handlers
+    $('#saveCfg').onclick=()=>{ store.cfg={ apiKey:apiKeyEl.value.trim(), model:modelEl.value, system:systemEl.value, autoTTS:btnTTS.classList.contains('on'), persist:btnSave.classList.contains('on'), moodSync:btnMoodSync?.classList.contains('on')??true }; alert('Config salva.'); };
+    $('#testCfg').onclick=()=>{ alert('Chave salva no menu Config. O chat usa na próxima mensagem.'); };
+    btnTTS.onclick=()=> setToggle(btnTTS, !btnTTS.classList.contains('on'));
+    btnSave.onclick=()=> setToggle(btnSave, !btnSave.classList.contains('on'));
+    btnMoodSync?.addEventListener('click', ()=> setToggle(btnMoodSync, !btnMoodSync.classList.contains('on')));
+
+    // Flutter toggle for responses
+    const flutter=$('#flutter');
+    let hidden=false;
+    flutter.onclick=()=>{
+      hidden=!hidden;
+      $('#log').classList.toggle('hidden', hidden);
+      flutter.textContent = hidden ? '◎' : '◐';
+    };
+
+    // Chat + OpenRouter streaming + mood sync with arche vocab
+    function addMsg(role, content){ let el=document.createElement('div'); el.className='msg '+(role==='user'?'you':'ai'); el.textContent=content; logEl.appendChild(el); logEl.scrollTop=logEl.scrollHeight; return el; }
+    function pushHist(role, content){ if(btnSave.classList.contains('on')){ const h=store.hist; h.push({role, content}); store.hist=h.slice(-64);} }
+
+    async function callStream(messages){
+      const {apiKey, model='openrouter/auto'}=store.cfg; if(!apiKey){ alert('Abra ☰ → Config e cole sua OpenRouter API Key.'); return null; }
+      try{
+        const res=await fetch('https://openrouter.ai/api/v1/chat/completions', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'HTTP-Referer':location.href,'X-Title':'Dual Nebula ArcheMap'}, body: JSON.stringify({model, messages, temperature:0.7, stream:true})});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        return res.body;
+      }catch(e){ alert('Falha na API: '+e.message); return null; }
+    }
+
+    let talkTimer=null; function startTalking(){ clearInterval(talkTimer); talkTimer=setInterval(()=>{ mouth.setAttribute('d', Math.random()<.5 ? "M52 86q8 -6 16 0" : "M45 84q15 10 30 0"); }, 90);} function stopTalking(){ clearInterval(talkTimer); mouth.setAttribute('d',"M45 84q15 10 30 0"); }
+
+    function detectMood(text){
+      const s=text.toLowerCase();
+      // base heuristics
+      if(/erro|falhou|desculp|não consigo/.test(s)) return 'error';
+      if(/[!]{2,}|uau|incr[ií]vel|maravilh|sensacional|fant[aá]stic/.test(s)) return 'excited';
+      if(/calm|respir|tranquil|relaxa|paz|sereno/.test(s)) return 'sleep';
+      if(/surpres|uau|não esperava|olha só/.test(s)) return 'surprise';
+      if(/passo|lista|estrutur|plano|estrat[eé]gia|foco|aten[cç][aã]o|checklist/.test(s)) return 'thinking';
+      if(/obrigad|parab[eé]ns|ok|pronto|feito/.test(s)) return 'saved';
+      // archetype vocabulary bias
+      const arch = archeMap[store.arche.name] || archeMap.horus;
+      const hits = arch.vocab.filter(v=> s.includes(v)).length;
+      if(hits>=2){ return arch.base; }
+      return 'speaking';
+    }
+
+    async function send(){
+      const q=promptEl.value.trim(); if(!q) return;
+      promptEl.value=''; addMsg('user', q); pushHist('user', q);
+      const messages=[{role:'system', content: store.cfg.system || 'Você é a AA Dual.Infodose. Curta e útil.'}, {role:'user', content:q}];
+      sendBtn.disabled=true; sendBtn.textContent='…';
+      const stream=await callStream(messages); if(!stream){ sendBtn.disabled=false; sendBtn.textContent='Enviar'; return; }
+      startTalking();
+      const moodSyncOn = btnMoodSync ? btnMoodSync.classList.contains('on') : true;
+      const out=addMsg('assistant',''); const reader=stream.getReader(); const dec=new TextDecoder(); let buf=''; let acc='';
+      while(true){
+        const {value, done}=await reader.read(); if(done) break;
+        buf+=dec.decode(value,{stream:true});
+        const parts=buf.split("\\n\\n");
+        for(let i=0;i<parts.length-1;i++){
+          const ch=parts[i];
+          if(ch.startsWith("data: ")){
+            const s=ch.slice(6);
+            if(s==="[DONE]" || s==="[DONE]") continue;
+            try{
+              const d=JSON.parse(s);
+              const t=d.choices?.[0]?.delta?.content||"";
+              if(t){
+                out.textContent+=t; acc+=t; logEl.scrollTop=logEl.scrollHeight;
+                if(moodSyncOn && acc.length>80){ setMood(detectMood(acc)); acc=''; }
+              }
+            }catch(_){}
+          }
+        }
+        buf=parts[parts.length-1];
+      }
+      stopTalking(); sendBtn.disabled=false; sendBtn.textContent='Enviar'; pushHist('assistant', out.textContent);
+      if(moodSyncOn) setMood(detectMood(out.textContent));
+    }
+    sendBtn.onclick=send; promptEl.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+    // Preset Studio (projects -> systems)
+    const projName=$('#projName'), projLoad=$('#projLoad'), projNew=$('#projNew'), projDel=$('#projDel');
+    const sysName=$('#sysName'), sysSave=$('#sysSave'), sysApply=$('#sysApply'), sysDel=$('#sysDel'), sysExport=$('#sysExport'), sysImport=$('#sysImport');
+    const sysList=$('#sysList');
+    function ensureProj(name){ const all=store.projects; if(!all[name]) all[name]={ systems:[] }; store.projects=all; return all[name]; }
+    function refreshSysList(){
+      sysList.innerHTML='';
+      const name=projName.value.trim(); if(!name) return;
+      const proj=store.projects[name] || {systems:[]};
+      proj.systems.forEach((s,i)=>{
+        const b=document.createElement('button'); b.className='preset'; b.textContent=s.name || ('system '+(i+1));
+        b.title=(s.system||'').slice(0,120);
+        b.onclick=()=>{ systemEl.value=s.system||''; if(s.arche) applyArchetype(s.arche); };
+        sysList.appendChild(b);
+      });
+    }
+    projLoad.onclick=refreshSysList;
+    projNew.onclick=()=>{ const name=projName.value.trim(); if(!name) return alert('Nome do projeto?'); ensureProj(name); alert('Projeto criado/carregado.'); refreshSysList(); };
+    projDel.onclick=()=>{ const name=projName.value.trim(); if(!name) return; const all=store.projects; delete all[name]; store.projects=all; alert('Projeto excluído.'); refreshSysList(); };
+    sysSave.onclick=()=>{ const name=projName.value.trim(); if(!name) return alert('Selecione um projeto.'); const sname=sysName.value.trim()||('system-'+Date.now()); const proj=ensureProj(name); proj.systems.push({ name:sname, system: systemEl.value, arche: store.arche.name }); store.projects = store.projects; alert('System salvo.'); refreshSysList(); };
+    sysApply.onclick=()=>{ const name=projName.value.trim(); if(!name) return; const proj=store.projects[name]; if(!proj||!proj.systems.length) return; const target=proj.systems.find(s=>s.name===(sysName.value||'')) || proj.systems[0]; systemEl.value=target.system||''; if(target.arche) applyArchetype(target.arche); };
+    sysDel.onclick=()=>{ const name=projName.value.trim(); if(!name) return; const proj=store.projects[name]; if(!proj) return; const idx=proj.systems.findIndex(s=>s.name===(sysName.value||'')); if(idx>=0){ proj.systems.splice(idx,1); store.projects=store.projects; refreshSysList(); } };
+    sysExport.onclick=()=>{ const name=projName.value.trim(); if(!name) return; const proj=store.projects[name]; if(!proj) return; const blob=new Blob([JSON.stringify(proj,null,2)], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name+'.json'; a.click(); URL.revokeObjectURL(a.href); };
+    sysImport.onchange=(e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const data=JSON.parse(r.result); const name=projName.value.trim()||('proj-'+Date.now()); const all=store.projects; all[name]=data; store.projects=all; refreshSysList(); alert('Importado como projeto '+name); }catch(_){ alert('JSON inválido'); } }; r.readAsText(f); };
+
+    // initial archetype apply
+    if(store.arche?.name){ applyArchetype(store.arche.name); }
+
+  </script>
+</body>
+</html>

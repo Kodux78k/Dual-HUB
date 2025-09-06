@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+<title>Dual.Infodose · Chat Render Response (sandbox+cmd)</title>
+<meta name="theme-color" content="#0b0b0f"/>
+<style>
+  :root{--bg:#0b0b0f;--panel:#12121a;--ink:#eaeaf7;--ink-dim:#b7b7c9;--acc:#8a5cff;--acc2:#29d3ff;--radius:16px;--glass:rgba(255,255,255,.06);--bd:rgba(255,255,255,.10)}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:radial-gradient(120% 110% at 50% 0%,#151522 0%,#0b0b0f 60%,#08080c 100%);color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;overflow:hidden;-webkit-font-smoothing:antialiased}
+  #app{height:100%;max-width:420px;margin:0 auto;display:grid;gap:8px;padding:8px;grid-template-rows:56px 1fr 66px 74px;padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  header,.composer,footer{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--bd);border-radius:14px;backdrop-filter:blur(8px)}
+  header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px}
+  .brand{display:flex;gap:8px;align-items:center;font-weight:800;font-size:13px}
+  .dot{width:8px;height:8px;border-radius:999px;background:conic-gradient(from 0deg,var(--acc),var(--acc2),var(--acc));box-shadow:0 0 10px var(--acc2),0 0 14px rgba(137,92,255,.32)}
+  .toolrow{display:flex;gap:6px}
+  .btn{appearance:none;border:none;border-radius:12px;padding:8px 10px;background:var(--glass);color:var(--ink);font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,.08);-webkit-tap-highlight-color:transparent}
+  .btn.icon{width:36px;height:36px;display:grid;place-items:center;padding:0}
+  .btn:active{transform:scale(.98)}
+  .stage{position:relative;overflow:auto;border-radius:14px;border:1px solid var(--bd);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02))}
+  .feed{min-height:100%;padding:10px}
+  .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:10px;margin:0 0 8px 0;backdrop-filter:blur(4px)}
+  .meta{display:flex;gap:6px;align-items:center;color:var(--ink-dim);font-size:11px}
+  .badge{padding:2px 8px;border-radius:999px;background:rgba(137,92,255,.25);border:1px solid rgba(137,92,255,.45);color:#fff;font-weight:800;font-size:10px}
+  .text{margin-top:6px;white-space:pre-wrap;font-size:13px}
+  .rich .action{display:inline-flex;align-items:center;gap:6px;margin:4px 6px 0 0;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);font-weight:800;font-size:11px;cursor:pointer}
+  .rich .chip{display:inline-flex;align-items:center;gap:6px;margin:4px 6px 0 0;padding:6px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(137,92,255,.22),rgba(41,211,255,.16));font-weight:800;font-size:11px;cursor:pointer}
+  .rich .link{display:inline-flex;align-items:center;gap:6px;margin:4px 6px 0 0;padding:6px 10px;border-radius:10px;border:1px solid rgba(41,211,255,.35);background:rgba(41,211,255,.12);font-weight:800;font-size:11px;cursor:pointer}
+  .composer{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:8px 10px}
+  .composer input{width:100%;padding:10px 12px;border-radius:12px;background:#0f1020;color:var(--ink);border:1px solid rgba(255,255,255,.12);font-size:13px}
+  .hint{font-size:11px;color:var(--ink-dim);margin-top:-4px}
+  footer{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px}
+  .cfg{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  select,.sk{padding:8px 10px;border-radius:10px;background:#0e0e14;border:1px solid rgba(255,255,255,.14);color:var(--ink);font-size:12px}
+  .sk{width:150px}
+  .right{display:flex;gap:6px;align-items:center}
+  .toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-dim)}
+  /* Modal Sandbox */
+  .modal{position:fixed;inset:0;display:none;z-index:30}
+  .modal.open{display:block}
+  .modal .overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px)}
+  .modal .panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(96vw, 420px);height:min(80vh, 720px);background:#0f1120;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.4);display:flex;flex-direction:column}
+  .modal header{border:0;border-bottom:1px solid rgba(255,255,255,.12);border-radius:14px 14px 0 0}
+  .modal iframe{border:0;width:100%;height:100%}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><div class="dot"></div>Dual.Infodose · <span id="modeTag">OpenRouter</span></div>
+    <div class="toolrow">
+      <button class="btn icon" id="btnSys" title="Sistema">⚙️</button>
+      <button class="btn icon" id="btnClear" title="Limpar">🧹</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="feed" id="feed"></div>
+  </main>
+
+  <!-- COMPOSER -->
+  <div class="composer">
+    <button class="btn icon" id="btnSuggest" title="Sugestões">⭐</button>
+    <input id="msg" type="text" placeholder="Escreva para a IA… (Enter)"/>
+    <button class="btn" id="btnSend">Enviar</button>
+  </div>
+  <div class="hint" id="hint">Use (parênteses) e emojis → viram botões. Links viram sandbox. Comandos: {{cmd:...}}</div>
+
+  <!-- FOOTER (IA moderna) -->
+  <footer>
+    <div class="cfg">
+      <select id="modelSel" title="Modelo">
+        <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (free)</option>
+        <option value="qwen/qwen-2.5-7b-instruct:free">Qwen2.5 7B (free)</option>
+        <option value="mistralai/mistral-7b-instruct:free">Mistral 7B (free)</option>
+        <option value="openai/gpt-4o-mini">GPT-4o mini</option>
+      </select>
+      <input id="sk" class="sk" type="password" placeholder="sk-or-..." autocomplete="off"/>
+      <button class="btn" id="skShow">👁️</button>
+      <button class="btn" id="skSave">💾</button>
+      <label class="toggle"><input type="checkbox" id="autoBtns" checked/> Auto-botões</label>
+    </div>
+    <div class="right">
+      <button class="btn" id="btnExport">Exportar chat</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Modal de Sandbox -->
+<div class="modal" id="sandboxModal" aria-hidden="true">
+  <div class="overlay" id="sbOverlay"></div>
+  <div class="panel">
+    <header style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
+      <strong>Sandbox</strong>
+      <button class="btn" id="sbClose">Fechar</button>
+    </header>
+    <div style="flex:1;min-height:0"><iframe id="sandbox" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe></div>
+  </div>
+</div>
+
+<script>
+const OR_ENDPOINT='https://openrouter.ai/api/v1/chat/completions';
+const S={
+  model: localStorage.getItem('openrouter.model') || 'meta-llama/llama-3.1-8b-instruct:free',
+  sk: localStorage.getItem('openrouter.sk') || '',
+  system: localStorage.getItem('dual.system') || 'Você é a IA Dual.Infodose. Responda em pt-BR, objetivas, com sugestões acionáveis e marcações (texto), [links], e {{cmd:acao}} quando desejar.',
+  autoBtns: (localStorage.getItem('dual.autoBtns') ?? '1')==='1',
+  history: []
+};
+
+const feed=document.getElementById('feed');
+const modelSel=document.getElementById('modelSel');
+const skInp=document.getElementById('sk');
+const skShow=document.getElementById('skShow');
+const skSave=document.getElementById('skSave');
+const msg=document.getElementById('msg');
+const send=document.getElementById('btnSend');
+const btnClear=document.getElementById('btnClear');
+const btnSys=document.getElementById('btnSys');
+const btnSuggest=document.getElementById('btnSuggest');
+const autoBtns=document.getElementById('autoBtns');
+const btnExport=document.getElementById('btnExport');
+const sbModal=document.getElementById('sandboxModal');
+const sbOverlay=document.getElementById('sbOverlay');
+const sbClose=document.getElementById('sbClose');
+const sbFrame=document.getElementById('sandbox');
+
+modelSel.value=S.model; skInp.value=S.sk; autoBtns.checked=S.autoBtns;
+
+function savePrefs(){
+  localStorage.setItem('openrouter.model', modelSel.value);
+  localStorage.setItem('openrouter.sk', skInp.value.trim());
+  localStorage.setItem('dual.autoBtns', autoBtns.checked? '1':'0');
+  localStorage.setItem('dual.system', S.system);
+}
+function push(role, text){
+  const el=document.createElement('div'); el.className='card';
+  el.innerHTML=`
+    <div class="meta">
+      <span class="badge">${role}</span>
+      <span>${new Date().toLocaleTimeString()}</span>
+      <span class="badge" style="background:rgba(41,211,255,.22);border-color:rgba(41,211,255,.4)">${modelSel.value}</span>
+    </div>
+    <div class="text"></div>
+  `;
+  const textNode=el.querySelector('.text');
+  feed.appendChild(el); feed.scrollTo({top:feed.scrollHeight,behavior:'smooth'});
+  if(text) textNode.textContent=text;
+  return textNode;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));}
+function attr(s){return String(s).replace(/"/g,'&quot;');}
+
+// --- Sandbox modal ---
+function openSandbox(url){
+  try{
+    sbFrame.src = url;
+    sbModal.classList.add('open'); sbModal.setAttribute('aria-hidden','false');
+  }catch(e){ push('Sistema','Não foi possível abrir no sandbox.'); }
+}
+function closeSandbox(){
+  sbFrame.src='about:blank';
+  sbModal.classList.remove('open'); sbModal.setAttribute('aria-hidden','true');
+}
+sbOverlay.onclick=closeSandbox; sbClose.onclick=closeSandbox;
+
+// --- Command registry ---
+const COMMANDS = {
+  'clear': ()=>{ feed.innerHTML=''; S.history=[]; push('Sistema','Chat limpo.'); },
+  'open:settings': ()=>{ const cur=prompt('System Prompt (pt-BR):', S.system); if(cur!==null){ S.system=cur; savePrefs(); push('Sistema','System atualizado.'); } },
+  // train:Anything → stub
+  'train': (label)=>{ push('Treino', `Iniciando rotina de treino: ${label||'Geral'} (stub).`); },
+  // sandbox:https://...
+  'sandbox': (url)=>{ if(!/^https?:\/\//i.test(url||'')) { push('Sistema','URL inválida para sandbox.'); return;} openSandbox(url); }
+};
+function runCmd(full){
+  // full: e.g., "train:Embeddings" | "open:settings" | "clear" | "sandbox:https://..."
+  const [cmd, ...rest] = full.split(':');
+  const arg = rest.join(':').trim();
+  if(cmd in COMMANDS){
+    const fn = COMMANDS[cmd];
+    typeof fn==='function' ? fn(arg) : push('Sistema','Comando inválido.');
+  } else {
+    push('Sistema','Comando desconhecido: '+cmd);
+  }
+}
+
+/** Enriquecedor:
+ *  (texto) → .action (envia como mensagem)
+ *  emojis → .chip (envia como mensagem)
+ *  [label](url) / [url] / bare url → .link (abre no sandbox)
+ *  {{cmd:LABEL}} → executa comando
+ */
+function enrich(node){
+  if(!S.autoBtns) return;
+  const raw=node.textContent;
+
+  // Primeiro: capturar e executar {{cmd:...}} (podem existir vários)
+  const cmdRE=/\{\{\s*cmd\s*:\s*([^}]+)\}\}/gi;
+  let commands = [];
+  let tmp;
+  while((tmp = cmdRE.exec(raw))){ commands.push(tmp[1].trim()); }
+  // remove visualmente os comandos do texto
+  let html = escapeHtml(raw).replace(cmdRE, '<span class="badge" style="opacity:.6">cmd</span>');
+
+  // (1) Parênteses → action
+  const parenRE=/\(([^()]+)\)/g;
+  html = html.replace(parenRE,(m,inner)=>{
+    const lab=inner.replace(/\s*->\s*/g,' → ');
+    return `<button class="action" data-send="${attr(lab)}">${escapeHtml(lab)}</button>`;
+  });
+
+  // (2) Emojis → chip
+  const emoRE=/(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[⚡⭕✦☆★✧✩◆◇▶️◀️⏯️⏵⏸️⏹️🎛️🎚️🎙️🎧️🎼️🎹️🗂️📎🧩🔥🌙✨💡💾🧪⭐️])/gu;
+  html=html.replace(emoRE,(m)=>`<span class="chip" data-send="${attr(m)}">${escapeHtml(m)}</span>`);
+
+  // (3a) Markdown link [label](url)
+  const mdLink=/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/gi;
+  html=html.replace(mdLink,(m,label,url)=>`<button class="link" data-url="${attr(url)}">${escapeHtml(label)} ↗</button>`);
+
+  // (3b) Bracket-only [https://...]
+  const bracketUrl=/\[(https?:\/\/[^\]\s]+)\]/gi;
+  html=html.replace(bracketUrl,(m,url)=>`<button class="link" data-url="${attr(url)}">${escapeHtml(url)} ↗</button>`);
+
+  // (3c) Bare URL (transforma somente se isolado por espaços/linhas)
+  const bareUrl=/(^|\s)(https?:\/\/[^\s)]+)(?=$|\s)/gi;
+  html=html.replace(bareUrl,(m,sp,url)=>`${sp}<button class="link" data-url="${attr(url)}">${escapeHtml(url)} ↗</button>`);
+
+  node.innerHTML=html;
+
+  // binds (ações de envio)
+  node.querySelectorAll('[data-send]').forEach(el=>{
+    el.addEventListener('click', ()=> sendMessage(el.getAttribute('data-send')));
+  });
+
+  // binds (links → sandbox)
+  node.querySelectorAll('.link[data-url]').forEach(el=>{
+    el.addEventListener('click', ()=> openSandbox(el.getAttribute('data-url')));
+  });
+
+  // executa os comandos capturados (depois de render)
+  if(commands.length){
+    setTimeout(()=>{ commands.forEach(runCmd); }, 0);
+  }
+}
+
+async function callOpenRouterStream(userText){
+  const sk=skInp.value.trim();
+  if(!sk){ push('Sistema','Defina sua chave do OpenRouter no rodapé.'); return; }
+  localStorage.setItem('openrouter.sk', sk);
+  localStorage.setItem('openrouter.model', modelSel.value);
+
+  S.history.push({role:'user', text:userText});
+  const userNode=push('Você', userText);
+  const botNode=push('IA','…');
+
+  const resp = await fetch(OR_ENDPOINT,{
+    method:'POST',
+    headers:{
+      'Authorization':`Bearer ${sk}`,
+      'Content-Type':'application/json',
+      'HTTP-Referer':location.origin,
+      'X-Title':'Dual.Infodose · Render Response'
+    },
+    body:JSON.stringify({
+      model:modelSel.value,
+      stream:true,
+      messages:[
+        {role:'system', content:S.system},
+        ...S.history.map(m=>({role:m.role, content:m.text}))
+      ]
+    })
+  }).catch(e=>({ok:false,statusText:String(e)}));
+
+  if(!resp || !resp.ok || !resp.body){ botNode.textContent='Falha na chamada ao OpenRouter.'; return; }
+
+  const reader=resp.body.getReader(); const decoder=new TextDecoder('utf-8');
+  let acc='', printed='';
+  while(true){
+    const {done,value}=await reader.read(); if(done) break;
+    const chunk=decoder.decode(value,{stream:true});
+    const lines=(acc+chunk).split('\n'); acc=lines.pop()||'';
+    for(const ln of lines){
+      const line=ln.trim(); if(!line.startsWith('data:')) continue;
+      const data=line.slice(5).trim(); if(data==='[DONE]') continue;
+      try{
+        const j=JSON.parse(data);
+        const delta=j.choices?.[0]?.delta?.content||'';
+        if(delta){ printed+=delta; botNode.textContent=printed; }
+      }catch{}
+    }
+    feed.scrollTo({top:feed.scrollHeight});
+  }
+  S.history.push({role:'assistant', text:printed});
+  botNode.classList.add('rich'); enrich(botNode);
+}
+
+async function sendMessage(textOverride){
+  const text=(textOverride ?? msg.value).trim();
+  if(!text) return;
+  msg.value='';
+  await callOpenRouterStream(text);
+}
+
+// UI
+send.onclick=()=>sendMessage();
+msg.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendMessage(); } });
+skShow.onclick=()=>{ skInp.type = (skInp.type==='password'?'text':'password'); };
+skSave.onclick=()=>{ savePrefs(); push('Sistema','Preferências salvas no dispositivo.'); };
+autoBtns.onchange=()=>{ savePrefs(); push('Sistema', autoBtns.checked?'Auto-botões: ON':'Auto-botões: OFF'); };
+btnClear.onclick=()=>{ feed.innerHTML=''; S.history=[]; push('Sistema','Chat limpo.'); };
+btnSuggest.onclick=()=>{ 
+  const sug = '(continuar) (refatorar) (resumo) (exemplo) [https://dual.local/app] {{cmd:open:settings}}';
+  const node=push('Sugestões',sug); node.classList.add('rich'); enrich(node);
+};
+btnSys.onclick=()=>{
+  const cur = prompt('System Prompt (pt-BR):', S.system);
+  if(cur!==null){ S.system=cur; savePrefs(); push('Sistema','System atualizado.'); }
+};
+btnExport.onclick=()=>{
+  const data = JSON.stringify(S.history,null,2);
+  const blob = new Blob([data],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dual_chat_export.json'; a.click();
+};
+
+// boas-vindas
+push('Dual','Pronto: (parênteses) e emojis viram ações; [links] abrem no sandbox; {{cmd:...}} executa comandos.');
+</script>
+</body>
+</html>
