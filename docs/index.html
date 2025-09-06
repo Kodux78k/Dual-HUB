@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>DUAL.Infodose🔘HUB</title>
+  <meta name="theme-color" content="#0b0b0b">
+  <style>
+    :root{ --bg:#0b0b0b; --fg:#fff; --muted:#b9c7cf; --acc:#E7C65A;
+      --stroke:rgba(255,235,180,.20); --stroke-soft:rgba(255,235,180,.12);
+      --blur:22px; --radius:18px; --dock-space:84px; --maxw:980px; }
+    html,body{height:100%;margin:0} html{background:var(--bg)}
+    body{background:var(--bg);color:var(--fg);font-family:ui-rounded,system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial;min-height:100svh}
+
+    .header{position:sticky;top:0;z-index:10;backdrop-filter:blur(var(--blur)) saturate(150%);background:rgba(0,0,0,.45);
+      border-bottom:1px solid var(--stroke);box-shadow:0 12px 34px rgba(0,0,0,.42);padding-top:env(safe-area-inset-top)}
+    .inner{max-width:var(--maxw);margin:0 auto;padding:14px;display:flex;gap:14px;align-items:center}
+    .logo{width:46px;height:46px;border-radius:50%;display:inline-grid;place-items:center;position:relative;background:rgba(0,0,0,.25)}
+    .ring{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;animation:spin 6s linear infinite}
+    .bar{position:absolute;left:50%;top:50%;width:60%;height:2px;background:var(--acc);transform:translate(-50%,-50%);border-radius:999px;animation:breathe 2.4s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}} @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
+    h1{font-size:1.16rem;margin:.12rem 0 0;font-weight:800}.kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
+
+    .toolbar{max-width:var(--maxw);margin:10px auto 0;padding:0 14px 8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{border:1px solid var(--stroke-soft);border-radius:999px;padding:.5rem .8rem;background:rgba(255,255,255,.04);font-weight:700;display:flex;gap:.45rem;align-items:center}
+    .input{flex:1;min-width:180px;border:1px solid var(--stroke-soft);border-radius:999px;padding:.6rem .9rem;background:rgba(255,255,255,.06);color:#fff;outline:none}
+    .select{border:1px solid var(--stroke-soft);border-radius:999px;padding:.56rem .9rem;background:rgba(255,255,255,.06);color:#fff}
+
+    .section{max-width:var(--maxw);margin:14px auto 6px;padding:0 14px}
+    .section h2{font-size:.92rem;letter-spacing:.12em;text-transform:uppercase;color:#e6e6e6;margin:14px 0 8px;opacity:.9}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px} @media(max-width:560px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(0,0,0,.32);border:1px solid var(--stroke-soft);border-radius:18px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45);position:relative}
+    .icon{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft);position:relative}
+    .icon img{width:100%;height:100%;object-fit:cover;display:block}
+    .icon .fav-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:999px;background:#ffd86a;box-shadow:0 0 8px rgba(255,216,106,.8)}
+    .title{font-weight:800;margin-bottom:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .badges{display:flex;gap:6px;flex-wrap:wrap}
+    .badge{font-size:.72rem;padding:.16rem .5rem;border-radius:999px;border:1px solid var(--stroke-soft);background:rgba(255,255,255,.06);color:#eaf6ff}
+    .muted{color:var(--muted);font-size:.86rem}
+    .row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:999px;font-weight:800}
+    .btn.star.active{background:rgba(231,198,90,.18);border-color:rgba(231,198,90,.5);color:#ffd86a}
+
+    .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:block}
+    .dock-inner{max-width:var(--maxw);margin:0 auto;padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:space-between;align-items:center;
+      backdrop-filter:blur(18px) saturate(140%);background:rgba(0,0,0,.50);border-top:1px solid var(--stroke);box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+    .dbtn{appearance:none;border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
+    footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0 calc(18px + var(--dock-space));opacity:.9}
+    .spacer{height:calc(var(--dock-space) + env(safe-area-inset-bottom) + 8px)}
+
+    .viewer{position:fixed;inset:0;z-index:50;background:#000;touch-action:pan-y}
+    .viewer iframe{position:absolute;inset:0 0 60px 0;border:0;width:100%;height:calc(100% - 60px)}
+    .viewer-footer{position:fixed;left:0;right:0;bottom:0;height:60px;display:flex;gap:8px;align-items:center;justify-content:center;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(18px) saturate(140%);background:rgba(0,0,0,.65);border-top:1px solid var(--stroke)}
+    .swipe-hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;padding:.35rem .6rem;border-radius:999px;font-weight:800;opacity:.95;transition:opacity .4s}
+    .swipe-hint.hide{opacity:0}
+
+    .help-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+    .help-backdrop.show{opacity:1;pointer-events:auto}
+    .help-sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%, 8px);width:min(720px, calc(100vw - 24px));max-height:70vh;overflow:auto;background:rgba(20,20,24,.98);
+      color:#eaf6ff;border:1px solid var(--stroke);border-radius:16px 16px 12px 12px;box-shadow:0 18px 60px rgba(0,0,0,.55);padding:14px;z-index:61;opacity:0;transition:opacity .2s, transform .2s}
+    .help-backdrop.show .help-sheet{opacity:1;transform:translate(-50%, -8px)} .help-sheet h3{margin:.2rem 0 .6rem;font-size:1rem}
+    .help-sheet .row{display:flex;gap:8px;flex-wrap:wrap;margin:.4rem 0}
+    .help-chip{border:1px solid var(--stroke-soft);background:rgba(255,255,255,.04);padding:.4rem .6rem;border-radius:999px;font-weight:700}
+    .help-close{float:right;appearance:none;border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#fff;padding:.5rem .75rem;border-radius:10px;font-weight:800}
+    .help-list{margin:.4rem 0 .2rem;padding-left:1.1rem} .help-list li{margin:.28rem 0}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="inner">
+      <span class="logo" aria-hidden="true"><span class="ring"></span><span class="bar"></span></span>
+      <div style="flex:1"><div class="kicker">Infodose • Hub Principal</div><h1>Infodose Hub Ultra</h1></div>
+      <nav aria-label="Ações"><button class="btn" id="btnDownloadLoader" type="button" title="Gera um HTML Loader minimal">⤓ Baixar Loader</button></nav>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <input id="search" class="input" type="search" placeholder="Buscar e filtrar por nome, url, tag…" autocomplete="off"/>
+    <select id="sort" class="select" title="Ordenação">
+      <option value="group">Ordenar por grupos</option><option value="az">A → Z</option><option value="za">Z → A</option>
+    </select>
+
+    <!-- Abrir na mesma aba (mantido) -->
+    <label class="pill" title="Quando marcado, abre no overlay (viewer)">
+      <input id="sameTab" type="checkbox" style="accent-color:#29d3ff" checked> Abrir na mesma aba (viewer)
+    </label>
+
+    <!-- Perfil -->
+    <button id="profileBtn" class="pill" type="button" title="Editar Usuário/Assistente"><span id="profileText">Usuário • Assistente</span></button>
+
+    <!-- Ajuda -->
+    <button id="helpBtn" class="pill" type="button" title="Ajuda e atalhos">?</button>
+
+    <div class="pill" id="countApps">Carregando…</div>
+  </div>
+
+  <main id="content"></main>
+  <footer>DualInfodose • HUB</footer>
+
+  <div class="dock" role="navigation" aria-label="Dock">
+    <div class="dock-inner">
+      <button class="dbtn" id="dockHome" type="button">🏘️</button>
+      <button class="dbtn" id="dockInfodose" type="button">💊</button>
+      <button class="dbtn" id="dockInstall" type="button">⤓ 🦠 ⤓</button>
+    </div>
+  </div>
+
+  <div id="helpBackdrop" class="help-backdrop" aria-hidden="true">
+    <div class="help-sheet" role="dialog" aria-modal="true" aria-label="Ajuda do Hub">
+      <button class="help-close" id="helpClose">Fechar</button>
+      <h3>Ajuda do Hub Dual.Infodose</h3>
+      <div class="row">
+        <span class="help-chip">⭐ Favoritos</span><span class="help-chip">👤 Perfil</span>
+        <span class="help-chip">⤓ Loader</span><span class="help-chip">⎘ / ⤓ Injection</span>
+      </div>
+      <ul class="help-list">
+        <li><b>“Abrir na mesma aba (viewer)”</b>: quando marcado, os apps abrem no overlay.</li>
+        <li><b>Swipe-down</b>: arraste ≈48px para baixo no overlay para fechar.</li>
+        <li><b>⭐ Favoritos</b>: “★/☆ Fav” no card. Um “●” aparece no ícone e a seção <b>Favoritos</b> sobe pro topo.</li>
+        <li><b>⤓ Loader</b>: gera um HTML Loader mínimo.</li>
+        <li><b>⎘ Injection</b>: copia o snippet “Voltar ao Hub”.</li>
+        <li><b>⤓ Sümbüs)</b> (no overlay): baixa o HTML do app com o snippet injetado.</li>
+        <li><b>Auto-open</b>: `?view=KEY`, `#view=arquivo.html`, `"open": true` no `apps.json`, ou reabre o último app.</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+/*** refs ***/
+const $=(q,r=document)=>r.querySelector(q);
+const $content=$('#content'), $count=$('#countApps'), $search=$('#search'), $sort=$('#sort');
+const $sameTab=$('#sameTab'), $profileBtn=$('#profileBtn'), $profileText=$('#profileText');
+const $helpBtn=$('#helpBtn'), $helpBackdrop=$('#helpBackdrop'), $helpClose=$('#helpClose');
+let VIEWER_OPEN=false;
+
+/*** perfil ***/
+function loadProfile(){ const user=localStorage.getItem('infodose:userName')||'Usuário'; const asst=localStorage.getItem('infodose:assistantName')||'Assistente'; $profileText.textContent=`${user} • ${asst}`; }
+function editProfile(){ const cu=localStorage.getItem('infodose:userName')||''; const ca=localStorage.getItem('infodose:assistantName')||''; const u=prompt('Seu nome (Usuário):',cu)??cu; const a=prompt('Nome do Assistente:',ca)??ca; try{localStorage.setItem('infodose:userName',u||'Usuário');localStorage.setItem('infodose:assistantName',a||'Assistente');}catch{} loadProfile(); }
+
+/*** favoritos ***/
+function appKey(a){return (a.key&&String(a.key))||String(a.url)}
+function loadFavs(){try{return new Set(JSON.parse(localStorage.getItem('infodose:favs')||'[]'));}catch{return new Set()}}
+function saveFavs(s){try{localStorage.setItem('infodose:favs',JSON.stringify([...s]));}catch{}}
+const FAVS=loadFavs(); function isFav(a){return FAVS.has(appKey(a))} function toggleFav(a){const k=appKey(a); if(FAVS.has(k))FAVS.delete(k); else FAVS.add(k); saveFavs(FAVS); render();}
+
+/*** assets básicos ***/
+const FALLBACK_ICONS={base:'icons/icon-192.png',chats:'icons/icon-192-chats.png',editors:'icons/icon-192-editors.png',indexrs:'icons/icon-192-indexrs.png'};
+const GROUP_TITLES={favorites:'Favoritos',index_hubs:'Index / Hubs',chats:'Chats / Render',editors_tools:'Editors & Tools',menus:'Menus',tutorials:'Tutoriais',visual_splash:'Visual / Splash',docs:'Docs',players:'Players',others:'Outros'};
+const TAG_PRIORITIES={index_hubs:['hub','index','nebula','metalux','sumbus','sümbüs','barra','barrao'],chats:['chat','render','response','kobllux','autoload'],editors_tools:['editor','edit','labs','xml','conv','converter','kblx','sigma','metalux','apps.json'],menus:['menu'],tutorials:['tutorial','ativacoes','ativação','v7','guia'],visual_splash:['splash','visual'],docs:['book','oidual','doc','.txt'],players:['player','audio','tts']};
+const REGEX_RULES=[{key:'index_hubs',rx:/(index|hub|nebula|metalux|s[üu]mb[üu]s|barrao)/i},{key:'chats',rx:/(chat|render[-_ ]?response|autoload|kobllux)/i},{key:'editors_tools',rx:/(editor|labs|xml|conv|converter|apps\.json|kblx|sigma|metalux)/i},{key:'menus',rx:/(^|[-_ ])menu([-_ ]|$)/i},{key:'tutorials',rx:/(tutorial|ativa[cç][oõ]es|v7\b)/i},{key:'visual_splash',rx:/splash/i},{key:'docs',rx:/(book|oidual|\.txt\b)/i},{key:'players',rx:/(player|audio|tts)/i}];
+
+/*** helpers ***/
+function safe(v){return (v||'').toString()}
+function lastFile(url){try{const u=new URL(url,location.href);return (u.pathname.split('/').pop()||'').toLowerCase()}catch{return (url||'').split('/').pop()?.toLowerCase()||''}}
+function folderHint(url){try{const u=new URL(url,location.href);const p=u.pathname.split('/').filter(Boolean);const i=p.indexOf('apps');if(i>=0&&p[i+1])return p[i+1].toLowerCase()}catch{}return''}
+function classify(a){if(a.group&&GROUP_TITLES[a.group])return a.group; if(Array.isArray(a.tags)){const t=a.tags.map(x=>safe(x).toLowerCase()); for(const [g,tl] of Object.entries(TAG_PRIORITIES)) if(tl.some(tt=>t.includes(tt))) return g;}
+  const f=folderHint(a.url); if(f){if(/(hub|index|nebula|metalux|s[üu]mb[üu]s|bar)/i.test(f))return'index_hubs'; if(/(chat|render|resp|kobllux|auto)/i.test(f))return'chats'; if(/(edit|labs|xml|conv|kblx|sigma)/i.test(f))return'editors_tools'; if(/menu/i.test(f))return'menus'; if(/(tutorial|ativ|v7)/i.test(f))return'tutorials'; if(/splash/i.test(f))return'visual_splash'; if(/(doc|book|oidual|txt)/i.test(f))return'docs'; if(/(player|audio|tts)/i.test(f))return'players';}
+  const s=(safe(a.key)+' '+safe(a.title)+' '+safe(a.desc)+' '+safe(a.url)).toLowerCase()+' '+lastFile(a.url); for(const r of REGEX_RULES) if(r.rx.test(s)) return r.key; return'others';}
+function deriveBadges(a){const out=[]; if(Array.isArray(a.tags)) out.push(...a.tags.slice(0,5)); const f=(safe(a.key)+' '+safe(a.title)+' '+safe(a.url)).toLowerCase(); if(/fix/.test(f))out.push('fix'); if(/final/.test(f))out.push('final'); if(/beta|rc/.test(f))out.push('beta'); if(/metalux/.test(f))out.push('metalux'); if(/nebula/.test(f))out.push('nebula'); if(/menu/.test(f))out.push('menu'); if(/splash/.test(f))out.push('splash'); return [...new Set(out)].slice(0,6)}
+function groupIconFor(k,d){return (d&&(d[k]||d[ (k==='index_hubs'?'indexrs':(k==='chats'?'chats':((k==='editors_tools'||k==='menus')?'editors':'base'))) ]))||({index_hubs:FALLBACK_ICONS.indexrs,chats:FALLBACK_ICONS.chats,editors_tools:FALLBACK_ICONS.editors,menus:FALLBACK_ICONS.editors,tutorials:FALLBACK_ICONS.base,visual_splash:FALLBACK_ICONS.base,docs:FALLBACK_ICONS.base,players:FALLBACK_ICONS.base,others:FALLBACK_ICONS.base}[k]||FALLBACK_ICONS.base)}
+function h(el,attrs={},children=[]){const e=document.createElement(el);Object.entries(attrs).forEach(([k,v])=>{if(k==='class')e.className=v;else if(k==='html')e.innerHTML=v;else e.setAttribute(k,v)});(Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>e.appendChild(c));return e}
+function favBtn(a){const b=h('button',{class:'btn star'+(isFav(a)?' active':''),html:(isFav(a)?'★ Fav':'☆ Fav'),title:'Adicionar/remover dos Favoritos'}); b.addEventListener('click',ev=>{ev.stopPropagation();toggleFav(a)}); return b}
+function card(a,g,d){const ic=groupIconFor(g,d); const badges=deriveBadges(a); const iconDiv=h('div',{class:'icon',html:`<img src="${a.icon?.trim()||ic}" alt="">`}); if(isFav(a)) iconDiv.appendChild(h('i',{class:'fav-dot'}));
+  const c=h('div',{class:'card'},[ iconDiv, h('div',{style:'flex:1'},[
+    h('div',{class:'title',html:safe(a.title||a.key)}),
+    badges.length?h('div',{class:'badges'},badges.map(b=>h('span',{class:'badge',html:b}))):null,
+    h('div',{class:'muted',html:safe(a.desc||'')}),
+    h('div',{class:'row'},[ favBtn(a), h('button',{class:'btn',html:'Abrir'}), h('button',{class:'btn',html:'⎘ Injection',title:'Copiar snippet de injection'}) ])
+  ]) ]);
+  c.querySelectorAll('.btn')[1].addEventListener('click',()=>openApp(a));
+  c.querySelectorAll('.btn')[2].addEventListener('click',ev=>{ev.stopPropagation();copyInjection(a)});
+  return c;
+}
+
+/*** busca ***/
+function applySearchFilter(orig,isGrouped){const q=$search.value.trim().toLowerCase(); if(!q) return orig;
+  const byTag=a=>Array.isArray(a.tags)&&a.tags.some(t=>safe(t).toLowerCase().includes(q));
+  const match=a=>{const s=(safe(a.key)+' '+safe(a.title)+' '+safe(a.desc)+' '+safe(a.url)).toLowerCase(); return s.includes(q)||byTag(a)};
+  if(isGrouped){const out={}; Object.entries(orig).forEach(([gk,list])=>{const f=list.filter(match); if(f.length) out[gk]=f}); return out;}
+  return orig.filter(match);
+}
+
+/*** load/render ***/
+let RAW=null, DEFAULTS=null;
+function allApps(){ if(!RAW) return []; if(Array.isArray(RAW.apps)) return RAW.apps; if(RAW.groups&&typeof RAW.groups==='object') return Object.values(RAW.groups).flat().filter(Boolean); return []}
+function findAppByKeyOrFile(q){ if(!q) return null; const n=q.toLowerCase(); for(const a of allApps()){const key=safe(a.key).toLowerCase(), title=safe(a.title).toLowerCase(), url=safe(a.url).toLowerCase(), file=lastFile(a.url); if(key===n||title===n||url.includes(n)||file===n)return a;} return null }
+function getViewTargetFromURL(){ const sp=new URLSearchParams(location.search); let t=sp.get('view'); if(!t&&location.hash.startsWith('#view=')) t=decodeURIComponent(location.hash.slice(6)); return t }
+async function load(){ try{ const res=await fetch('./apps/apps.json',{cache:'no-store'}); const data=await res.json(); RAW=data;
+  DEFAULTS=data.defaultIcons||data.groups?.defaultIcons||{base:FALLBACK_ICONS.base,chats:FALLBACK_ICONS.chats,editors:FALLBACK_ICONS.editors,indexrs:FALLBACK_ICONS.indexrs,index_hubs:FALLBACK_ICONS.indexrs};
+  render(); setTimeout(tryAutoOpen,0);
+} catch(e){ console.error(e); $content.innerHTML=`<section class="section"><div class="card"><div class="icon">⚠️</div><div><div class="title">Falha ao carregar apps</div><div class="muted">apps/apps.json não encontrado ou inválido.</div></div></div></section>`; $count.textContent='Erro no apps.json'; } }
+function buildGroupedFromFlat(list){ const groups={}; const fav=list.filter(a=>isFav(a)); if(fav.length) groups.favorites=fav; for(const a of list){const g=classify(a); (groups[g]||=[]).push(a); groups[g]=(groups[g]||[]);} return groups }
+function render(){ if(!RAW)return; const mode=$sort.value;
+  if(RAW.groups&&typeof RAW.groups==='object'){ let groups=RAW.groups; const all=Object.values(groups).flat().filter(Boolean); const favs=all.filter(a=>isFav(a)); if(favs.length) groups={favorites:favs,...groups}; groups=applySearchFilter(groups,true);
+    if(mode==='az'||mode==='za'){ const dir=(mode==='az')?1:-1; const g2={}; Object.keys(groups).forEach(gk=>{g2[gk]=[...groups[gk]].sort((a,b)=>safe(a.title||a.key).localeCompare(safe(b.title||b.key))*dir)}); groups=g2; }
+    renderGrouped(groups,DEFAULTS);
+  } else if (Array.isArray(RAW.apps)){ let list=applySearchFilter(RAW.apps,false); if(mode==='az'||mode==='za'){ const dir=(mode==='az')?1:-1; list=[...list].sort((a,b)=>safe(a.title||a.key).localeCompare(safe(b.title||b.key))*dir); }
+    const groups=buildGroupedFromFlat(list); renderGrouped(groups,DEFAULTS);
+  } else { $content.innerHTML=`<section class="section"><div class="card"><div class="icon">⚠️</div><div><div class="title">Formato não reconhecido</div><div class="muted">Use {groups:{...}} ou {apps:[...]}</div></div></div></section>`; }
+  loadProfile();
+}
+function renderGrouped(groups,defaults){ $content.innerHTML=''; let total=0; const ORDER=['favorites','index_hubs','chats','editors_tools','menus','tutorials','visual_splash','docs','players','others'];
+  ORDER.forEach(gk=>{const list=groups[gk]; if(Array.isArray(list)&&list.length){ total+=list.length; const sec=h('section',{class:'section','data-group':gk},[h('h2',{html:GROUP_TITLES[gk]||gk}),h('div',{class:'grid'})]); const grid=sec.querySelector('.grid'); list.forEach(a=>grid.appendChild(card(a,gk,defaults))); $content.appendChild(sec); }});
+  Object.keys(groups).forEach(gk=>{ if(!ORDER.includes(gk)){ const list=groups[gk]; if(Array.isArray(list)&&list.length){ total+=list.length; const sec=h('section',{class:'section','data-group':gk},[h('h2',{html:GROUP_TITLES[gk]||gk}),h('div',{class:'grid'})]); const grid=sec.querySelector('.grid'); list.forEach(a=>grid.appendChild(card(a,gk,defaults))); $content.appendChild(sec); } }});
+  const spacer=document.createElement('div'); spacer.className='spacer'; $content.appendChild(spacer); $count.textContent=`${total} itens organizados`;
+}
+
+/*** viewer + injection ***/
+function injectionSnippet(){return `<!-- INFODOSE: injection footer -->
+<style>.infodose-footer{position:fixed;left:0;right:0;bottom:0;z-index:99999;display:flex;gap:10px;justify-content:center;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(14px) saturate(140%);background:rgba(0,0,0,.65);border-top:1px solid rgba(255,255,255,.18)}
+.infodose-footer .btn{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:.6rem 1rem;background:rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer}</style>
+<div class="infodose-footer"><button class="btn" onclick="(function(){ try{ if(window.history.length>1) history.back(); else location.href='index.html'; }catch(e){ location.href='index.html'; } })()">⬅ Voltar ao Hub</button></div>
+<!-- /INFODOSE -->`.trim()}
+async function downloadInjected(app){ try{ const r=await fetch(app.url,{cache:'no-store'}); const html=await r.text(); const inj=injectionSnippet(); const out=html.includes('</body>')?html.replace('</body>',inj+'\n</body>'):(html+'\n'+inj); const blob=new Blob([out],{type:'text/html'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(lastFile(app.url)||'page')+'.injected.html'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){ alert('Não foi possível baixar/injetar este HTML (CORS?).') } }
+function copyInjection(app){ const inj=injectionSnippet(); navigator.clipboard.writeText(inj).then(()=>alert('Injection copiado!'),()=>alert('Falha ao copiar (permissões do navegador).')) }
+
+function openApp(app){
+  try{localStorage.setItem('infodose:lastView',JSON.stringify(app))}catch{}
+  if(!$sameTab.checked){ window.open(app.url,'_blank','noopener'); return; }
+
+  const v=document.createElement('div'); v.className='viewer';
+  v.innerHTML=`<div class="swipe-hint" id="swipeHint">⬇️ Arraste para fechar</div>
+    <iframe src="${app.url}" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+    <div class="viewer-footer">
+      <button class="btn" id="backHub">⬅ Hub</button>
+      <button class="btn" id="dlHtml" title="Baixar HTML com a barra de retorno injetada">⤓ Sümbüs)</button>
+      <button class="btn" id="copyInj" title="Copiar snippet da barra de retorno">⎘ Unjekt</button>
+    </div>`;
+  document.body.appendChild(v);
+
+  setTimeout(()=>{ const h=document.getElementById('swipeHint'); if(h){h.classList.add('hide'); setTimeout(()=>h.remove(),600);} },2000);
+
+  const prevOverflow=document.body.style.overflow; document.body.style.overflow='hidden';
+  VIEWER_OPEN=true;
+
+  // swipe-down
+  let startY=null,lastY=null; const threshold=48;
+  v.addEventListener('touchstart',e=>{const t=e.touches?.[0];startY=t?t.clientY:e.clientY;lastY=startY;},{passive:true});
+  v.addEventListener('touchmove',e=>{const t=e.touches?.[0];lastY=t?t.clientY:e.clientY;},{passive:true});
+  v.addEventListener('touchend',()=>{ if(startY!=null&&lastY!=null&&(lastY-startY)>threshold) back(); startY=null;lastY=null;},{passive:true});
+
+  function back(){ v.remove(); document.body.style.overflow=prevOverflow; VIEWER_OPEN=false; }
+  v.querySelector('#backHub').addEventListener('click',back);
+  v.querySelector('#dlHtml').addEventListener('click',()=>downloadInjected(app));
+  v.querySelector('#copyInj').addEventListener('click',()=>copyInjection(app));
+}
+
+/*** help panel ***/
+function openHelp(){ $helpBackdrop.classList.add('show'); $helpBackdrop.setAttribute('aria-hidden','false'); document.body.dataset.prevOverflow=document.body.style.overflow||''; document.body.style.overflow='hidden'; }
+function closeHelp(){ $helpBackdrop.classList.remove('show'); $helpBackdrop.setAttribute('aria-hidden','true'); document.body.style.overflow=document.body.dataset.prevOverflow||''; delete document.body.dataset.prevOverflow; }
+
+/*** eventos UI ***/
+$('#dockHome').addEventListener('click',()=>{window.scrollTo({top:0,behavior:'smooth'});history.pushState('',document.title,location.pathname+location.search)});
+$('#dockInfodose').addEventListener('click',()=>window.open('https://infodose.com.br','_blank','noopener'));
+$('#btnDownloadLoader').addEventListener('click',()=>{const html='<!doctype html><meta charset="utf-8"><title>Infodose Loader</title><style>html,body{height:100%;margin:0;background:#0b0b0b;color:#fff;display:grid;place-items:center;font:16px/1.4 system-ui}.dot{width:14px;height:14px;border-radius:50%;background:#29d3ff;box-shadow:0 0 22px #29d3ff;animation:p 1s infinite alternate}@keyframes p{to{transform:scale(1.4);opacity:.7}}</style><div><div class="dot"></div><p>Carregando…</p></div>';const blob=new Blob([html],{type:'text/html;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Infodose_Loader.html';document.body.appendChild(a);a.click();a.remove();});
+$('#dockInstall').addEventListener('click',()=>$('#btnDownloadLoader').click());
+$search.addEventListener('input',()=>render()); $sort.addEventListener('change',()=>render());
+$profileBtn.addEventListener('click',editProfile); $helpBtn.addEventListener('click',openHelp); $helpClose.addEventListener('click',closeHelp);
+$helpBackdrop.addEventListener('click',ev=>{if(ev.target===$helpBackdrop)closeHelp()}); document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$helpBackdrop.classList.contains('show'))closeHelp()});
+
+/*** auto-open ***/
+function tryAutoOpen(){ const fromURL=getViewTargetFromURL(); if(fromURL){const app=findAppByKeyOrFile(fromURL); if(app){openApp(app); return}}
+  const marked=allApps().find(a=>a.open===true); if(marked){openApp(marked);return}
+  const last=localStorage.getItem('infodose:lastView'); if(last){try{const app=JSON.parse(last); if(app&&app.url){openApp(app)}}catch{}}
+}
+
+/*** kickoff ***/ load();
+</script>
+</body>
+</html>
