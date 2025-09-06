@@ -318,6 +318,30 @@
         "tags": ["player","arquetipo","dual"]
       },
       {
+  "key": "dual-infodose-nebulapro-moodspalettes-queue-asciistudio",
+  "title": "Dual Infodose NebulaPro MoodsPalettes Queue ASCIIStudio",
+  "desc": "NebulaPro com moods, paletas, fila e ASCII Studio.",
+  "url": "./apps/Dual_Infodose_NebulaPro_MoodsPalettes_Queue_ASCIIStudio.html",
+  "icon": "icons/icon-192-indexrs.png",
+  "tags": ["dual","infodose","nebula","moods","palettes","queue","ascii","studio"]
+},
+{
+  "key": "dual-infodose-nebulapro-mobile",
+  "title": "Dual Infodose NebulaPro Mobile",
+  "desc": "Versão NebulaPro otimizada para mobile.",
+  "url": "./apps/Dual_Infodose_NebulaPro_Mobile.html",
+  "icon": "icons/icon-192-indexrs.png",
+  "tags": ["dual","infodose","nebula","mobile"]
+},
+{
+  "key": "dual-infodose-min-mobile-v2",
+  "title": "Dual Infodose Min Mobile v2",
+  "desc": "Versão minimalista Infodose para mobile v2.",
+  "url": "./apps/Dual_Infodose_Min_Mobile_v2.html",
+  "icon": "icons/icon-192-indexrs.png",
+  "tags": ["dual","infodose","mobile","minimal","v2"]
+},
+      {
         "key": "dual-daw-1",
         "title": "Dual DAW 1",
         "desc": "Primeira versão do DAW simbólico.",
