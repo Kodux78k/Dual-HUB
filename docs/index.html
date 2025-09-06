@@ -120,7 +120,8 @@
       <option value="za">Z → A</option>
     </select>
     <label class="toggle pill">
-      <input id="sameTab" type="checkbox" style="accent-color:#29d3ff"> Abrir na mesma aba (viewer)
+      <input id="sameTab" type="checkbox" 
+      style="accent-color:#29d3ff"> 🔘
     </label>
     <div class="pill" id="countApps">Carregando…</div>
   </div>
@@ -550,6 +551,17 @@ $('#dockInstall').addEventListener('click', downloadLoader);
 
 $search.addEventListener('input', ()=> render());
 $sort.addEventListener('change', ()=> render());
+
+
+// marca viewer por padrão (pode remover se quiser iniciar desmarcado)
+
+
+$sameTab.checked = true;
+
+
+
+
+
 
 /** ===== init ===== **/
 load();
