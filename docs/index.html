@@ -619,13 +619,29 @@ let TTS_ENABLED = true;
 function speak(text){
   if(!TTS_ENABLED || !window.speechSynthesis) return;
   try{
-    const u = new SpeechSynthesisUtterance(String(text||'').replace(/\s+/g,' ').trim());
-    const voices = speechSynthesis.getVoices();
-    const pt = voices.find(v=>/pt/i.test(v.lang||''));
-    if(pt) u.voice = pt;
-    u.rate = 1.03; u.pitch = 1.0; u.volume = 1;
+    const u = new SpeechSynthesisUtterance(
+      String(text||'').replace(/\s+/g,' ').trim()
+    );
+
+    // tenta pegar vozes mais naturais
+    let voices = speechSynthesis.getVoices();
+    let v = voices.find(v=>/Google português do Brasil/i.test(v.name));
+    if(!v) v = voices.find(v=>/Microsoft Maria/i.test(v.name));
+    if(!v) v = voices.find(v=>/female/i.test(v.name) && /pt/i.test(v.lang));
+    if(!v) v = voices.find(v=>/pt-BR/i.test(v.lang)); // último fallback
+
+    if(v) u.voice = v;
+
+    // configs de naturalidade
+    u.rate = 0.9;   // velocidade cadenciada
+    u.pitch = 1.05; // mais feminino
+    u.volume = 1;
+
+    speechSynthesis.cancel(); // limpa fila antiga
     speechSynthesis.speak(u);
-  }catch{}
+  }catch(e){
+    console.error("Erro no TTS:", e);
+  }
 }
 /** ===== Injection util ===== */
 function injectionSnippet(){
