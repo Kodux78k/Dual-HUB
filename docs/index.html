@@ -15,20 +15,6 @@
       --stroke:rgba(255,235,180,.20); --stroke-soft:rgba(255,235,180,.12);
       --blur:22px; --radius:18px; --dock-space:84px; --maxw:980px;
     }
-
-    /* Light theme overrides */
-    :root[data-theme='light']{
-      --bg:#ffffff;
-      --fg:#0b0b0b;
-      --muted:#4a4a4a;
-      --acc:#4a90e2;
-      --stroke:rgba(0,0,0,.12);
-      --stroke-soft:rgba(0,0,0,.06);
-      --blur:22px;
-      --radius:18px;
-      --dock-space:84px;
-      --maxw:980px;
-    }
     /* Base */
     html,body{height:100%;margin:0}
     html{background:var(--bg)}
@@ -143,16 +129,6 @@
     @media (min-height: 760px){
       .mem-rail{ transform: translateY(14vh); max-height: calc(100svh - 34vh); }
     }
-
-    /* Brain Modal styles */
-    .brain-modal { position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; display:none; }
-    .brain-modal.show { display:block; }
-    .brain-modal .brain-overlay { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.55); }
-    .brain-modal .brain-panel { position:relative; margin:10vh auto; max-width:480px; padding:20px; background:rgba(0,0,0,0.85); border:1px solid var(--stroke-soft); border-radius:14px; box-shadow:0 8px 22px rgba(0,0,0,.45); color:#fff; }
-    .brain-panel h2 { margin-top:0; margin-bottom:14px; font-size:1.1rem; font-weight:800; color:#fff; }
-    .brain-panel label { display:block; margin-bottom:12px; color:#e0e0e0; font-size:.9rem; font-weight:700; }
-    .brain-panel input, .brain-panel select { width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--stroke-soft); background:#0f1320; color:#fff; margin-top:4px; }
-    .brain-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
   </style>
 </head>
 <body>
@@ -203,47 +179,6 @@
     <!-- itens entram aqui -->
     <button class="mem-btn" id="memClear" title="Limpar memória">🧹</button>
   </aside>
-
-  <!-- INFODOSE BRAIN MODAL -->
-  <div id="brainModal" class="brain-modal" aria-hidden="true">
-    <div class="brain-overlay" id="brainOverlay"></div>
-    <div class="brain-panel">
-      <h2>Configurações do Infodose Brain</h2>
-      <label for="brainUserSK">Chave SK do Usuário
-        <input id="brainUserSK" type="text" placeholder="Ex.: sk-..."/>
-      </label>
-      <label for="brainUserName">Nome do Usuário
-        <input id="brainUserName" type="text" placeholder="Seu nome"/>
-      </label>
-      <label for="brainAssistantName">Nome do Assistente
-        <input id="brainAssistantName" type="text" placeholder="Nome do assistente"/>
-      </label>
-      <label for="brainTtsPreset">Preset de Voz
-        <select id="brainTtsPreset">
-          <option value="natural">Voz Natural</option>
-          <option value="neutra">Voz Neutra</option>
-          <option value="dinamica">Voz Dinâmica</option>
-        </select>
-      </label>
-
-      <label for="brainTheme">Tema
-        <select id="brainTheme">
-          <option value="dark">Escuro</option>
-          <option value="light">Claro</option>
-        </select>
-      </label>
-      <label for="brainLanguage">Idioma Preferido
-        <select id="brainLanguage">
-          <option value="pt-BR">Português (Brasil)</option>
-          <option value="en-US">English (US)</option>
-        </select>
-      </label>
-      <div class="brain-actions">
-        <button id="brainSave" class="btn primary" type="button">Salvar</button>
-        <button id="brainCancel" class="btn" type="button">Cancelar</button>
-      </div>
-    </div>
-  </div>
 
 <script>
 /** ===== util ===== **/
@@ -1001,8 +936,6 @@ $('#fileImport')?.addEventListener('change', (e)=>{
     brain.assistantName = brain.assistantName || localStorage.getItem('infodose:assistantName') || 'DualInfodose';
     brain.ttsPreset = currentPreset;
     brain.preferences = brain.preferences || {};
-    brain.theme = brain.theme || localStorage.getItem('infodose:theme') || 'dark';
-    brain.language = brain.language || localStorage.getItem('infodose:language') || 'pt-BR';
     return brain;
   }
   window.InfodoseBrain = loadBrain2();
@@ -1010,22 +943,12 @@ $('#fileImport')?.addEventListener('change', (e)=>{
     window.InfodoseBrain[key] = value;
     try{ localStorage.setItem('infodose:brain', JSON.stringify(window.InfodoseBrain)); }catch{}
   };
-  // Aplique o tema ao carregar
-  try{ applyTheme(window.InfodoseBrain.theme || 'dark'); }catch{}
   const presets = ['natural','neutra','dinamica'];
   const labels = { natural:'Voz Natural', neutra:'Voz Neutra', dinamica:'Voz Dinâmica' };
   function updateVoiceButton(){
     const b = document.getElementById('btnVoicePreset');
     if(b){ b.textContent = labels[currentPreset] || ('Voz '+currentPreset); }
-    // expõe para outros escopos
-    try{ window.updateVoiceButton = updateVoiceButton; }catch{}
   }
-  // Aplica tema global conforme a preferência do Brain
-  function applyTheme(theme){
-    const t = (theme==='light') ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-  }
-  try{ window.applyTheme = applyTheme; }catch{}
   updateVoiceButton();
   const btnVoice = document.getElementById('btnVoicePreset');
   if(btnVoice){
@@ -1038,74 +961,6 @@ $('#fileImport')?.addEventListener('change', (e)=>{
     });
   }
 })();
-
-  // ===== Brain Modal Handling =====
-  (function(){
-    const logoEl = document.querySelector('.logo');
-    const modalEl = document.getElementById('brainModal');
-    const overlayEl = document.getElementById('brainOverlay');
-    const saveBtn = document.getElementById('brainSave');
-    const cancelBtn = document.getElementById('brainCancel');
-    const inputUserSK = document.getElementById('brainUserSK');
-    const inputUserName = document.getElementById('brainUserName');
-    const inputAssistantName = document.getElementById('brainAssistantName');
-    const selectPreset = document.getElementById('brainTtsPreset');
-    const selectTheme = document.getElementById('brainTheme');
-    const selectLanguage = document.getElementById('brainLanguage');
-
-    function openModal(){
-      if(!modalEl) return;
-      const brain = window.InfodoseBrain || {};
-      if(inputUserSK) inputUserSK.value = brain.userSK || '';
-      if(inputUserName) inputUserName.value = brain.userName || '';
-      if(inputAssistantName) inputAssistantName.value = brain.assistantName || '';
-      if(selectPreset) selectPreset.value = brain.ttsPreset || (typeof currentPreset !== 'undefined' ? currentPreset : 'natural');
-      if(selectTheme) selectTheme.value = brain.theme || 'dark';
-      if(selectLanguage) selectLanguage.value = brain.language || 'pt-BR';
-      modalEl.classList.add('show');
-      modalEl.setAttribute('aria-hidden','false');
-    }
-    function closeModal(){
-      if(modalEl){ modalEl.classList.remove('show'); modalEl.setAttribute('aria-hidden','true'); }
-    }
-    logoEl?.addEventListener('click', (ev)=>{
-      ev.preventDefault();
-      openModal();
-    });
-    overlayEl?.addEventListener('click', ()=>{
-      closeModal();
-    });
-    cancelBtn?.addEventListener('click', ()=>{
-      closeModal();
-    });
-    saveBtn?.addEventListener('click', ()=>{
-      if(inputUserSK) window.updateBrain('userSK', inputUserSK.value.trim());
-      if(inputUserName) window.updateBrain('userName', inputUserName.value.trim());
-      if(inputAssistantName) window.updateBrain('assistantName', inputAssistantName.value.trim());
-      if(selectPreset){
-        const newPreset = selectPreset.value || 'natural';
-        if(typeof currentPreset !== 'undefined') currentPreset = newPreset;
-        try{ localStorage.setItem('infodose:ttsPreset', newPreset); }catch{}
-        window.updateBrain('ttsPreset', newPreset);
-        if(typeof updateVoiceButton === 'function') updateVoiceButton();
-      }
-
-      // Tema e Idioma
-      if(selectTheme){
-        const newTheme = selectTheme.value || 'dark';
-        window.updateBrain('theme', newTheme);
-        try{ localStorage.setItem('infodose:theme', newTheme); }catch{}
-        if(typeof applyTheme === 'function') applyTheme(newTheme);
-      }
-      if(selectLanguage){
-        const newLang = selectLanguage.value || 'pt-BR';
-        window.updateBrain('language', newLang);
-        try{ localStorage.setItem('infodose:language', newLang); }catch{}
-      }
-      closeModal();
-    });
-  })();
-
 </script>
 </body>
 </html>
