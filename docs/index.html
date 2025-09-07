@@ -125,7 +125,13 @@
     @media (min-height: 760px){
       .mem-rail{ transform: translateY(14vh); max-height: calc(100svh - 34vh); }
     }
-  </style>
+  /* — toast harmonioso — */
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;display:none;min-width:200px;max-width:92vw;
+background:rgba(0,0,0,.55);backdrop-filter:blur(10px);color:var(--ink, #fff);border:1px solid rgba(255,255,255,.14);
+padding:10px 14px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:9999;font-size:13px;line-height:1.35}
+#toast.show{display:block;animation:toastIn .18s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+</style>
 </head>
 <body>
   <header class="header">
@@ -152,7 +158,12 @@
       <input id="sameTab" type="checkbox" style="accent-color:#29d3ff" checked> 🔘
     </label>
     <div class="pill" id="countApps">Carregando…</div>
-  </div>
+  <button class="pill" id="btnAddLocal" type="button" title="Adicionar HTML local">➕ Locais</button>
+<input id="localPicker" type="file" accept=".html,.htm,text/html" multiple hidden>
+<button class="pill" id="btnExportLocals" type="button" title="Exportar HTMLs locais">⤴︎ Exportar</button>
+<button class="pill" id="btnImportLocals" type="button" title="Importar pacote de locais">⤵︎ Importar</button>
+<input id="localsImportPicker" type="file" accept=".json,application/json" hidden>
+</div>
 
   <main id="content"></main>
   <footer>DualInfodose • HUB</footer>
@@ -205,6 +216,8 @@ const GROUP_TITLES = {
 };
 const GROUP_ORDER = ['favorites','index_hubs','chats','editors_tools','menus','tutorials','visual_splash','docs','players','others'];
 
+GROUP_TITLES.locals = 'Locais (HTMLs)';
+try{ const idx = GROUP_ORDER.indexOf('favorites'); if(idx>=0){ GROUP_ORDER.splice(idx+1, 0, 'locals'); } else { GROUP_ORDER.unshift('locals'); } }catch{}
 /** ===== regras inteligentes ===== **/
 const TAG_PRIORITIES = {
   index_hubs: ['hub','index','nebula','metalux','sumbus','sümbüs','barra','barrao'],
@@ -304,6 +317,114 @@ function h(el, attrs={}, children=[]){
   return e;
 }
 function badgeEl(text){ return h('span', {class:'badge', html: text}); }
+
+/** ===== LOCAIS (HTMLs no localStorage) ===== **/
+const LOCAL_KEY='infodose:locals:v1';
+function loadLocals(){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); }catch{ return []; } }
+function saveLocals(arr){ try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(arr)); }catch{} }
+function addLocalFiles(files){
+  if(!files || !files.length) return;
+  const readers = [];
+  const now = Date.now();
+  for(const f of files){
+    readers.push(new Promise(res=>{
+      const r = new FileReader();
+      r.onload = () => {
+        const text = String(r.result||'');
+        res({ id: now + '_' + Math.random().toString(36).slice(2),
+              name: f.name.replace(/\.(html?|txt)$/i,'') || 'Local',
+              html: text, ts: Date.now() });
+      };
+      r.readAsText(f);
+    }));
+  }
+  Promise.all(readers).then(list=>{
+    const cur = loadLocals();
+    // evita duplicatas por conteúdo+nome
+    list.forEach(n=>{
+      const i = cur.findIndex(x=> x.name===n.name && x.html===n.html);
+      if(i>=0) cur[i] = {...n, id: cur[i].id}; else cur.unshift(n);
+    });
+    saveLocals(cur); render();
+  });
+}
+function localsAsApps(){
+  const locs = loadLocals();
+  return locs.map(l => ({
+    key: 'local:'+l.id,
+    title: l.name || 'Local',
+    desc: 'Arquivo local salvo no Hub',
+    url: 'local:'+l.id,
+    icon: FALLBACK_ICONS.editors,
+    group: 'locals',
+    tags: ['local','offline','html']
+  }));
+}
+function getLocalByUrl(url){
+  if(!url || !String(url).startsWith('local:')) return null;
+  const id = String(url).slice(6);
+  return loadLocals().find(x=>x.id===id) || null;
+}
+function removeLocalByUrl(url){
+  const id = String(url||'').replace(/^local:/,'');
+  saveLocals(loadLocals().filter(x=>x.id!==id)); render();
+}
+function blobUrlFromLocal(local){
+  const blob = new Blob([local.html], {type:'text/html;charset=utf-8'}
+
+/** ===== Export/Import de Locais (JSON pack) ===== **/
+// Estrutura do pack: { version:'1', items:[{id,name,html,ts}] }
+function exportLocals(){
+  const items = loadLocals();
+  if(!items.length){ toast('Nada para exportar.'); return; }
+  const pack = {version:'1', items};
+  const blob = new Blob([JSON.stringify(pack, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `locals-pack-${nowStamp()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast(`Exportado ${items.length} item(ns).`);
+}
+
+async function importLocalsFromFile(f){
+  try{
+    const text = await f.text();
+    const pack = JSON.parse(text);
+    if(!pack || !Array.isArray(pack.items)){ toast('Pacote inválido.'); return; }
+    const incoming = pack.items.filter(x=> x && typeof x.html==='string');
+    if(!incoming.length){ toast('Nenhum item válido no pacote.'); return; }
+
+    const cur = loadLocals();
+    // Merge inteligente: (nome+html) => substitui/ignora; nome igual e html diferente => renomeia com sufixo
+    let added=0, replaced=0, skipped=0;
+    for(const n of incoming){
+      const same = cur.findIndex(x=> x.name===n.name && x.html===n.html);
+      if(same>=0){
+        // conteúdo já existia; atualiza timestamp e mantém id
+        cur[same] = {...cur[same], ts: Math.max(cur[same].ts||0, n.ts||0)};
+        skipped++;
+        continue;
+      }
+      // nome igual mas conteúdo diferente: renomear sutilmente
+      let name = n.name || 'Local';
+      if(cur.some(x=> x.name===name && x.html!==n.html)){
+        const base=name; let k=2;
+        while(cur.some(x=> x.name===`${base} (${k})` && x.html!==n.html)) k++;
+        name = `${base} (${k})`;
+      }
+      const id = Date.now() + '_' + Math.random().toString(36).slice(2);
+      cur.unshift({ id, name, html: String(n.html), ts: n.ts || Date.now() });
+      added++;
+    }
+    saveLocals(cur); render();
+    toast(`Importado: +${added}, atualizado: ${replaced}, já existia: ${skipped}`);
+  }catch(e){
+    console.error(e); toast('Falha ao importar.');
+  }
+}
+);
+  return URL.createObjectURL(blob);
+}
 
 /** ===== favoritos (opcional) ===== **/
 function appKey(a){return (a.key&&String(a.key))||String(a.url)}
@@ -477,11 +598,20 @@ async function load(){
   setTimeout(tryAutoOpen, 0);
 }
 function allApps(){
-  if(!RAW) return [];
-  if(Array.isArray(RAW.apps)) return RAW.apps;
-  if(RAW.groups && typeof RAW.groups==='object') return Object.values(RAW.groups).flat().filter(Boolean);
-  return [];
+  const locals = localsAsApps();
+  if(!RAW){
+    return locals;
+  }
+  if(Array.isArray(RAW.apps)){
+    return [...locals, ...RAW.apps];
+  }
+  if(RAW.groups && typeof RAW.groups==='object'){
+    const grouped = Object.values(RAW.groups).flat().filter(Boolean);
+    return [...locals, ...grouped];
+  }
+  return locals;
 }
+
 function render(){
   if(!RAW) return;
   const mode = $sort.value;
@@ -535,18 +665,30 @@ function injectionSnippet(){
 }
 async function downloadInjected(app){
   try{
-    const res = await fetch(app.url, {cache:'no-store'});
-    const html = await res.text();
+    const lref = getLocalByUrl(app.url);
+    let html = null;
+    if(lref){
+      html = lref.html; // já temos o texto original
+    }else{
+      const res = await fetch(app.url, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      html = await res.text();
+    }
     const inj = injectionSnippet();
-    const out = html.includes('</body>') ? html.replace('</body>', inj + '\n</body>') : (html + '\n' + inj);
+    const out = html.includes('<div id="toast" role="status" aria-live="polite"></div>
+</body>') ? html.replace('</body>', inj + '
+</body>') : (html + '
+' + inj);
     const blob = new Blob([out], {type:'text/html'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = (lastFile(app.url)||'page') + '.injected.html';
+    a.download = (lastFile(app.url)|| (app.title||'page')) + '.injected.html';
     document.body.appendChild(a); a.click(); a.remove();
   }catch(e){
-    alert('Não foi possível baixar/injetar este HTML (CORS?).');
+    alert('Não foi possível baixar/injetar este HTML.');
   }
+}
+
 }
 function copyInjection(){ navigator.clipboard.writeText(injectionSnippet()).then(()=>alert('Injection copiado!'),()=>alert('Falha ao copiar')) }
 
@@ -647,6 +789,42 @@ $sort.addEventListener('change', render);
 /** ===== mem controls ===== **/
 $memToggle.addEventListener('click',()=>{ const hidden=$memRail.dataset.hidden==='1'; if(hidden){delete $memRail.dataset.hidden}else{$memRail.dataset.hidden='1'}});
 $memClear.addEventListener('click', clearMem);
+
+const $btnAddLocal = $('#btnAddLocal');
+const $localPicker = $('#localPicker');
+$btnAddLocal?.addEventListener('click', ()=> $localPicker.click());
+$localPicker?.addEventListener('change', (e)=>{
+  const files = Array.from(e.target.files||[]);
+  addLocalFiles(files);
+  $localPicker.value = '';
+});
+
+// ——— UI: toast harmonioso ———
+function toast(msg, ms=1600){
+  try{
+    const t = $('#toast'); if(!t) return alert(String(msg));
+    t.textContent = String(msg); t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(()=> t.classList.remove('show'), ms);
+  }catch{}
+}
+function nowStamp(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+''+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
+}
+
+// ——— Toolbar: Exportar/Importar Locais ———
+const $btnExportLocals = $('#btnExportLocals');
+const $btnImportLocals = $('#btnImportLocals');
+const $localsImportPicker = $('#localsImportPicker');
+
+$btnExportLocals?.addEventListener('click', ()=> exportLocals());
+$btnImportLocals?.addEventListener('click', ()=> $localsImportPicker.click());
+$localsImportPicker?.addEventListener('change', (e)=>{
+  const files = Array.from(e.target.files||[]);
+  if(files[0]) importLocalsFromFile(files[0]);
+  $localsImportPicker.value='';
+});
 
 /** ===== auto-open ===== */
 function findAppByKeyOrFile(q){
