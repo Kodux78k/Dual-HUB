@@ -184,31 +184,31 @@
         "key": "dual-chat",
         "title": "Dual Chat",
         "desc": "Conversas e IA simbólica.",
-        "url": "https://Kodux78k.github.io.com/dual-chat/index.html",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default-v3.html",
         "icon": "icons/icon-192-chats.png",
         "tags": ["chat","ai","dual"]
       },
       {
-        "key": "dual-chat-fix",
+        "key": "dual-chat-trix",
         "title": "Dual Chat 0.94.15 Fix",
-        "desc": "Versão corrigida do Dual Chat.",
-        "url": "./apps/dual-chat-0-94-15-fix-78-75-REC.html",
+        "desc": "Versão rixtrix do Dual Chat.",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live-v3.html",
         "icon": "icons/icon-192-chats.png",
         "tags": ["chat","fix","release"]
       },
       {
-        "key": "render-response-autoload",
+        "key": "Chat-response-autoload",
         "title": "Render Response Autoload",
         "desc": "Carregamento automático de respostas.",
-        "url": "./apps/render-response-autoload.html",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default-R0.html",
         "icon": "icons/icon-192-chats.png",
         "tags": ["render","response","autoload","chat"]
       },
       {
         "key": "renderresponse-kobllux",
-        "title": "Render Response Kobllux",
+        "title": "Chat- render Response Kobllux",
         "desc": "Renderização Kobllux.",
-        "url": "./apps/renderresponse-kobllux.html",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live-R0.html",
         "icon": "icons/icon-192-chats.png",
         "tags": ["render","kobllux","chat"]
       }
