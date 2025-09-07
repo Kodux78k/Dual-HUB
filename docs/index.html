@@ -103,13 +103,17 @@
     /* ====== MEMÓRIA — COMPACT RAIL (importado/ajustado) ====== */
     .mem-rail{
       position:fixed; right:10px; z-index:55;
-      display:flex; flex-direction:column; gap:10px; align-items:center;
-      top:50vh; transform: translateY(10vh); /* lower-center */
-      max-height:calc(100svh - 30vh); overflow:auto; padding:8px 6px;
+      display:flex; flex-direction:column; gap:8px; align-items:center;
+      top:50%; transform: translateY(-50%);
+      max-height:calc(100svh - 24px - env(safe-area-inset-bottom));
+      overflow:auto; padding:8px 6px;
       backdrop-filter:blur(12px) saturate(140%); background:rgba(0,0,0,.35);
       border:1px solid var(--stroke); border-radius:14px;
       box-shadow:0 10px 28px rgba(0,0,0,.45);
     }
+    .mem-rail.collapsed{ padding:6px; gap:6px; background:rgba(0,0,0,.25); }
+    .mem-rail.collapsed .mem-item, .mem-rail.collapsed #memClear{ display:none !important; }
+    .mem-rail.collapsed #memToggle{ opacity:.6; transform:scale(.9); }
     .mem-item{position:relative;width:44px;height:44px;border-radius:14px;overflow:hidden;background:#0f1320;box-shadow:0 8px 22px rgba(0,0,0,.45);border:1px solid var(--stroke-soft);cursor:pointer;display:grid;place-items:center}
     .mem-item img{width:100%;height:100%;object-fit:cover;display:block}
     .mem-item .letter{font-weight:900;color:#eaf6ff;font-size:.9rem}
@@ -158,7 +162,9 @@
       <input id="fileLocal" type="file" accept=".html,.htm,text/html" hidden multiple>
       <input id="fileImport" type="file" accept="application/json" hidden>
 
-  </div>
+  
+    <button class="pill" id="btnTTS" type="button" title="Narrar eventos (Speech Synthesis)">🗣️ TTS: ON</button>
+</div>
 
   <main id="content"></main>
   <footer>DualInfodose • HUB</footer>
@@ -390,7 +396,7 @@ function renderGrouped(groups, defaults){
     }
   });
   const spacer = document.createElement('div'); spacer.className='spacer'; $content.appendChild(spacer);
-  $count.textContent = `${total} itens organizados`;
+  if($count) $count.textContent = `${total} itens organizados`;
 }
 function renderFlat(apps, defaults){
   const groups = {};
@@ -448,6 +454,7 @@ async function tryFetch(url){
 }
 async function load(){
   const candidates = [
+    './apps.json',
     './apps/apps.json',
     './docs/apps/apps.json',
     '/apps/apps.json'
@@ -469,7 +476,7 @@ async function load(){
           </div>
         </div>
       </section>`;
-    $count.textContent = 'Erro no apps.json';
+    if($count) $count.textContent = 'Erro no apps.json';
     return;
   }
   RAW = data;
@@ -580,6 +587,46 @@ function blobUrlFromLocal(local){
 }
 
 
+
+/** ===== Audio & Speech Synthesis ===== */
+let AUDIO_UNLOCKED = false;
+let _ac = null;
+function unlockAudioOnce(){
+  if (AUDIO_UNLOCKED) return;
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(AC){
+      _ac = _ac || new AC();
+      if(_ac.state === 'suspended'){ _ac.resume(); }
+      const o = _ac.createOscillator();
+      const g = _ac.createGain();
+      g.gain.value = 0.0001;
+      o.connect(g).connect(_ac.destination);
+      o.start(); o.stop(_ac.currentTime + 0.02);
+    }
+  }catch{}
+  try{
+    const u = new SpeechSynthesisUtterance('');
+    u.volume = 0; speechSynthesis.speak(u);
+  }catch{}
+  AUDIO_UNLOCKED = true;
+}
+['click','touchstart','pointerdown','keydown'].forEach(evt=>{
+  window.addEventListener(evt, unlockAudioOnce, {passive:true});
+});
+
+let TTS_ENABLED = true;
+function speak(text){
+  if(!TTS_ENABLED || !window.speechSynthesis) return;
+  try{
+    const u = new SpeechSynthesisUtterance(String(text||'').replace(/\s+/g,' ').trim());
+    const voices = speechSynthesis.getVoices();
+    const pt = voices.find(v=>/pt/i.test(v.lang||''));
+    if(pt) u.voice = pt;
+    u.rate = 1.03; u.pitch = 1.0; u.volume = 1;
+    speechSynthesis.speak(u);
+  }catch{}
+}
 /** ===== Injection util ===== */
 function injectionSnippet(){
   return `
@@ -667,17 +714,19 @@ function openApp(app){
     const lref = getLocalByUrl(app.url);
     const targetUrl = lref ? blobUrlFromLocal(lref) : app.url;
     window.open(targetUrl, '_blank', 'noopener'); return; }
-  const v = document.createElement('div');
+  const v = document.createElement('div'); unlockAudioOnce(); speak('Abrindo ' + (app.title||'aplicativo'));
   v.className = 'viewer';
   v.innerHTML = `
     <div class="swipe-hint" id="swipeHint">⬇️ Arraste para fechar</div>
-    <iframe src="${(getLocalByUrl(app.url)?blobUrlFromLocal(getLocalByUrl(app.url)):app.url)}" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+    <iframe src="${(getLocalByUrl(app.url)?blobUrlFromLocal(getLocalByUrl(app.url)):app.url)}" allow="autoplay; encrypted-media; clipboard-read; clipboard-write; fullscreen; picture-in-picture"></iframe>
     <div class="viewer-footer">
       <button class="btn" id="backHub">⬅ Hub</button>
       <button class="btn" id="dlHtml">⤓ Sümbüs)</button>
       <button class="btn" id="copyInj">⎘ Unjekt</button>
     </div>`;
   document.body.appendChild(v);
+  const _f = v.querySelector('iframe');
+  if(_f){ _f.addEventListener('load', ()=>{ try{ _f.contentWindow.postMessage({type:'INFODOSE_UNBLUR_AUDIO'}, '*'); }catch{} }); }
   setTimeout(()=>$('#swipeHint')?.classList.add('hide'),2000);
   const prev=document.body.style.overflow; document.body.style.overflow='hidden'; VIEWER_OPEN=true;
   let sy=null,ly=null; const th=48;
@@ -714,7 +763,7 @@ $('#dockInstall').addEventListener('click', downloadLoader);
 $search.addEventListener('input', render);
 $sort.addEventListener('change', render);
 /** ===== mem controls ===== **/
-$memToggle.addEventListener('click',()=>{ const hidden=$memRail.dataset.hidden==='1'; if(hidden){delete $memRail.dataset.hidden}else{$memRail.dataset.hidden='1'}});
+$memToggle.addEventListener('click',()=>{ $memRail.classList.toggle('collapsed'); });
 $memClear.addEventListener('click', clearMem);
 
 /** ===== auto-open ===== */
@@ -759,6 +808,7 @@ $('#btnExport')?.addEventListener('click', ()=>{
   document.body.appendChild(a); a.click(); a.remove();
 });
 $('#btnImport')?.addEventListener('click', ()=> $('#fileImport').click());
+$('#btnTTS')?.addEventListener('click', ()=>{ TTS_ENABLED = !TTS_ENABLED; const b=$('#btnTTS'); if(b) b.textContent = '🗣️ TTS: ' + (TTS_ENABLED?'ON':'OFF'); });
 $('#fileImport')?.addEventListener('change', (e)=>{
   const f = (e.target.files||[])[0];
   if(!f) return;
