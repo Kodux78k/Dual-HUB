@@ -469,9 +469,7 @@ async function load(){
           </div>
         </div>
       </section>`;
-    $count.textContent = 'apps.json ausente';
-    RAW = { groups: {} }; // segue em frente para Locais-only
-    render();
+    $count.textContent = 'Erro no apps.json';
     return;
   }
   RAW = data;
@@ -492,28 +490,15 @@ function allApps(){
   if(RAW.groups && typeof RAW.groups==='object') return [...locals, ...Object.values(RAW.groups).flat().filter(Boolean)];
   return locals;
 }
-
 function render(){
-  const locals = localsAsApps();
-  // container
-  const $content = document.getElementById('content');
-  if(!$content){ return; }
-
-  const mode = $sort?.value || 'group';
-
-  // Se temos RAW válido com groups/apps -> render normal + Locais
-  if (RAW && RAW.groups && typeof RAW.groups === 'object'){
+  if(!RAW) return;
+  const mode = $sort.value;
+  if (RAW.groups && typeof RAW.groups === 'object'){
     let groups = RAW.groups;
     // injeta favoritos no topo, se houver
     const all = Object.values(groups).flat().filter(Boolean);
     const favs = all.filter(a=>isFav(a));
     if(favs.length) groups = { favorites: favs, ...groups };
-
-    // injeta Locais no objeto de grupos
-    if(locals.length){
-      groups = { locals: locals, ...groups };
-    }
-
     groups = applySearchFilter(groups, true);
     if (mode==='az' || mode==='za'){
       const dir = (mode==='az') ? 1 : -1;
@@ -523,31 +508,6 @@ function render(){
       });
       groups = g2;
     }
-    renderGrouped(groups, DEFAULTS);
-    $count.textContent = (Object.values(groups).flat().length)+' itens';
-    return;
-  }
-
-  // Se não tem RAW (apps.json falhou), renderiza SOMENTE Locais
-  if(locals.length){
-    $content.innerHTML = '';
-    renderGrouped({ locals: locals }, DEFAULTS || { base: FALLBACK_ICONS.base, indexrs: FALLBACK_ICONS.indexrs });
-    $count.textContent = locals.length + ' locais';
-  } else {
-    // Vazio total
-    $content.innerHTML = `
-      <section class="section">
-        <div class="card">
-          <div class="icon">📂</div>
-          <div>
-            <div class="title">Adicione HTMLs locais</div>
-            <div class="muted">Toque em <b>➕ Locais</b> para começar. Seu apps.json não foi carregado ainda.</div>
-          </div>
-        </div>
-      </section>`;
-    $count.textContent = '0';
-  }
-}
     renderGrouped(groups, DEFAULTS);
   } else if (Array.isArray(RAW.apps)){
     let list = RAW.apps;
