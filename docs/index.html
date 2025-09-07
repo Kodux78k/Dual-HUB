@@ -65,6 +65,7 @@
     .help-close{float:right;appearance:none;border:1px solid var(--stroke);background:rgba(255,255,255,.06);color:#fff;padding:.5rem .75rem;border-radius:10px;font-weight:800}
     .help-list{margin:.4rem 0 .2rem;padding-left:1.1rem} .help-list li{margin:.28rem 0}
   </style>
+ 
 </head>
 <body>
   <header class="header">
@@ -267,5 +268,59 @@ function tryAutoOpen(){ const fromURL=getViewTargetFromURL(); if(fromURL){const 
 
 /*** kickoff ***/ load();
 </script>
+
+<style>
+  .mem-radial-wrap{
+    position:fixed; bottom:90px; right:30px; z-index:60;
+  }
+  .mem-radial-btn{
+    width:56px; height:56px; border-radius:50%; font-size:1.2rem;
+    border:2px solid var(--stroke); background:rgba(255,255,255,.08); color:#fff;
+    display:grid; place-items:center; cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,.55);
+  }
+  .mem-radial-menu{
+    position:absolute; bottom:0; right:0; pointer-events:none;
+  }
+  .mem-radial-menu .mem-item{
+    position:absolute; width:44px; height:44px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.25); background:#0f1320;
+    display:grid; place-items:center; cursor:pointer;
+    transform:translate(0,0) scale(0); opacity:0;
+    transition:.25s;
+  }
+  .mem-radial-wrap.active .mem-radial-menu .mem-item{
+    transform:scale(1); opacity:1; pointer-events:auto;
+  }
+</style>
+
+<div class="mem-radial-wrap" id="memRadial">
+  <button class="mem-radial-btn" id="memRadialBtn">🧿</button>
+  <div class="mem-radial-menu" id="memRadialMenu"></div>
+</div>
+
+<script>
+const radialBtn=$('#memRadialBtn'), radialWrap=$('#memRadial'), radialMenu=$('#memRadialMenu');
+radialBtn.addEventListener('click',()=>radialWrap.classList.toggle('active'));
+
+function renderMemRadial(){
+  radialMenu.innerHTML='';
+  const mem=loadMem(); const step=(2*Math.PI)/Math.max(mem.length,1);
+  mem.forEach((item,i)=>{
+    const angle= i*step - Math.PI/2;
+    const btn=document.createElement('button');
+    btn.className='mem-item'; btn.title=item.title;
+    btn.style.transform=`translate(${Math.cos(angle)*80}px,${Math.sin(angle)*80}px) scale(1)`;
+    if(item.icon){
+      const img=new Image(); img.src=item.icon; img.alt=item.title; btn.appendChild(img);
+    }else{
+      const sp=document.createElement('span'); sp.textContent=item.title.charAt(0).toUpperCase(); btn.appendChild(sp);
+    }
+    btn.addEventListener('click',()=>openFromMem(item));
+    radialMenu.appendChild(btn);
+  });
+}
+</script>
+
 </body>
 </html>
