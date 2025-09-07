@@ -3,7 +3,8 @@
     "base": "icons/icon-192.png",
     "chats": "icons/icon-192-chats.png",
     "editors": "icons/icon-192-editors.png",
-    "indexrs": "icons/icon-192-indexrs.png"
+    "indexrs": "icons/icon-192-indexrs.png",
+    "jhb": "icons/icon-192-jhb.png"
   },
   "groups": {
     "index_hubs": [
@@ -27,8 +28,8 @@
         "key": "index-barrao",
         "title": "Index Barrão",
         "desc": "Versão barrão.",
-        "url": "./apps/indexbarrao.html",
-        "icon": "icons/icon-192-indexrs.png",
+        "url": "./apps/index-JHBarros.html",
+        "icon": "icons/icon-192-jhb.png",
         "tags": ["hub","index","barrao"]
       },
       {
@@ -102,8 +103,82 @@
         "url": "./apps/Dual_Infodose_Min_Mobile_v2.html",
         "icon": "icons/icon-192-indexrs.png",
         "tags": ["dual","infodose","mobile","minimal","v2"]
+      },
+      {
+        "key": "dual-infodose-nebulapro-orbits-sound-palettes-asciidsl",
+        "title": "Dual Infodose NebulaPro Orbits Sound Palettes ASCII DSL",
+        "desc": "NebulaPro com orbits, sound palettes e ASCII DSL.",
+        "url": "./apps/Dual_Infodose_NebulaPro_Orbits_Sound_Palettes_ASCIIDSL.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","nebula","sound","palettes","ascii","dsl"]
+      },
+      {
+        "key": "dual-infodose-nebulapro-reactiveface",
+        "title": "Dual Infodose NebulaPro ReactiveFace",
+        "desc": "NebulaPro com ReactiveFace.",
+        "url": "./apps/Dual_Infodose_NebulaPro_ReactiveFace.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","nebula","reactiveface"]
+      },
+      {
+        "key": "dual-infodose-cleanmobile-configpalettesmenu",
+        "title": "Dual Infodose CleanMobile Config Palettes Menu",
+        "desc": "Versão Clean Mobile com menu de paletas.",
+        "url": "./apps/Dual_Infodose_CleanMobile_ConfigPalettesMenu.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","mobile","clean","palettes"]
+      },
+      {
+        "key": "dual-infodose-nebulapro-moodsync-tts-trilha",
+        "title": "Dual Infodose NebulaPro MoodSync TTS Trilha",
+        "desc": "NebulaPro com sincronização de humor, TTS e trilha.",
+        "url": "./apps/Dual_Infodose_NebulaPro_MoodSync_TTS_Trilha.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","nebula","mood","tts","trilha"]
+      },
+      {
+        "key": "dual-infodose-min-mobile-v2-tts-live",
+        "title": "Dual Infodose Min Mobile v2 TTS Live",
+        "desc": "Versão Min Mobile v2 com TTS Live.",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","mobile","tts","live","v2"]
+      },
+      {
+        "key": "dual-infodose-nebulapro-archemood-quickmodel-presets",
+        "title": "Dual Infodose NebulaPro ArcheMood QuickModel Presets",
+        "desc": "NebulaPro com ArcheMood e QuickModel Presets.",
+        "url": "./apps/Dual_Infodose_NebulaPro_ArcheMood_QuickModel_Presets.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","nebula","archemood","presets"]
+      },
+      {
+        "key": "dual-infodose-min-mobile-v2-tts-booster",
+        "title": "Dual Infodose Min Mobile v2 TTS Booster",
+        "desc": "Versão Min Mobile v2 com TTS Booster.",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Booster.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","mobile","tts","booster","v2"]
+      },
+      {
+        "key": "dual-infodose-min-mobile-v2-tts-live-default",
+        "title": "Dual Infodose Min Mobile v2 TTS Live Default",
+        "desc": "Versão Min Mobile v2 TTS Live Default.",
+        "url": "./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","mobile","tts","live","default","v2"]
+      },
+      {
+        "key": "dual-infodose-nebulapro-streaming-ascii",
+        "title": "Dual Infodose NebulaPro Streaming ASCII",
+        "desc": "NebulaPro com streaming ASCII.",
+        "url": "./apps/Dual_Infodose_NebulaPro_Streaming_ASCII.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","infodose","nebula","ascii","streaming"]
       }
     ],
+
+   
     "chats": [
       {
         "key": "dual-chat",
