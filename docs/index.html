@@ -140,7 +140,7 @@
         <h1>Infodose Hub Ultra</h1>
       </div>
       <nav aria-label="Ações">
-        <button class="btn primary" id="btnDownloadLoader" type="button">⤓ Baixar Loader</button>
+        <button class="btn primary" id="btnDownloadLoader" type="button">⤓ Baixar HUB</button>
       </nav>
     </div>
   </header>
@@ -769,7 +769,7 @@ function downloadLoader(){
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'Infodose_Loader.html';
+  a.download = 'index.html';
   document.body.appendChild(a);
   a.click();
   a.remove();
