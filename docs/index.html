@@ -613,35 +613,73 @@ function unlockAudioOnce(){
 }
 ['click','touchstart','pointerdown','keydown'].forEach(evt=>{
   window.addEventListener(evt, unlockAudioOnce, {passive:true});
+
+
+/** ===== TTS helpers refinados ===== */
+const VOICE_PREF_KEY='infodose:tts:voice';
+function listVoices(){ try{ return (speechSynthesis.getVoices()||[]).filter(v=>/pt/i.test(v.lang)); }catch{return []} }
+function pickVoice(){
+  const vs = listVoices();
+  const saved = localStorage.getItem(VOICE_PREF_KEY);
+  let v = (saved && vs.find(x=>x.name===saved)) || null;
+  if(!v){
+    v = vs.find(v=>/Google português do Brasil/i.test(v.name))
+     || vs.find(v=>/Microsoft (Maria|Amanda|Francisca)/i.test(v.name))
+     || vs.find(v=>/female/i.test(v.name))
+     || vs.find(v=>/pt-BR/i.test(v.lang))
+     || vs[0] || null;
+  }
+  if(v) try{ localStorage.setItem(VOICE_PREF_KEY, v.name); }catch{}
+  return v;
+}
+function cleanText(t){
+  return String(t||'')
+    .replace(/[#_*~`<>[\]{}|^]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function warmupTTS(){
+  try{
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0; u.lang='pt-BR';
+    speechSynthesis.speak(u);
+  }catch{}
+}
+
+
 });
+
 
 let TTS_ENABLED = true;
 function speak(text){
   if(!TTS_ENABLED || !window.speechSynthesis) return;
   try{
-    const u = new SpeechSynthesisUtterance(
-      String(text||'').replace(/\s+/g,' ').trim()
-    );
-
-    // tenta pegar vozes mais naturais
-    let voices = speechSynthesis.getVoices();
-    let v = voices.find(v=>/Google português do Brasil/i.test(v.name));
-    if(!v) v = voices.find(v=>/Microsoft Maria/i.test(v.name));
-    if(!v) v = voices.find(v=>/female/i.test(v.name) && /pt/i.test(v.lang));
-    if(!v) v = voices.find(v=>/pt-BR/i.test(v.lang)); // último fallback
-
-    if(v) u.voice = v;
-
-    // configs de naturalidade
-    u.rate = 0.9;   // velocidade cadenciada
-    u.pitch = 1.05; // mais feminino
-    u.volume = 1;
-
-    speechSynthesis.cancel(); // limpa fila antiga
-    speechSynthesis.speak(u);
+    const say = ()=>{
+      const u = new SpeechSynthesisUtterance(cleanText(text));
+      u.lang = 'pt-BR';
+      const v = pickVoice(); if(v) u.voice = v;
+      // Parâmetros mais naturais
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      u.volume = 1.0;
+      // Garante fluidez/evita fila antiga
+      speechSynthesis.cancel();
+      warmupTTS();
+      speechSynthesis.speak(u);
+    };
+    // Aguarda vozes carregarem se necessário
+    if(!speechSynthesis.getVoices().length){
+      speechSynthesis.onvoiceschanged = ()=>{ speechSynthesis.onvoiceschanged = null; say(); };
+      // fallback de segurança em 400ms
+      setTimeout(()=>{ if(speechSynthesis.getVoices().length){ say(); } }, 400);
+    } else {
+      say();
+    }
   }catch(e){
     console.error("Erro no TTS:", e);
   }
+}
+
 }
 /** ===== Injection util ===== */
 function injectionSnippet(){
