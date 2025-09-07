@@ -10,7 +10,7 @@
     "index_hubs": [
       {
         "key": "index-nebula",
-        "title": "Index Nebula",
+        "title": "Interface Inicial",
         "desc": "Interface Nebula inicial.",
         "url": "./apps/index.nebula.html",
         "icon": "icons/icon-192-indexrs.png",
@@ -18,7 +18,7 @@
       },
       {
         "key": "index-nebula-unified",
-        "title": "Index Nebula Unified",
+        "title": "ATIVAR Arquetipo",
         "desc": "Interface Nebula unificada.",
         "url": "./apps/index.nebula.unified.html",
         "icon": "icons/icon-192-indexrs.png",
@@ -26,7 +26,7 @@
       },
       {
         "key": "index-barrao",
-        "title": "Index Barrão",
+        "title": "ASSERT - JHB Eng.",
         "desc": "Versão barrão.",
         "url": "./apps/index-JHBarros.html",
         "icon": "icons/icon-192-jhb.png",
@@ -34,7 +34,7 @@
       },
       {
         "key": "index-hub",
-        "title": "Index Hub",
+        "title": "Hub",
         "desc": "Hub principal.",
         "url": "./apps/indexhub.html",
         "icon": "icons/icon-192-indexrs.png",
@@ -42,7 +42,7 @@
       },
       {
         "key": "index-metalux",
-        "title": "Index MetaLux",
+        "title": " MetaLux",
         "desc": "Interface MetaLux.",
         "url": "./apps/index-MetaLux.html",
         "icon": "icons/icon-192-indexrs.png",
@@ -50,7 +50,7 @@
       },
       {
         "key": "index-sumbus-3",
-        "title": "Index Sümbüs 3",
+        "title": "I 3",
         "desc": "Interface simbólica Sümbüs.",
         "url": "./apps/index-sümbüs-3.html",
         "icon": "icons/icon-192-indexrs.png",
@@ -58,7 +58,7 @@
       },
       {
         "key": "dual-infodose-nebulapro-mobile",
-        "title": "Dual Infodose NebulaPro Mobile",
+        "title": "DualPro Mobile",
         "desc": "Versão NebulaPro otimizada para mobile.",
         "url": "./apps/Dual_Infodose_NebulaPro_Mobile.html",
         "icon": "icons/icon-192-indexrs.png",
