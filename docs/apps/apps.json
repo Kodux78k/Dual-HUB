@@ -385,11 +385,11 @@
     ],
     "players": [
       {
-        "key": "dual-player",
+        "key": "dual-Tube",
         "title": "Dual Player",
-        "desc": "Toca faixas e TTS.",
-        "url": "./apps/index_luxara.html",
-        "icon": "icons/icon-192.png",
+        "desc": "Seu dual tube ensina , Toca faixas e TTS.",
+        "url": "./apps/dual-tube-25-0.html",
+        "icon": "icons/icon-192-tube.png",
         "tags": ["player","audio","tts"]
       },
       {
@@ -410,10 +410,18 @@
       },
       {
         "key": "dual-daw-1",
-        "title": "Dual DAW 1",
+        "title": "Dual DAW",
         "desc": "Primeira versão do DAW simbólico.",
-        "url": "./apps/Dual_DAW_1.html",
-        "icon": "icons/icon-192.png",
+        "url": "./apps/DALL_DAW_v11_superlite.html",
+        "icon": "icons/icon-192-DAW.png",
+        "tags": ["dual","daw","audio"]
+      },
+      {
+        "key": "dual-daw-1",
+        "title": "Dual DAW",
+        "desc": "Primeira versão do DAW simbólico.",
+        "url": "./apps/DUAL_PULSE_v14_superlight.html",
+        "icon": "icons/icon-192-DAW.png",
         "tags": ["dual","daw","audio"]
       },
       {
