@@ -26,9 +26,9 @@
       },
       {
         "key": "dual-hub-integrator",
-        "title": "Dual • Hub Integrador (LAN/Cloud)",
+        "title": "Dual • Hub Finder (LAN/Cloud)",
         "desc": "Scanner, backend, memória, relatórios",
-        "url": "./apps/dual-hub-integrator.html",
+        "url": "./apps/dual-finder-pro.html",
         "icon": "icons/icon-192-LAN.png",
         "tags": ["setup","lan","tools"]
       },
