@@ -25,6 +25,14 @@
         "tags": ["hub","index","nebula","unified"]
       },
       {
+        "key": "dual-hub-integrator",
+        "title": "Dual • Hub Integrador (LAN/Cloud)",
+        "desc": "Scanner, backend, memória, relatórios",
+        "url": "./apps/dual-hub-integrator.html",
+        "icon": "icons/icon-192-LAN.png",
+        "tags": ["setup","lan","tools"]
+      },
+      {
         "key": "index-barrao",
         "title": "ASSERT - JHB Eng.",
         "desc": "Versão barrão.",
