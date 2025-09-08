@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Dual • Hub Integrador (LAN/Cloud)</title>
+<style>
+  :root{
+    --bg:#0b0b0f; --panel:#12121a; --ink:#eaeaf7; --mut:#aeb0c7; --acc:#8a5cff;
+    --ok:#29d3a0; --bad:#ff6b6b; --line:#212236; --ring:#29d3ff44; --glow:#8a5cff33;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    background:
+      radial-gradient(60vw 60vh at 90% -10%, #17172b 0%, transparent 60%),
+      radial-gradient(60vw 60vh at -10% 110%, #0f0f19 0%, transparent 60%),
+      var(--bg);
+    font:500 16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:18px clamp(12px,4vw,28px) 80px}
+  .hdr{display:flex;align-items:center;gap:14px}
+  h1{font-size:20px;margin:0} .sub{color:var(--mut);margin:2px 0 0;font-size:13px}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#171727;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+  .col-8{grid-column:span 8} .col-4{grid-column:span 4}
+  @media (max-width:980px){ .col-8,.col-4{grid-column:1/-1} }
+  .card{background:linear-gradient(180deg,#141425,#0f0f18);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 10px 40px #0009, 0 0 0 1px #000 inset}
+  .title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .title h3{margin:0;font-size:16px}
+  .mut{color:var(--mut)} .hint{font-size:12px;color:var(--mut)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input,button,textarea,select{background:#0f0f18;color:var(--ink);border:1px solid #202038;border-radius:12px;padding:12px}
+  button{cursor:pointer}
+  .btn{background:#17172a;border:1px solid #272746}
+  .btn-acc{background:linear-gradient(180deg,#6a4cff,#8a5cff);border:none;color:white;box-shadow:0 10px 24px var(--glow), 0 0 0 1px #000 inset}
+  .btn-ok{background:#13231a;border:1px solid #1d3b27}
+  .btn-bad{background:#2a1414;border:1px solid #3e1e1e}
+  .kbd{font:600 12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b0b12;border:1px solid #202038;border-radius:6px;padding:2px 6px}
+  .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a2a44;border-radius:12px;padding:8px 10px;margin:6px 6px 0 0}
+  .ok{border-color:#1d3b27} .bad{border-color:#3e1e1e}
+  .okmsg{background:#13231a;border:1px solid #1d3b27;border-radius:12px;padding:10px;margin-top:8px}
+  .warn{background:#1b1422;border:1px solid #332244;border-radius:12px;padding:10px;margin-top:8px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .footer{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:14px;display:flex;gap:8px;flex-wrap:wrap;
+    background:linear-gradient(180deg,#131322,#0f0f18);border:1px solid var(--line);border-radius:16px;padding:8px 12px;
+    box-shadow:0 10px 40px #000a, 0 0 0 1px #000 inset;backdrop-filter:blur(8px)
+  }
+  /* log */
+  .log{position:fixed;right:14px;bottom:74px;width:min(92vw,540px);max-height:46vh;overflow:auto;background:#0c0c12;border:1px solid #24243a;border-radius:14px;padding:10px;box-shadow:0 10px 40px #000a, 0 0 0 1px #000 inset;display:none}
+  .log .hdr{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+  .log pre{margin:0;white-space:pre-wrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:#444}.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}
+  /* sections */
+  .section-tabs{display:flex;gap:8px;margin:6px 0 8px}
+  .tab{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#161626;cursor:pointer}
+  .tab.active{outline:2px solid #2a2a44}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <button class="pill" id="btnLogo">🔘</button>
+    <div><h1>Dual • Hub Integrador</h1><p class="sub">Portas • Perfis • Memória • Relatório — LAN ↔ Cloud</p></div>
+    <div class="row" style="margin-left:auto">
+      <select id="env" title="Ambiente">
+        <option>Home</option><option>Estudos</option><option>Business</option>
+      </select>
+      <button class="pill btn" id="btnLog">Logs</button>
+    </div>
+  </div>
+
+  <div id="httpsWarn" class="warn" style="display:none">
+    <b>HTTPS/HTTP:</b> Seu Hub está em <span id="proto"></span>. iOS pode bloquear fetch para <span class="kbd">http://IP:PORTA</span>.
+    Em dev, abra o Hub em HTTP ou use túnel HTTPS para o backend.
+  </div>
+
+  <div class="grid">
+    <div class="col-8">
+      <div class="card">
+        <div class="title"><h3>🔎 Scanner de LAN</h3><span class="hint">Varre ranges comuns e portas escolhidas</span></div>
+        <div class="row">
+          <input id="ports" placeholder="Portas (ex.: 8000,3000,5173)" value="8000,3000,5173" style="flex:1"/>
+          <button class="pill btn" id="btnScan">Procurar cérebros</button>
+          <button class="pill btn" id="btnStop">Parar</button>
+          <span class="mut" id="scanState">—</span>
+        </div>
+        <div id="hosts" class="row" style="margin-top:6px"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>🧪 Teste & Bind</h3><span class="hint">Informe <span class="kbd">http://IP:PORTA</span></span></div>
+        <div class="row">
+          <input id="ipManual" placeholder="http://192.168.0.23:8000" style="flex:1"/>
+          <button class="pill btn-ok" id="btnTest">Testar</button>
+          <button class="pill btn-acc" id="btnUse">⚡ Usar backend</button>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="pill btn" id="btnOpenApps">📜 Abrir apps.json</button>
+          <button class="pill btn" id="btnDownloadApps">⬇️ Baixar apps.json</button>
+          <button class="pill btn" id="btnHealth">🚑 Abrir /health</button>
+        </div>
+        <div id="testOut" class="mono mut" style="margin-top:6px">—</div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>📊 Relatório Diário</h3><span class="hint">Correlações Uno/Dual/Trinity/Infodose</span></div>
+        <div class="section-tabs">
+          <div class="tab active" data-t="input">Entrada</div>
+          <div class="tab" data-t="output">Relatório</div>
+        </div>
+        <div id="rInput">
+          <textarea id="journal" rows="6" placeholder="Escreva eventos/keywords do dia... (tudo local)"></textarea>
+          <div class="row" style="margin-top:6px">
+            <button class="pill btn-acc" id="btnReport">Gerar relatório</button>
+            <button class="pill btn" id="btnDownloadReport">⬇️ Baixar relatório (.json)</button>
+          </div>
+        </div>
+        <div id="rOutput" style="display:none">
+          <pre id="reportOut" class="mono" style="white-space:pre-wrap; margin:0">—</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-4">
+      <div class="card">
+        <div class="title"><h3>👤 Perfil</h3><span class="hint">localStorage</span></div>
+        <div class="row">
+          <input id="userName" placeholder="Seu nome"/>
+          <input id="dualName" placeholder="Nome do seu Dual"/>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button class="pill btn-ok" id="btnSaveProfile">Salvar</button>
+        </div>
+        <div id="profileMsg" class="okmsg" style="display:none"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>⚙️ Backend atual</h3><span class="hint">preferência do Hub</span></div>
+        <div id="current" class="okmsg" style="display:none"></div>
+        <div class="mut" style="font-size:13px">Hub usa <span class="kbd">localStorage.DUAL_BACKEND</span>. Se vazio, cai na nuvem.</div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>🎛️ Ativações</h3><span class="hint">browser-based</span></div>
+        <div class="row">
+          <button class="pill btn" id="btnTTSsay">🔊 TTS teste</button>
+          <button class="pill btn" id="btnAskMic">🎙️ Liberar microfone</button>
+          <button class="pill btn" id="btnClearLS">🧹 Limpar memória</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>💾 Memória</h3><span class="hint">exportar/importar</span></div>
+        <div class="row">
+          <button class="pill btn" id="btnExport">⬇️ Exportar</button>
+          <label class="pill" style="cursor:pointer">
+            ⬆️ Importar <input id="fileImport" type="file" accept=".json,.jsonl" hidden>
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="title"><h3>🔒 Consentimento</h3><span class="hint">local-only</span></div>
+        <label class="row" style="align-items:center">
+          <input type="checkbox" id="consent" style="width:18px;height:18px"> <span class="mut">Permito armazenar minhas preferências localmente (nunca envia sem eu mandar).</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ações rápidas -->
+<div class="footer">
+  <button class="pill" id="quickLAN">LAN</button>
+  <button class="pill" id="quickCloud">Cloud</button>
+  <button class="pill" id="quickApps">apps.json</button>
+  <button class="pill" id="quickHealth">health</button>
+</div>
+
+<!-- painel de logs -->
+<div class="log" id="logPanel">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="dot" id="netDot"></div><strong>Logs</strong>
+    </div>
+    <div class="hint" id="logHint">—</div>
+  </div>
+  <pre id="logOut">[log pronto]</pre>
+  <div class="row" style="margin-top:8px">
+    <button class="pill btn" id="btnClearLog">Limpar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const hostsEl=$('#hosts'), outEl=$('#testOut'), stateEl=$('#scanState'), curEl=$('#current');
+  const ipManual=$('#ipManual'), portsEl=$('#ports'), envEl=$('#env');
+  const logPanel=$('#logPanel'), logOut=$('#logOut'), logHint=$('#logHint'), netDot=$('#netDot');
+
+  // HTTPS aviso
+  const proto=location.protocol.replace(':',''); $('#proto').textContent=proto.toUpperCase();
+  if(proto==='https') $('#httpsWarn').style.display='';
+
+  // Perfil
+  const PREF={get(k){return localStorage.getItem(k)}, set(k,v){localStorage.setItem(k,v)}};
+  function loadProfile(){
+    $('#userName').value = PREF.get('DUAL_USER_NAME')||'';
+    $('#dualName').value = PREF.get('DUAL_AGENT_NAME')||'';
+    envEl.value = PREF.get('DUAL_ENV')||'Home';
+    $('#consent').checked = PREF.get('DUAL_CONSENT')==='1';
+    renderCurrent();
+  }
+  $('#btnSaveProfile').onclick=()=>{
+    PREF.set('DUAL_USER_NAME',$('#userName').value.trim());
+    PREF.set('DUAL_AGENT_NAME',$('#dualName').value.trim());
+    PREF.set('DUAL_ENV',envEl.value);
+    PREF.set('DUAL_CONSENT',$('#consent').checked?'1':'0');
+    const box=$('#profileMsg'); box.style.display='block'; box.textContent='Perfil salvo (local).';
+    setTimeout(()=>box.style.display='none',1600);
+  };
+  envEl.onchange=()=>PREF.set('DUAL_ENV',envEl.value);
+
+  // Log
+  let buf=[]; function push(s,err=false){ const line=(err?'[ERR] ':'')+s; buf.push(line); if(buf.length>400) buf.shift(); logOut.textContent=buf.join('\n'); }
+  const _cl=console.log.bind(console), _ce=console.error.bind(console);
+  console.log=(...a)=>{push(a.join(' '));_cl(...a)}; console.error=(...a)=>{push(a.join(' '),true);_ce(...a)};
+  function net(ok){ netDot.className='dot '+(ok?'ok':'bad'); }
+  $('#btnLog').onclick=()=>{ logPanel.style.display=(logPanel.style.display==='none'||!logPanel.style.display)?'block':'none'; };
+  $('#btnClearLog').onclick=()=>{ buf=[]; logOut.textContent='[limpo]'; };
+
+  // fetch com timeout+log
+  async function fjson(url, ms=2000){
+    const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(),ms);
+    console.log('[fetch]',url);
+    try{ const r=await fetch(url,{signal:ctrl.signal,cache:'no-store'}); clearTimeout(t);
+      if(!r.ok) throw new Error(r.status+' '+r.statusText);
+      const j=await r.json(); net(true); return j;
+    }catch(e){ clearTimeout(t); net(false); console.error('[fetch fail]',url,e); throw e;}
+  }
+
+  // Backend atual
+  function renderCurrent(){
+    const cur=PREF.get('DUAL_BACKEND');
+    if(cur){
+      curEl.style.display='block';
+      curEl.innerHTML=`<div><b>Backend:</b> <span class="kbd">${cur}</span></div>
+        <div class="row" style="margin-top:6px">
+          <button class="pill btn" id="btnCloud">☁️ Cloud</button>
+          <button class="pill btn" id="btnOpenHealth2">🚑 /health</button>
+          <button class="pill btn" id="btnOpenApps2">📜 apps.json</button>
+        </div>`;
+      $('#btnCloud').onclick=()=>{localStorage.removeItem('DUAL_BACKEND');location.reload();};
+      $('#btnOpenHealth2').onclick=()=>window.open(cur.replace(/\/$/,'')+'/health','_blank');
+      $('#btnOpenApps2').onclick=()=>window.open(cur.replace(/\/$/,'')+'/brain/apps.json','_blank');
+    } else curEl.style.display='none';
+  }
+
+  // Testar/Bind
+  $('#btnTest').onclick=async()=>{
+    const base=ipManual.value.trim().replace(/\/$/,''); if(!base) return;
+    outEl.textContent='testando…';
+    try{ const j=await fjson(`${base}/health`,2500); outEl.textContent='OK: '+JSON.stringify(j);
+    }catch(e){ outEl.textContent='Falhou: '+e; }
+  };
+  $('#btnUse').onclick=()=>{
+    const base=ipManual.value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA');
+    PREF.set('DUAL_BACKEND',base); alert('Backend definido.'); location.reload();
+  };
+  $('#btnOpenApps').onclick=()=>{
+    const base=ipManual.value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA');
+    window.open(`${base}/brain/apps.json`,'_blank');
+  };
+  $('#btnDownloadApps').onclick=async()=>{
+    const base=ipManual.value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA');
+    try{ const r=await fetch(`${base}/brain/apps.json`,{cache:'no-store'}); if(!r.ok) throw new Error(r.status);
+      const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='apps.json'; a.click();
+    }catch(e){ alert('Falhou: '+e); }
+  };
+  $('#btnHealth').onclick=()=>{
+    const base=ipManual.value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA');
+    window.open(`${base}/health`,'_blank');
+  };
+
+  // Scanner
+  let stop=false;
+  $('#btnStop').onclick=()=>{stop=true; stateEl.textContent='parado';};
+  $('#btnScan').onclick=async()=>{
+    stop=false; hostsEl.innerHTML=''; stateEl.textContent='varrendo…';
+    const portList=portsEl.value.split(',').map(s=>s.trim()).filter(Boolean);
+    const bases=[]; for(const a of [0,1]) for(let i=1;i<=254;i++) bases.push(`http://192.168.${a}.${i}`);
+    for(let i=1;i<=254;i++) bases.push(`http://10.0.0.${i}`);
+    let found=0,tried=0;
+    for(const base of bases){ if(stop) break;
+      for(const p of portList){ if(stop) break;
+        const url=`${base}:${p}/health`;
+        try{ tried++; const j=await fjson(url,700); addHost(`${base}:${p}`,j); found++; }
+        catch(e){/* no-op */ }
+        if(tried%60===0) stateEl.textContent=`varrendo… ${tried} testes, ${found} encontrados`;
+      }
+    }
+    stateEl.textContent=`feito. ${tried} testes, ${found} encontrados`;
+  };
+  function addHost(base,info){
+    const box=document.createElement('div'); box.className='chip ok';
+    box.innerHTML=`🧠 <span class="mono">${base}</span>
+      <button class="pill btn" data-act="use">⚡</button>
+      <button class="pill btn" data-act="apps">📜</button>`;
+    box.onclick=e=>{
+      const act=e.target?.dataset?.act; if(!act) return;
+      if(act==='use'){ PREF.set('DUAL_BACKEND',base); alert('Backend definido: '+base); location.reload(); }
+      if(act==='apps'){ window.open(`${base}/brain/apps.json`,'_blank'); }
+    };
+    hostsEl.appendChild(box);
+  }
+
+  // TTS / Mic / limpar LS
+  $('#btnTTSsay').onclick=()=>{
+    try{
+      const u=new SpeechSynthesisUtterance(`Pulso em expansão. Ambiente ${envEl.value}.`);
+      speechSynthesis.speak(u);
+    }catch(e){ alert('TTS indisponível: '+e); }
+  };
+  $('#btnAskMic').onclick=async()=>{
+    try{ await navigator.mediaDevices.getUserMedia({audio:true}); alert('Microfone liberado.'); }
+    catch(e){ alert('Não foi possível: '+e); }
+  };
+  $('#btnClearLS').onclick=()=>{
+    if(!confirm('Limpar chaves DUAL_* / dual_* / *memory* ?')) return;
+    const keys=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue;
+      if(k.startsWith('DUAL_')||k.startsWith('dual_')||k.includes('memory')) keys.push(k);
+    }
+    keys.forEach(k=>localStorage.removeItem(k)); alert('Memória limpa (local).'); location.reload();
+  };
+
+  // Export/Import memória
+  $('#btnExport').onclick=()=>{
+    const dump={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k) continue;
+      if(k.startsWith('DUAL_')||k.startsWith('dual_')||k.includes('memory')) dump[k]=localStorage.getItem(k);
+    }
+    const blob=new Blob([JSON.stringify(dump,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dual-memory-export.json'; a.click();
+  };
+  $('#fileImport').onchange=async(e)=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    try{ const j=JSON.parse(await f.text());
+      Object.entries(j).forEach(([k,v])=>localStorage.setItem(k,String(v)));
+      alert('Memória importada.'); location.reload();
+    }catch(err){ alert('Arquivo inválido: '+err); }
+  };
+
+  // Relatório
+  function switchTab(t){
+    $$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t));
+    $('#rInput').style.display=(t==='input')?'block':'none';
+    $('#rOutput').style.display=(t==='output')?'block':'none';
+  }
+  const $$=s=>Array.from(document.querySelectorAll(s));
+  $$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.t));
+  $('#btnReport').onclick=()=>{
+    const txt=$('#journal').value||'';
+    const user=PREF.get('DUAL_USER_NAME')||'';
+    const dual=PREF.get('DUAL_AGENT_NAME')||'';
+    const env=PREF.get('DUAL_ENV')||'Home';
+    const now=new Date().toISOString();
+    const kw=txt.toLowerCase();
+    const tags=[];
+    if(/foco|estudo|leit|curso/.test(kw)) tags.push('Estudos');
+    if(/reuni|cliente|entrega|kpi|meta/.test(kw)) tags.push('Business');
+    if(/casa|fam|descanso|sono|treino|saúde/.test(kw)) tags.push('Home');
+    // correlações simbólicas simples
+    const uno = /origem|essência|raiz|centro/.test(kw);
+    const dual = /contraste|equilíbrio|verso|espelho|pola/.test(kw);
+    const trinity = /síntese|terceiro|media|tri|ponte/.test(kw);
+    const infodose = /pulso|pílula|arquet|meta|lux|kodux|dual/.test(kw);
+
+    const report={
+      ts: now,
+      user, dual, env,
+      keywords: txt.split(/\s+/).slice(0,500),
+      tags, axes: { uno, dual, trinity, infodose },
+      insight: [
+        uno&&'UNO: volte ao motivo central.',
+        dual&&'DUAL: use contraste para clarear escolhas.',
+        trinity&&'TRINITY: sintetize duas forças num terceiro caminho.',
+        infodose&&'INFODOSE: ative um micro-ritual (pílula/voz/loop).'
+      ].filter(Boolean),
+      next_actions: [
+        'Registrar 1 compromisso concreto do dia.',
+        'Definir um micro-ritual de 3 minutos.',
+        'Enviar 1 mensagem de alinhamento (você → alguém).'
+      ]
+    };
+    $('#reportOut').textContent = JSON.stringify(report,null,2);
+    switchTab('output');
+  };
+  $('#btnDownloadReport').onclick=()=>{
+    const txt=$('#reportOut').textContent.trim(); if(!txt||txt==='—') return alert('Gere o relatório primeiro.');
+    const blob=new Blob([txt],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`dual-report-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  };
+
+  // Quick actions
+  $('#quickLAN').onclick=()=> ipManual.value='http://192.168.0.23:8000';
+  $('#quickCloud').onclick=()=>{ localStorage.removeItem('DUAL_BACKEND'); renderCurrent(); alert('Cloud preferida.'); };
+  $('#quickApps').onclick=()=>{
+    const cur=PREF.get('DUAL_BACKEND'); if(!cur) return alert('Defina backend primeiro.');
+    window.open(cur.replace(/\/$/,'')+'/brain/apps.json','_blank');
+  };
+  $('#quickHealth').onclick=()=>{
+    const cur=PREF.get('DUAL_BACKEND'); if(!cur) return alert('Defina backend primeiro.');
+    window.open(cur.replace(/\/$/,'')+'/health','_blank');
+  };
+
+  // init
+  loadProfile();
+})();
+</script>
+</body>
+</html>
