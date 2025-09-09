@@ -25,6 +25,38 @@
         "tags": ["hub","index","nebula","unified"]
       },
       {
+        "key": "dual-chat-nebulapro-v2",
+        "title": "Dual Chat NebulaPro v2",
+        "desc": "Interface de chat no tema NebulaPro v2.",
+        "url": "./apps/Dual_Chat_NebulaPro-v2.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","nebula","dual"]
+      },
+      {
+        "key": "dual-81-onefile",
+        "title": "DUAL 81 OneFile",
+        "desc": "Versão unificada em um único arquivo (81 telas).",
+        "url": "./apps/DUAL_81_OneFile.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","dual","onefile","81"]
+      },
+      {
+        "key": "dual-hub-nebulapro",
+        "title": "DUAL HUB NebulaPro",
+        "desc": "Hub principal no tema NebulaPro.",
+        "url": "./apps/DUAL_HUB_NebulaPro.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","nebula","dual"]
+      },
+      {
+        "key": "apps-dualchat-nebulapro",
+        "title": "Apps DualChat NebulaPro",
+        "desc": "Atalho para apps.dualchat NebulaPro.",
+        "url": "./apps/apps.dualchat.nebulapro.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","apps","nebula"]
+      },
+      {
         "key": "dual-hub-integrator",
         "title": "Dual • Hub Finder (LAN/Cloud)",
         "desc": "Scanner, backend, memória, relatórios",
