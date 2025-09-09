@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>DUAL — Unificado Nebula Pro (Radial + Haptics + OpenRouter)</title>
+<meta name="theme-color" content="#0b0b12"/>
+<style>
+  :root{
+    /* Nebula Pro 42° (#f0f → #0ff) */
+    --nebula-a: #ff00ff; /* f0f */
+    --nebula-b: #00ffff; /* 0ff */
+    --bg:#0a0a12; --panel:#0f1119; --card:#0e1118; --line:#1e2333;
+    --fg:#eaf3ff; --muted:#9fb3c6; --ok:#7ef0a0; --bad:#ff7777;
+    --acc:#29d3ff; --acc2:#9a7cff; --ring: conic-gradient(from 42deg, #fff2, var(--nebula-b) 35%, #fff2 50%, var(--nebula-a) 85%, #fff2);
+    --r:16px; --r2:22px; --pill:999px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(1200px 700px at 50% -10%, color-mix(in srgb, var(--nebula-b) 18%, transparent), transparent 60%),
+    radial-gradient(1000px 700px at 120% 30%, color-mix(in srgb, var(--nebula-a) 14%, transparent), transparent 60%),
+    linear-gradient(180deg,#0a0a12 0%,#0c0e16 60%, #0a0a12 100%);
+    color:var(--fg);font:500 15px/1.5 -apple-system,system-ui,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial}
+  header{position:sticky;top:0;z-index:20;backdrop-filter: blur(10px) saturate(120%);
+    background:linear-gradient(180deg, #0b0d14dd, #0b0d1488);
+    border-bottom:1px solid #ffffff14}
+  .bar{display:flex;gap:.6rem;align-items:center;padding:.7rem .9rem}
+  .brand{display:flex;gap:.6rem;align-items:center}
+  .dot{width:28px;height:28px;border-radius:999px;background:var(--ring);padding:2px}
+  .dot i{display:block;width:100%;height:100%;border-radius:999px;background:radial-gradient(120px 90px at 30% 30%, #0ff3, #f0f2), #0a0a12}
+  .title{font-weight:800;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:12px}
+  .sp{flex:1}
+  .pill{border:1px solid #ffffff22;background:linear-gradient(180deg,#171a24,#0f1218);color:var(--fg);
+    padding:.45rem .7rem;border-radius:var(--pill);cursor:pointer;display:inline-flex;gap:.4rem;align-items:center}
+
+  main{max-width:1160px;margin:12px auto;padding:12px}
+  .card{background:linear-gradient(180deg, #ffffff08, transparent 40%), var(--card);
+    border:1px solid #ffffff14;border-radius:var(--r2);box-shadow:0 10px 40px #0006;margin-bottom:12px}
+  .hd{padding:.9rem 1rem;border-bottom:1px solid #ffffff10;display:flex;align-items:center;gap:.5rem}
+  .bd{padding:1rem}
+
+  /* Tabs */
+  .tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;padding:8px 14px;backdrop-filter:blur(8px) saturate(120%);
+    background:linear-gradient(180deg, #0a0a12aa, #0a0a12ee);border-top:1px solid #ffffff14;z-index:30}
+  .tab{flex:1;border-radius:16px;display:grid;place-items:center;color:#a9b7ca;font-size:12px;height:48px;cursor:pointer}
+  .tab.active{color:#fff;background:linear-gradient(180deg, color-mix(in srgb,var(--nebula-a) 22%, transparent), color-mix(in srgb,var(--nebula-b) 18%, transparent));border:1px solid #ffffff18}
+
+  /* Sections */
+  section[hidden]{display:none}
+
+  /* Hub grid */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  @media(min-width:860px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  .tile{background:linear-gradient(180deg,#101322,#0c0f19);border:1px solid #ffffff12;border-radius:18px;padding:18px;text-align:center;cursor:pointer;box-shadow:0 8px 24px #0007}
+  .tile b{display:block;margin-top:8px;letter-spacing:.5px}
+  .tiny{font-size:12px;color:var(--muted)}
+
+  /* Chat */
+  .chat{display:flex;flex-direction:column;height:66vh;min-height:420px}
+  .thread{flex:1;overflow:auto;padding:1rem;display:flex;flex-direction:column;gap:.85rem}
+  .msg{display:flex;gap:.6rem;align-items:flex-start}
+  .b{max-width:860px;padding:.7rem .9rem;border-radius:14px;border:1px solid #ffffff12}
+  .me .b{background:linear-gradient(180deg, color-mix(in srgb,var(--nebula-b) 20%, transparent), #ffffff05);border-color:#0ff3}
+  .ai .b{background:linear-gradient(180deg, color-mix(in srgb,var(--nebula-a) 18%, transparent), #ffffff05);border-color:#f0f3}
+  .role{font-size:11px;color:#9fb3c6;margin-bottom:4px}
+  .composer{display:flex;gap:.5rem;padding:.6rem;border-top:1px solid #ffffff10;backdrop-filter: blur(6px);
+    background:linear-gradient(180deg, #0b0d14cc, #0b0d1488)}
+  textarea{flex:1;resize:none;background:#0d1016;border:1px solid #ffffff22;border-radius:12px;color:var(--fg);padding:.7rem; min-height:68px}
+  .btn{background:#0f1218; border:1px solid #ffffff22; color:var(--fg); padding:.35rem .6rem; border-radius:10px; cursor:pointer; font-size:12px}
+
+  /* Radial menu */
+  .fab{position:fixed;right:16px;bottom:76px;width:56px;height:56px;border-radius:28px;border:1px solid #ffffff22;display:grid;place-items:center;
+    background:radial-gradient(60px 60px at 50% 50%, color-mix(in srgb,var(--nebula-b) 10%, transparent), #111), #111; box-shadow:0 14px 40px #0009; z-index:40; cursor:pointer}
+  .fab:active{transform:translateY(1px)}
+  .radial{position:fixed;right:44px;bottom:116px;pointer-events:none;z-index:39}
+  .radial .node{position:absolute; width:44px;height:44px;border-radius:999px;border:1px solid #ffffff22;background:#101321; display:grid;place-items:center;opacity:0; transform:scale(.6); transition:.18s}
+  .radial.open .node{opacity:1; transform:scale(1)}
+  .radial.open .n1{transform:translate(0,-92px)}
+  .radial.open .n2{transform:translate(-65px,-65px)}
+  .radial.open .n3{transform:translate(-92px,0)}
+  .radial.open .n4{transform:translate(-65px,65px)}
+  .radial.open .n5{transform:translate(0,92px)}
+
+  /* Finder */
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .chip{display:inline-flex;align-items:center;gap:10px;border:1px solid #2a2a44;border-radius:12px;padding:8px 10px;margin:6px 6px 0 0}
+  .ok{border-color:#1d3b27}
+  .kbd{font:600 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0c0c12; border:1px solid #202038; border-radius:6px; padding:3px 6px; color:#d7e4ff}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><div class="dot"><i></i></div>
+      <div><div class="title">DUAL — Unificado (Nebula Pro)</div>
+      <div class="sub">Hub + Chat + Finder + Brain • Menu radial com haptics • OpenRouter/Backend</div></div>
+    </div>
+    <div class="sp"></div>
+    <button class="pill" id="btnExportVoiceMap">⤴️ Mapa</button>
+    <button class="pill" id="btnImportVoiceMap">⤵️ Mapa</button>
+    <button class="pill" id="btnTTS">🔊 TTS <small id="ttsState">on</small></button>
+  </div>
+</header>
+
+<main>
+  <!-- HUB -->
+  <section id="secHub">
+    <div class="card">
+      <div class="hd">⚡ Hub</div>
+      <div class="bd">
+        <div class="grid">
+          <div class="tile" data-nav="chat">💬 <b>Chat</b><div class="tiny">OpenRouter/Backend + TTS arquétipos</div></div>
+          <div class="tile" data-nav="finder">🧭 <b>Finder</b><div class="tiny">LAN + bind backend + apps.json</div></div>
+          <div class="tile" data-nav="brain">🧠 <b>Brain</b><div class="tiny">Memória local & Treinos</div></div>
+          <div class="tile" id="quickReport">📊 <b>Relatório</b><div class="tiny">Snapshot do dispositivo</div></div>
+          <div class="tile" id="openDocs">📚 <b>Docs</b><div class="tiny">Export/Import voiceMap</div></div>
+          <div class="tile" id="openConfig">⚙️ <b>Config</b><div class="tiny">Modelo / API / Backend</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section id="secChat" hidden>
+    <div class="card chat">
+      <div class="hd">💬 Chat <span class="sub" id="badgeModel" style="margin-left:.5rem">openrouter/sonoma-dusk-alpha</span>
+        <span class="sub" id="badgeMode" style="margin-left:.5rem">modo: direct</span>
+        <span class="sub" id="badgeTTS" style="margin-left:.5rem">TTS ativado</span></div>
+      <div class="bd" style="padding:0">
+        <div class="thread" id="thread"></div>
+        <div class="composer">
+          <button class="btn" id="btnBlocks">▦ Blocos</button>
+          <textarea id="input" placeholder="Digite… Use [Ion], [Nova], [Kaion]… ou ? ! . para arquétipos."></textarea>
+          <button class="btn" id="btnSend">Enviar ⚡️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd">⚙️ Config do Chat</div>
+      <div class="bd">
+        <div class="row">
+          <label class="tiny">API Key</label>
+          <input id="apiKey" placeholder="sk-or-..." style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+          <button class="btn" id="saveCfg">💾 Salvar</button>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label class="tiny">Modelo</label>
+          <input id="model" value="openrouter/sonoma-dusk-alpha" style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+          <label class="tiny">Modo</label>
+          <select id="mode" style="background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem">
+            <option value="direct" selected>Direct → OpenRouter</option>
+            <option value="backend">Backend → /api/chat</option>
+          </select>
+          <input id="backend" placeholder="http://192.168.0.23:8000" style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label class="tiny">System</label>
+          <input id="system" value="Oi dual. Estamos em pulso dual⚡️ responda curto, útil, amigável, em pt-BR, foco mobile." style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd">🎙️ Vozes & Arquétipos</div>
+      <div class="bd"><div class="row" id="voiceMapList"></div></div>
+    </div>
+  </section>
+
+  <!-- FINDER -->
+  <section id="secFinder" hidden>
+    <div class="card">
+      <div class="hd">🧭 Finder — Varredura & Bind</div>
+      <div class="bd">
+        <div class="row" style="margin-bottom:8px">
+          <button class="btn" id="btnScan">Procurar cérebros</button>
+          <button class="btn" id="btnStop">Parar</button>
+          <span class="tiny" id="scanState">—</span>
+        </div>
+        <div class="row" id="hosts"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hd">🧪 Teste manual</div>
+      <div class="bd">
+        <div class="row">
+          <input id="ipManual" placeholder="http://192.168.0.23:8000" style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+          <button class="btn" id="btnTest">Testar</button>
+          <button class="btn" id="btnUse">⚡ Usar backend</button>
+        </div>
+        <div id="testOut" class="mono tiny" style="margin-top:8px">—</div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="btnOpenApps">📜 Abrir apps.json</button>
+          <button class="btn" id="btnDownloadApps">⬇️ Baixar apps.json</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRAIN -->
+  <section id="secBrain" hidden>
+    <div class="card">
+      <div class="hd">🧠 Brain — Treinos & Memorizações</div>
+      <div class="bd">
+        <div class="row" style="margin-bottom:8px"><input id="title" placeholder="Título do treinamento/preset" style="flex:1;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/></div>
+        <textarea id="content" rows="6" placeholder="Cole prompts/presets/JSON…" style="width:100%;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="save">Salvar</button>
+          <button class="btn" id="clear">Limpar</button>
+          <button class="btn" id="fileBtn">Importar .json/.txt</button>
+          <input id="file" type="file" accept=".json,.txt" hidden>
+        </div>
+        <div class="tiny" style="margin-top:8px">Docs salvos: <span id="count">0</span> • Chave: <code>infodose.brain.docs</code></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hd">📚 Documentos</div>
+      <div class="bd">
+        <input id="search" placeholder="Buscar por título ou texto…" style="width:100%;background:#0d1016;border:1px solid #ffffff22;border-radius:10px;color:#eaf3ff;padding:.55rem"/>
+        <div id="list" style="margin-top:8px;display:grid;gap:10px"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer Tabs -->
+<div class="tabs">
+  <div class="tab active" data-nav="hub">Início</div>
+  <div class="tab" data-nav="chat">Chat</div>
+  <div class="tab" data-nav="finder">Finder</div>
+  <div class="tab" data-nav="brain">Brain</div>
+</div>
+
+<!-- FAB Radial -->
+<div class="fab" id="fab">◐</div>
+<div class="radial" id="radial">
+  <div class="node n1" data-nav="chat"   title="Chat">💬</div>
+  <div class="node n2" data-nav="finder" title="Finder">🧭</div>
+  <div class="node n3" data-nav="brain"  title="Brain">🧠</div>
+  <div class="node n4" id="radExport"    title="Export Map">⤴️</div>
+  <div class="node n5" id="radImport"    title="Import Map">⤵️</div>
+</div>
+
+<script>
+(()=>{
+  // -------- Haptics helpers --------
+  const vibe = (ms=12)=>{ try{ navigator.vibrate?.(ms); }catch(_){} };
+  const vibeTap = ()=> vibe(10);
+  const vibeSoft = ()=> vibe(4);
+
+  // -------- Router --------
+  const sections = { hub:sec('secHub'), chat:sec('secChat'), finder:sec('secFinder'), brain:sec('secBrain') };
+  function sec(id){ return document.getElementById(id); }
+  function nav(to){ Object.entries(sections).forEach(([k,el])=> el.hidden=(k!==to));
+    document.querySelectorAll('.tab').forEach(t=> t.classList.toggle('active', t.dataset.nav===to));
+    location.hash = '#/'+to; vibeTap(); }
+  document.querySelectorAll('[data-nav]').forEach(x=> x.addEventListener('click', ()=> nav(x.dataset.nav)));
+  if(location.hash.startsWith('#/')){ nav(location.hash.slice(2)); } else { nav('hub'); }
+
+  // -------- Radial menu --------
+  const fab = document.getElementById('fab');
+  const radial = document.getElementById('radial');
+  let open=false; const toggleRadial=()=>{ open=!open; radial.classList.toggle('open', open); vibeTap(); };
+  fab.addEventListener('click', toggleRadial);
+  radial.querySelectorAll('[data-nav]').forEach(n=> n.addEventListener('click', (e)=>{ e.stopPropagation(); open=false; radial.classList.remove('open'); nav(n.dataset.nav); }));
+  document.getElementById('radExport').onclick = ()=>{ exportVoiceMap(); open=false; radial.classList.remove('open'); };
+  document.getElementById('radImport').onclick = ()=>{ importVoiceMap(); open=false; radial.classList.remove('open'); };
+
+  // -------- TTS + VoiceMap --------
+  const voiceMap = {
+    Ion:     {pref:'female', rate:.95, pitch:1.05, voiceName:'Luciana', lang:'pt-BR'},
+    Nova:    {pref:'female', rate:1.0, pitch:1.15, voiceName:'Luciana', lang:'pt-BR'},
+    Kaion:   {pref:'male',   rate:.98, pitch:.95, voiceName:'Felipe',  lang:'pt-BR'},
+    Atlas:   {pref:'male',   rate:.96, pitch:.90, voiceName:'João',    lang:'pt-PT'},
+    Elysha:  {pref:'female', rate:1.02,pitch:1.10, voiceName:'Luciana', lang:'pt-BR'},
+    Artemis: {pref:'female', rate:.98,pitch:1.00, voiceName:'Joana',  lang:'pt-PT'},
+    Serena:  {pref:'female', rate:1.05,pitch:1.20, voiceName:'Joana',  lang:'pt-PT'},
+    Vitalis: {pref:'male',  rate:1.00,pitch:1.00, voiceName:'Felipe', lang:'pt-BR'},
+    Lumine:  {pref:'female', rate:1.00,pitch:1.10, voiceName:'Luciana', lang:'pt-BR'},
+    Aion:    {pref:'male',   rate:.94, pitch:.92, voiceName:'João',    lang:'pt-PT'},
+    Rhea:    {pref:'female', rate:.97, pitch:1.00, voiceName:'Joana',  lang:'pt-PT'},
+    Horus:   {pref:'male',   rate:1.00,pitch:1.05, voiceName:'Felipe', lang:'pt-BR'}
+  };
+  const voiceMapList = document.getElementById('voiceMapList');
+  function renderVoiceMap(){
+    voiceMapList.innerHTML='';
+    Object.entries(voiceMap).forEach(([name,cfg])=>{
+      const div = document.createElement('div');
+      div.className='chip'; div.style.border='1px solid #2a2a44';
+      div.innerHTML = `<b>${name}</b> • ${cfg.voiceName||cfg.pref} • rate:${cfg.rate} • pitch:${cfg.pitch} • ${cfg.lang||''}
+        <button class="btn" data-test="${name}" style="margin-left:8px">Testar</button>
+        <button class="btn" data-edit="${name}">Editar</button>`;
+      div.querySelector('[data-test]').onclick = ()=>{ speakArchetyped(`[${name}] Ativo!`); vibeSoft(); };
+      div.querySelector('[data-edit]').onclick = ()=>{
+        const p = prompt('Editar (json)', JSON.stringify(cfg));
+        if(!p) return; try{ voiceMap[name]=JSON.parse(p);}catch(e){ alert('JSON inválido'); }
+        renderVoiceMap(); saveVoiceMap();
+      };
+      voiceMapList.appendChild(div);
+    });
+  }
+  renderVoiceMap();
+
+  let ttsUnlocked=false; let voices=[];
+  function loadVoices(){ voices = speechSynthesis.getVoices(); }
+  loadVoices(); if(speechSynthesis.onvoiceschanged!==undefined){ speechSynthesis.onvoiceschanged=loadVoices; }
+  function unlockTTS(){ if(ttsUnlocked) return; try{ const u=new SpeechSynthesisUtterance('.'); u.volume=0; speechSynthesis.speak(u); ttsUnlocked=true; }catch(e){} }
+  document.getElementById('btnTTS').onclick = ()=>{
+    unlockTTS(); const on = document.getElementById('ttsState').textContent==='off';
+    document.getElementById('ttsState').textContent = on?'on':'off';
+    document.getElementById('badgeTTS').textContent = on?'TTS ativado':'TTS desativado';
+    vibeTap();
+  };
+
+  function findVoice(pref){ const byName=(n)=>voices.find(v=>v.name===n); const byLang=(l)=>voices.find(v=> (v.lang||'').toLowerCase().startsWith((l||'').toLowerCase())); return {byName,byLang}; }
+  function inferFromText(t){
+    for(const [name,cfg] of Object.entries(voiceMap)) if(t.includes(`[${name}]`)) return {name, ...cfg};
+    if(t.includes('?!')) return {name:'Híbrido', pref: Math.random()>.5?'female':'male', rate:1.0, pitch:1.0};
+    if(t.includes('?'))  return {name:'Dúvida',  pref:'female', rate:.9, pitch:1.08};
+    if(t.includes('!'))  return {name:'Ação',    pref:'male',   rate:1.05, pitch:.95};
+    return {name:'Neutro', pref:'neutral', rate:1.0, pitch:1.0};
+  }
+  function speakArchetyped(text){
+    const ttsOn = document.getElementById('ttsState').textContent!=='off'; if(!ttsOn) return;
+    unlockTTS();
+    const a = inferFromText(text); const u = new SpeechSynthesisUtterance(text);
+    if(a.lang) u.lang = a.lang; let v=null; const fv = findVoice(a.pref);
+    if(a.voiceName) v = fv.byName(a.voiceName) || fv.byLang(a.lang);
+    if(!v) v = voices[0] || null; if(v) u.voice=v; u.rate=a.rate; u.pitch=a.pitch; u.volume=1;
+    try{ speechSynthesis.cancel(); }catch(e){} setTimeout(()=> speechSynthesis.speak(u), 20);
+  }
+
+  function exportVoiceMap(){ const data = JSON.stringify({archetypes:voiceMap}, null, 2); const blob = new Blob([data], {type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dual_voice_map.json'; a.click(); }
+  function importVoiceMap(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=async (e)=>{ const f=e.target.files?.[0]; if(!f) return; try{ const j=JSON.parse(await f.text()); Object.assign(voiceMap, j.archetypes||{}); saveVoiceMap(); renderVoiceMap(); }catch(e){ alert('JSON inválido'); } }; inp.click(); }
+  document.getElementById('btnExportVoiceMap').onclick = ()=>{ exportVoiceMap(); vibeTap(); };
+  document.getElementById('btnImportVoiceMap').onclick = ()=>{ importVoiceMap(); vibeTap(); };
+
+  function saveVoiceMap(){ localStorage.setItem('dual.voiceMap', JSON.stringify(voiceMap)); }
+  function loadVoiceMap(){ try{ const j=JSON.parse(localStorage.getItem('dual.voiceMap')||'{}'); Object.assign(voiceMap, j); }catch(e){} }
+  loadVoiceMap(); renderVoiceMap();
+
+  // -------- Chat (OpenRouter ou Backend) --------
+  const cfgKey = 'dual.unificado.cfg';
+  const state = { apiKey:'', model:'openrouter/sonoma-dusk-alpha', mode:'direct', backend:'', system:'Oi dual. Estamos em pulso dual⚡️ responda curto, útil, amigável, em pt-BR, foco mobile.' };
+  function loadCfg(){ try{ const j=JSON.parse(localStorage.getItem(cfgKey)||'{}'); Object.assign(state, j); }catch(e){} applyCfgToUI(); }
+  function saveCfg(){ localStorage.setItem(cfgKey, JSON.stringify(state)); }
+  function applyCfgToUI(){
+    id('apiKey').value = state.apiKey||''; id('model').value = state.model; id('mode').value = state.mode; id('backend').value = state.backend||''; id('system').value = state.system; id('badgeModel').textContent = state.model; id('badgeMode').textContent = 'modo: '+(state.mode==='direct'?'direct':'backend');
+  }
+  function id(s){ return document.getElementById(s); }
+  loadCfg();
+  id('saveCfg').onclick = ()=>{ state.apiKey=id('apiKey').value.trim(); state.model=id('model').value.trim(); state.mode=id('mode').value; state.backend=id('backend').value.trim(); state.system=id('system').value.trim(); saveCfg(); applyCfgToUI(); vibeTap(); };
+
+  const thread = document.getElementById('thread'); const input = document.getElementById('input');
+  function addMsg(role, content){ const wrap=document.createElement('div'); wrap.className='msg '+(role==='user'?'me':'ai'); wrap.innerHTML = `<div class="b"><div class="role">${role==='user'?'Você':'Dual'}</div><div class="txt">${content.replace(/\n/g,'<br>')}</div></div>`; thread.appendChild(wrap); thread.scrollTop=thread.scrollHeight; if(role!=='user') speakArchetyped(content); }
+  document.getElementById('btnBlocks').onclick=()=>{ input.value = ['[Introdução] Oi! Ativando o pulso.','[Recompensa Inicial] Darei uma dica prática.','[Exploração & Curiosidade] O que você quer destravar hoje?','[Antecipação Vibracional] Segura que vem surpresa… 3×6×9.'].join('\n'); };
+  document.getElementById('btnSend').onclick=()=> send();
+  input.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && (e.metaKey||e.ctrlKey)){ send(); } });
+
+  async function send(){
+    const text = input.value.trim(); if(!text) return; addMsg('user', text); input.value='';
+    const messages = [ {role:'system', content: state.system}, ...collectThreadAsMessages(), {role:'user', content: text} ];
+    try{
+      let out='';
+      if(state.mode==='direct'){
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions',{ method:'POST', headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+(state.apiKey||'') }, body: JSON.stringify({ model: state.model, messages }) });
+        const data = await res.json(); out = data.choices?.[0]?.message?.content || JSON.stringify(data);
+      }else{
+        if(!state.backend) throw new Error('Defina o BACKEND');
+        const res = await fetch(state.backend.replace(/\/$/,'') + '/api/chat',{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ model: state.model, messages }) });
+        const data = await res.json(); out = data.output || data.choices?.[0]?.message?.content || JSON.stringify(data);
+      }
+      addMsg('assistant', out);
+    }catch(err){ addMsg('assistant', 'Erro: '+ err); }
+  }
+  function collectThreadAsMessages(){ return [...thread.querySelectorAll('.msg')].map(n=>{ const isUser=n.classList.contains('me'); const text=n.querySelector('.txt')?.innerText||''; return {role:isUser?'user':'assistant', content:text}; }); }
+
+  // -------- Finder --------
+  const hostsEl = document.getElementById('hosts'); const scanState = document.getElementById('scanState');
+  let stop=false; document.getElementById('btnStop').onclick=()=>{ stop=true; scanState.textContent='parado'; };
+  async function fjson(url, ms=1500){ const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(), ms); try{ const r=await fetch(url,{signal:ctrl.signal,cache:'no-store'}); clearTimeout(timer); if(!r.ok) throw new Error(r.status); return await r.json(); } catch(e){ clearTimeout(timer); throw e; } }
+  document.getElementById('btnScan').onclick = async ()=>{ stop=false; hostsEl.innerHTML=''; scanState.textContent='varrendo…'; const ports=[8000,3000,5173]; const bases=[]; for(const a of [0,1]) for(let i=1;i<=254;i++) bases.push(`http://192.168.${a}.${i}`); for(let i=1;i<=254;i++) bases.push(`http://10.0.0.${i}`); let found=0, tried=0; for(const base of bases){ if(stop) break; for(const p of ports){ if(stop) break; const url=`${base}:${p}/health`; try{ tried++; const j=await fjson(url,700); addHost(`${base}:${p}`, j); found++; }catch(e){} if(tried%60===0) scanState.textContent=`varrendo… ${tried} testes, ${found} encontrados`; } } scanState.textContent=`feito. ${tried} testes, ${found} encontrados`; };
+  function addHost(base, info){ const box=document.createElement('div'); box.className='chip ok'; box.innerHTML=`🧠 <span class="mono">${base}</span> <button class="btn" data-act="use">⚡</button> <button class="btn" data-act="apps">📜</button>`; box.onclick=(e)=>{ const act=e.target?.dataset?.act; if(!act) return; if(act==='use'){ localStorage.setItem('DUAL_BACKEND', base); document.getElementById('backend').value=base; state.backend=base; saveCfg(); applyCfgToUI(); alert('Backend definido: '+base); } if(act==='apps'){ window.open(`${base.replace(/\/$/,'')}/brain/apps.json`, '_blank'); } }; hostsEl.appendChild(box); }
+  document.getElementById('btnTest').onclick = async ()=>{ const base=document.getElementById('ipManual').value.trim().replace(/\/$/,''); if(!base) return; document.getElementById('testOut').textContent='testando…'; try{ const j=await fjson(`${base}/health`, 2500); document.getElementById('testOut').textContent='OK: '+JSON.stringify(j); }catch(e){ document.getElementById('testOut').textContent='Falhou: '+e; } };
+  document.getElementById('btnUse').onclick = ()=>{ const base=document.getElementById('ipManual').value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA'); localStorage.setItem('DUAL_BACKEND', base); document.getElementById('backend').value=base; state.backend=base; saveCfg(); applyCfgToUI(); alert('Backend definido!'); };
+  document.getElementById('btnOpenApps').onclick = ()=>{ const base=document.getElementById('ipManual').value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA'); window.open(`${base}/brain/apps.json`,'_blank'); };
+  document.getElementById('btnDownloadApps').onclick = async ()=>{ const base=document.getElementById('ipManual').value.trim().replace(/\/$/,''); if(!base) return alert('Informe http://IP:PORTA'); try{ const r=await fetch(`${base}/brain/apps.json`, {cache:'no-store'}); if(!r.ok) throw new Error(r.status); const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='apps.json'; a.click(); }catch(e){ alert('Falhou: '+e); } };
+
+  // -------- Brain (local docs) --------
+  const DB_KEY='infodose.brain.docs';
+  const listEl=document.getElementById('list'); const countEl=document.getElementById('count');
+  function loadDocs(){ try{ return JSON.parse(localStorage.getItem(DB_KEY)||'[]'); }catch(e){ return []; } }
+  function saveAll(docs){ localStorage.setItem(DB_KEY, JSON.stringify(docs)); renderDocs(docs); }
+  function renderDocs(docs=loadDocs()){ listEl.innerHTML=''; countEl.textContent=docs.length; if(!docs.length){ listEl.innerHTML='<div class="tiny">Nenhum doc salvo.</div>'; return; } const q=document.getElementById('search').value.trim().toLowerCase(); docs.filter(d=>!q||d.title?.toLowerCase().includes(q)||d.content?.toLowerCase().includes(q)).forEach((d,i)=>{ const el=document.createElement('div'); el.style.cssText='background:#0e1118;border:1px solid #2a2a44;border-radius:14px;padding:12px;display:grid;gap:6px'; el.innerHTML=`<b>${d.title||'(sem título)'}</b><div class="tiny">${new Date(d.ts).toLocaleString()}</div><pre style="white-space:pre-wrap;margin:0">${(d.content||'').slice(0,600)}</pre><div class="row" style="margin-top:6px"><button class="btn" data-act="use" data-i="${i}">Usar</button><button class="btn" data-act="edit" data-i="${i}">Editar</button><button class="btn" data-act="del" data-i="${i}">Apagar</button></div>`; listEl.appendChild(el); }); }
+  document.getElementById('save').onclick=()=>{ const title=id('title').value.trim(); const content=id('content').value.trim(); if(!content) return alert('Conteúdo vazio.'); const docs=loadDocs(); docs.unshift({title,content,ts:Date.now()}); saveAll(docs); id('title').value=''; id('content').value=''; };
+  document.getElementById('clear').onclick=()=>{ id('title').value=''; id('content').value=''; };
+  document.getElementById('search').oninput=()=>renderDocs();
+  listEl.addEventListener('click',(e)=>{ const b=e.target.closest('button'); if(!b) return; const i=+b.dataset.i; const docs=loadDocs(); const act=b.dataset.act; if(act==='use'){ navigator.clipboard.writeText(docs[i].content||''); alert('Conteúdo copiado.'); } if(act==='edit'){ id('title').value=docs[i].title||''; id('content').value=docs[i].content||''; nav('brain'); window.scrollTo({top:0,behavior:'smooth'}); } if(act==='del'){ if(confirm('Remover?')){ docs.splice(i,1); saveAll(docs);} } });
+  id('fileBtn').onclick=()=> id('file').click();
+  id('file').onchange=()=>{ const f=id('file').files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ saveAll(JSON.parse(r.result)); }catch(e){ alert('JSON inválido'); } }; r.readAsText(f); };
+  renderDocs();
+
+  // Hub extras
+  document.getElementById('quickReport').onclick=()=>{ alert('Snapshot: '+JSON.stringify({ts:new Date().toISOString(), backend:localStorage.getItem('DUAL_BACKEND')||state.backend||null, model:state.model, mode:state.mode})); };
+  document.getElementById('openDocs').onclick=()=> exportVoiceMap();
+  document.getElementById('openConfig').onclick=()=> nav('chat');
+})();
+</script>
+</body>
+</html>

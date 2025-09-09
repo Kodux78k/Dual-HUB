@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+<title>Procedural Pixel Film — Nebula Pro • FINAL PRO</title>
+<meta name="theme-color" content="#0b0b0b">
+<style>
+  :root{
+    --bg:#0b0b0b; --fg:#eaf9ff; --muted:#9ec6d3;
+    --acc1:#ff3fd6; --acc2:#18f3ff;
+    --panel:rgba(14,14,22,0.78); --glass:rgba(255,255,255,0.06); --ring:rgba(255,255,255,0.12);
+    --pill:#26264a; --pill-hi:#3a3a78; --stroke:rgba(255,255,255,.08);
+    --el-water:#29d3ff; --el-fire:#ff4d4d; --el-earth:#e7c65a; --el-wood:#38e27d; --el-metal:#dfe3e6;
+    --g-acc:linear-gradient(42deg,var(--acc1),var(--acc2));
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:
+      radial-gradient(1000px 600px at 70% 20%, rgba(255,0,255,.12), transparent 40%),
+      radial-gradient(800px 500px at 20% 80%, rgba(0,255,255,.10), transparent 45%),
+      var(--bg);
+    color:var(--fg); font:15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:16px}
+  .phone{width:min(420px,96vw);border-radius:28px;background:radial-gradient(120% 120% at 30% 0%, rgba(255,255,255,.06), rgba(255,255,255,0) 60%), var(--panel);
+    box-shadow:0 10px 40px rgba(0,0,0,.48); backdrop-filter: blur(14px); border:1px solid var(--ring); padding:16px}
+  header{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:8px 4px 14px}
+  h1{font-weight:800;font-size:20px;margin:0;letter-spacing:.3px}
+  .bolt{filter:drop-shadow(0 0 10px rgba(255,255,255,.35))}
+  .screen{position:relative;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#0b0b18,#0b0b0f);border:1px solid var(--stroke);height:260px;margin:4px 2px 14px}
+  canvas#film, canvas#bg{display:block;width:100%;height:100%;image-rendering:pixelated}
+  #bg{position:fixed;inset:0;z-index:-1;opacity:.38;display:none}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 2px}
+  .row-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 2px}
+  .pill{appearance:none;border:none;border-radius:999px;padding:12px 14px;background:var(--pill);color:var(--fg);font-weight:800;letter-spacing:.3px;cursor:pointer;transition:.2s transform,.2s box-shadow}
+  .pill.hi{background:var(--pill-hi)}
+  .pill.grad{background:var(--g-acc); color:#001014; box-shadow:0 8px 22px rgba(24,243,255,.14)}
+  .tag{border-radius:16px;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid var(--ring);text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+  .dot{width:16px;height:16px;border-radius:50%;display:inline-grid;place-items:center;box-shadow:0 0 0 3px rgba(255,255,255,.06) inset}
+  .dot.water{background:var(--el-water)} .dot.fire{background:var(--el-fire)} .dot.earth{background:var(--el-earth)} .dot.wood{background:var(--el-wood)} .dot.metal{background:var(--el-metal)}
+  .footer{display:flex;gap:10px;justify-content:space-between;margin-top:12px;color:var(--muted);font-size:12px}
+  dialog{border:none;border-radius:18px;max-width:520px;width:92vw;background:var(--panel);color:var(--fg);padding:16px;border:1px solid var(--ring);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+  dialog::backdrop{background:radial-gradient(60% 60% at 50% 40%, rgba(0,0,0,.2), rgba(0,0,0,.6))}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:grid;gap:6px;margin:6px 0}
+  .tiny{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<!-- SVG sprite (ícones inline) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="ic-water" viewBox="0 0 24 24"><path fill="#001014" d="M12 2c3.6 4.7 6 8 6 11a6 6 0 1 1-12 0c0-3 2.4-6.3 6-11z"/></symbol>
+  <symbol id="ic-fire" viewBox="0 0 24 24"><path fill="#001014" d="M12 2c3 3.7.8 6.3.8 7.8c0 1.5 1.3 2.4 2.5 1.6c1.4-.9 2.3-2.6 2-4.6c2.7 2.6 4.2 5.5 3.6 8.6A8 8 0 0 1 8 20C5.4 18.3 4.4 15.5 5 12.4C5.7 9.2 7.9 6.2 12 2z"/></symbol>
+  <symbol id="ic-earth" viewBox="0 0 24 24"><path fill="#001014" d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm-6 8h4l2-2l2 2h4l-6 8z"/></symbol>
+  <symbol id="ic-wood" viewBox="0 0 24 24"><path fill="#001014" d="M11 2h2v6l3-3l1 1l-4 4v10h-2V10L7 6l1-1l3 3z"/></symbol>
+  <symbol id="ic-metal" viewBox="0 0 24 24"><path fill="#001014" d="M12 2l9 5v10l-9 5l-9-5V7l9-5Zm0 2.3L5 7.1v9.8l7 3.9l7-3.9V7.1l-7-2.8Z"/></symbol>
+</svg>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="wrap">
+  <div class="phone" id="app">
+    <header>
+      <h1>Procedural Pixel Film <span class="bolt">⚡</span> <span id="labelEl">Água</span></h1>
+      <label class="tiny"><input id="toggleBg" type="checkbox"> Plano de Fundo</label>
+    </header>
+
+    <div class="screen"><canvas id="film"></canvas></div>
+
+    <div class="row">
+      <button class="pill hi" id="btnPlay">Respirar Pulso</button>
+      <button class="pill" id="btnPause">Silenciar Pulso</button>
+    </div>
+
+    <div class="row-4">
+      <div class="tag" data-el="agua"><span class="dot water"></span><svg width="16" height="16"><use href="#ic-water"/></svg>Água</div>
+      <div class="tag" data-el="fogo"><span class="dot fire"></span><svg width="16" height="16"><use href="#ic-fire"/></svg>Fogo</div>
+      <div class="tag" data-el="terra"><span class="dot earth"></span><svg width="16" height="16"><use href="#ic-earth"/></svg>Terra</div>
+      <div class="tag" data-el="madeira"><span class="dot wood"></span><svg width="16" height="16"><use href="#ic-wood"/></svg>Madeira</div>
+      <div class="tag" data-el="metal"><span class="dot metal"></span><svg width="16" height="16"><use href="#ic-metal"/></svg>Metal</div>
+      <button class="tag" id="btnColors" style="grid-column: span 3; justify-content:space-between">Editar Cores (ao vivo) 🎨</button>
+    </div>
+
+    <div class="row">
+      <button class="pill" id="btnMic">Escutar o Mundo</button>
+      <button class="pill" id="btnBreeze">Soprar o Vento</button>
+    </div>
+
+    <div class="row">
+      <button class="pill" id="btnExport">Guardar Rastro</button>
+      <button class="pill" id="btnImport">Reinvocar Filme</button>
+    </div>
+
+    <div class="row">
+      <button class="pill" id="btnSnap">Espiral Congelada</button>
+      <button class="pill grad" id="btnRecord">Gravar Pulso</button>
+    </div>
+
+    <div class="footer">
+      <span>Luxara em comando • Atlas claro • Ignita suave</span>
+      <span id="status">⏸️ Pausado</span>
+    </div>
+  </div>
+</div>
+
+<!-- Editor de cores -->
+<dialog id="dlg">
+  <form method="dialog">
+    <h3>Editor de Cores (Nebula Pro)</h3>
+    <div class="grid-2">
+      <div class="field"><label class="tiny">Fundo —bg</label><input type="color" id="cBg" value="#0b0b0b"></div>
+      <div class="field"><label class="tiny">Texto —fg</label><input type="color" id="cFg" value="#eaf9ff"></div>
+      <div class="field"><label class="tiny">Acento 1 —acc1</label><input type="color" id="cA1" value="#ff3fd6"></div>
+      <div class="field"><label class="tiny">Acento 2 —acc2</label><input type="color" id="cA2" value="#18f3ff"></div>
+    </div>
+    <div class="row" style="margin-top:8px"><button class="pill">Fechar</button><button class="pill grad" value="close" id="btnSaveTheme">Salvar</button></div>
+  </form>
+</dialog>
+
+<input id="fileImport" type="file" accept="application/json" hidden/>
+
+<script>
+// ===== Helpers =====
+const qs = s=>document.querySelector(s);
+const root = document.documentElement;
+const clamp = (v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp = (a,b,t)=>a+(b-a)*t;
+
+// ===== State =====
+let running=false, freeze=false, useBg=false;
+let dt=1.2, drift=0.03, diffuse=0.38;
+let fftL=0, fftM=0, fftH=0, tiltX=0, tiltY=0;
+const film=qs('#film'), bg=qs('#bg'), statusEl=qs('#status');
+let gl=null, advProg=null, renProg=null, quad=null, fb=[null,null], tex=[null,null], intW=160, intH=90, scale=4;
+
+// ===== WebGL2 (main-thread) with 2D fallback =====
+const VS=`#version 300 es
+precision highp float; layout(location=0) in vec2 a; out vec2 v; void main(){ v=(a+1.)*.5; gl_Position=vec4(a,0,1); }`;
+const FS_ADV=`#version 300 es
+precision highp float; in vec2 v; out vec4 o; uniform sampler2D uTex; uniform vec2 uPx; uniform float uDt; uniform float uDiff; uniform vec2 uTilt; uniform vec3 uFFT;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+void main(){
+  vec4 c = texture(uTex, v);
+  vec2 g = vec2( sin(v.y*30. + uFFT.x*4.) + uTilt.x*2., cos(v.x*24. + uFFT.z*4.) + uTilt.y*2. );
+  vec2 uv = v + uDt*0.005*g;
+  vec4 n = texture(uTex, uv);
+  vec4 lap = ( texture(uTex, v+vec2(uPx.x,0.)) + texture(uTex, v-vec2(uPx.x,0.)) + texture(uTex, v+vec2(0.,uPx.y)) + texture(uTex, v-vec2(0.,uPx.y)) - 4.0*c );
+  vec4 outc = mix(n, c + uDiff*lap, 0.5);
+  outc += 0.002*vec4(hash(v*120.), hash(v*110.), hash(v*95.), 0.0);
+  o = outc;
+}`;
+const FS_REN=`#version 300 es
+precision highp float; in vec2 v; out vec4 o; uniform sampler2D uTex; uniform vec3 uC1; uniform vec3 uC2;
+void main(){ float m = texture(uTex, v).r; vec3 c = mix(uC1, uC2, smoothstep(0.2,0.9,m)); o=vec4(c,1.0); }`;
+
+function mkShader(gl,t,s){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));return sh;}
+function mkProg(gl,vs,fs){const p=gl.createProgram();gl.attachShader(p,mkShader(gl,gl.VERTEX_SHADER,vs));gl.attachShader(p,mkShader(gl,gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
+
+function initGL(){
+  gl = film.getContext('webgl2', {alpha:false, antialias:false, preserveDrawingBuffer:true});
+  if(!gl) return false;
+  quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  advProg = mkProg(gl, VS, FS_ADV); renProg = mkProg(gl, VS, FS_REN);
+  resizeGL(); seedGL();
+  return true;
+}
+
+function resizeGL(){
+  const r = film.getBoundingClientRect();
+  film.width = Math.floor(r.width); film.height = Math.floor(r.height);
+  intW = Math.max(96, Math.floor(r.width/scale)); intH = Math.max(72, Math.floor(r.height/scale));
+  // ping-pong
+  tex.forEach(t=>gl.deleteTexture(t)); fb.forEach(f=>gl.deleteFramebuffer(f)); tex=[]; fb=[];
+  for(let i=0;i<2;i++){
+    const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA32F,intW,intH,0,gl.RGBA,gl.FLOAT,null);
+    const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+    tex.push(t); fb.push(f);
+  }
+}
+
+function seedGL(){
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb[0]);
+  gl.viewport(0,0,intW,intH);
+  gl.clearColor(Math.random(),Math.random(),Math.random(),1); gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+function hexToRgb(hex){ const s=hex.replace('#',''); const v=s.length===3? s.split('').map(ch=>ch+ch).join(''):s; const n=parseInt(v,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+function getVar(n){ return getComputedStyle(root).getPropertyValue(n).trim(); }
+
+function stepGL(target){
+  gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0); gl.enableVertexAttribArray(0);
+  const px=[1/intW,1/intH];
+  // advect
+  gl.useProgram(advProg);
+  gl.uniform1i(gl.getUniformLocation(advProg,'uTex'),0);
+  gl.uniform2f(gl.getUniformLocation(advProg,'uPx'),px[0],px[1]);
+  gl.uniform1f(gl.getUniformLocation(advProg,'uDt'),dt);
+  gl.uniform1f(gl.getUniformLocation(advProg,'uDiff'),diffuse);
+  gl.uniform2f(gl.getUniformLocation(advProg,'uTilt'),tiltX,tiltY);
+  gl.uniform3f(gl.getUniformLocation(advProg,'uFFT'),fftL,fftM,fftH);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex[0]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb[1]); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  // swap
+  [tex[0],tex[1]]=[tex[1],tex[0]]; [fb[0],fb[1]]=[fb[1],fb[0]];
+  // render
+  gl.useProgram(renProg);
+  const c1=hexToRgb(getVar('--acc1')), c2=hexToRgb(getVar('--acc2'));
+  gl.uniform1i(gl.getUniformLocation(renProg,'uTex'),0);
+  gl.uniform3f(gl.getUniformLocation(renProg,'uC1'),c1.r/255,c1.g/255,c1.b/255);
+  gl.uniform3f(gl.getUniformLocation(renProg,'uC2'),c2.r/255,c2.g/255,c2.b/255);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex[0]);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,target.width,target.height); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+
+// 2D fallback
+function draw2D(cv){
+  const ctx=cv.getContext('2d'); const w=cv.width,h=cv.height;
+  ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fillRect(0,0,w,h);
+  const px=8, cols=Math.ceil(w/px), rows=Math.ceil(h/px);
+  const base=getVar('--acc1'); const c=hexToRgb(base);
+  for(let i=0;i<400;i++){
+    const x=(Math.random()*cols|0)*px, y=(Math.random()*rows|0)*px;
+    ctx.fillStyle=`rgba(${c.r},${c.g},${c.b},0.9)`; ctx.fillRect(x,y,px,px);
+  }
+}
+
+function loop(){
+  if(!running){ requestAnimationFrame(loop); return; }
+  const target = useBg? bg : film;
+  if(!freeze){
+    if(gl) stepGL(target); else draw2D(target);
+    if(useBg){ const bctx=bg.getContext('2d'); bctx.globalAlpha=0.34; if(gl) stepGL(bg); else draw2D(bg); }
+  }
+  requestAnimationFrame(loop);
+}
+
+// ===== UI =====
+function fit(){
+  const r=film.getBoundingClientRect();
+  film.width=Math.floor(r.width); film.height=Math.floor(r.height);
+  bg.width=film.width; bg.height=film.height;
+  if(gl) resizeGL();
+}
+window.addEventListener('resize', fit, {passive:true}); fit();
+
+qs('#btnPlay').onclick=()=>{ if(!gl){ try{ initGL(); }catch(e){} } running=true; statusEl.textContent='▶️ Rodando'; };
+qs('#btnPause').onclick=()=>{ running=false; statusEl.textContent='⏸️ Pausado'; };
+qs('#btnBreeze').onclick=()=>{ dt = Math.max(0.8, Math.min(1.6, dt + (Math.random()-.5)*0.2)); diffuse = Math.max(0.2, Math.min(0.6, diffuse + (Math.random()-.5)*0.05)); };
+qs('#toggleBg').onchange=(e)=>{ useBg=e.target.checked; bg.style.display=useBg?'block':'none'; };
+
+// Elements
+const EL={agua:{a:'--el-water',b:'--el-water',dt:1.0,drift:0.02}, fogo:{a:'--el-fire',b:'--el-fire',dt:1.35,drift:0.05}, terra:{a:'--el-earth',b:'--el-earth',dt:0.95,drift:0.018}, madeira:{a:'--el-wood',b:'--el-wood',dt:1.15,drift:0.03}, metal:{a:'--el-metal',b:'--el-metal',dt:0.98,drift:0.02}};
+document.querySelectorAll('.tag[data-el]').forEach(tag=>{
+  tag.style.cursor='pointer';
+  tag.onclick=()=>{ const k=tag.dataset.el; const a=getVar(EL[k].a); const b=getVar(EL[k].b);
+    root.style.setProperty('--acc1',a); root.style.setProperty('--acc2',b); dt=EL[k].dt; drift=EL[k].drift;
+    qs('#labelEl').textContent = k[0].toUpperCase()+k.slice(1);
+    tag.animate([{transform:'scale(1)'},{transform:'scale(1.03)'},{transform:'scale(1)'}],{duration:300});
+  };
+});
+
+// Colors
+const dlg=qs('#dlg'); const cBg=qs('#cBg'), cFg=qs('#cFg'), cA1=qs('#cA1'), cA2=qs('#cA2');
+qs('#btnColors').onclick=()=>{ cBg.value=rgb2hex(getVar('--bg')); cFg.value=rgb2hex(getVar('--fg')); cA1.value=rgb2hex(getVar('--acc1')); cA2.value=rgb2hex(getVar('--acc2')); dlg.showModal(); };
+[cBg,cFg,cA1,cA2].forEach(inp=> inp.addEventListener('input',()=>{ root.style.setProperty('--bg',cBg.value); root.style.setProperty('--fg',cFg.value); root.style.setProperty('--acc1',cA1.value); root.style.setProperty('--acc2',cA2.value); }));
+qs('#btnSaveTheme').onclick=()=>{ localStorage.setItem('dual_theme',{bg:getVar('--bg'),fg:getVar('--fg'),acc1:getVar('--acc1'),acc2:getVar('--acc2')}); };
+
+function rgb2hex(rgb){ const m=(rgb||'').match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/); if(!m) return '#ffffff'; return '#'+[m[1],m[2],m[3]].map(x=>('0'+parseInt(x).toString(16)).slice(-2)).join(''); }
+
+// Mic FFT
+let audioCtx=null, analyser=null, stream=null, buf=null, micOn=false;
+qs('#btnMic').onclick=async()=>{
+  if(micOn){ stream?.getTracks().forEach(t=>t.stop()); micOn=false; qs('#btnMic').textContent='Escutar o Mundo'; return; }
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser(); analyser.fftSize=1024; buf=new Uint8Array(analyser.frequencyBinCount); src.connect(analyser); micOn=true; qs('#btnMic').textContent='🎙️ Mic ON';
+    (function pump(){ if(!micOn) return; analyser.getByteFrequencyData(buf); const n=buf.length; let L=0,M=0,H=0; for(let i=0;i<n;i++){ const v=buf[i]/255; if(i<n*0.2)L+=v; else if(i<n*0.7) M+=v; else H+=v; } fftL=L/(n*0.2); fftM=M/(n*0.5); fftH=H/(n*0.3); requestAnimationFrame(pump); })();
+  }catch(e){ alert('Mic negado: '+e.message); }
+};
+
+// Snapshot / Export / Import / Record
+qs('#btnSnap').onclick=()=>{ const t=useBg?bg:film; const url=t.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='pulso.png'; a.click(); };
+qs('#btnExport').onclick=()=>{
+  const data={W:intW,H:intH,SCALE:scale,dt,drift,diffuse,colors:{'--bg':getVar('--bg'),'--fg':getVar('--fg'),'--acc1':getVar('--acc1'),'--acc2':getVar('--acc2')}};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pulso-state.json'; a.click();
+};
+qs('#btnImport').onclick=()=>{ const i=document.getElementById('fileImport'); i.onchange=e=>{ const f=e.target.files[0]; if(!f) return; f.text().then(txt=>{ try{ const s=JSON.parse(txt); if(s.colors){ for(const k in s.colors) root.style.setProperty(k,s.colors[k]); } if(s.dt) dt=s.dt; if(s.drift) drift=s.drift; if(s.diffuse) diffuse=s.diffuse; if(s.W&&s.H){ intW=s.W; intH=s.H; if(gl) resizeGL(); } }catch(err){ alert('JSON inválido'); } }); }; i.click(); };
+let rec=null, chunks=[];
+qs('#btnRecord').onclick=()=>{
+  if(rec){ rec.stop(); return; }
+  const t=useBg?bg:film; const stream=t.captureStream?t.captureStream(60):null; if(!stream){ alert('captureStream não suportado'); return; }
+  rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+  rec.onstop=()=>{ const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pulso_15s.webm'; a.click(); chunks=[]; rec=null; qs('#btnRecord').textContent='Gravar Pulso'; };
+  rec.start(); qs('#btnRecord').textContent='⏹️ Gravando..'; setTimeout(()=>{ if(rec) rec.stop(); }, 15000);
+};
+
+// Tilt
+window.addEventListener('deviceorientation', e=>{ tiltX=clamp((e.gamma||0)/45,-1,1); tiltY=clamp((e.beta||0)/45,-1,1); }, true);
+
+// Boot
+function boot(){ try{ initGL(); }catch(e){ gl=null; } requestAnimationFrame(loop); }
+boot();
+setTimeout(()=>qs('#btnPlay').click(), 400);
+</script>
+</body>
+</html>

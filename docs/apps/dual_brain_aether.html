@@ -1,0 +1,195 @@
+<!doctype html><html lang='pt-br'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover'/><title>AETHER • BRAIN — Nebula Pro</title><style>
+:root{ --bg:#0a0a10; --panel:#0f0f18; --panel2:#121223; --fg:#e7ecff; --muted:#9aa6bd;
+  --acc1:#7B61FF; --acc2:#29D3FF; --acc3:#FF5AD9; --pill:#1a1a2a; --good:#6CFFB8;
+  --shadow: 0 6px 30px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04); }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{ margin:0; font-family: Inter, ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--fg);
+  background: radial-gradient(1200px 800px at 20% -10%, rgba(120,70,255,.24), transparent 60%),
+             radial-gradient(1000px 700px at 120% 110%, rgba(40,200,255,.18), transparent 60%),
+             radial-gradient(800px 600px at -10% 120%, rgba(255,80,180,.16), transparent 60%),
+             linear-gradient(#0b0b12,#0b0b10 60%); }
+a{color:inherit;text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:18px}
+.hbar{display:flex;align-items:center;gap:12px; padding:16px 18px}
+.hbar .title{letter-spacing:.12em; font-weight:800; font-size:22px}
+.hbar .dot{width:8px;height:8px;background:var(--acc2);border-radius:99px; box-shadow:0 0 16px var(--acc2)}
+.top-right{margin-left:auto;display:flex;gap:10px}
+.round{width:36px;height:36px;border-radius:999px; display:grid;place-items:center; background:var(--pill); box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.06)}
+.small{width:30px;height:30px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:6px}
+@media (min-width:720px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+.card{ background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-radius:20px; padding:16px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.card .ico{width:44px;height:44px;border-radius:16px;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.16), rgba(255,255,255,0) 60%),
+              linear-gradient(135deg, var(--acc1), var(--acc2));
+  display:grid;place-items:center; margin-bottom:10px; filter:saturate(110%); }
+.card .ico svg{width:26px;height:26px; mix-blend-mode:screen}
+.card .label{font-weight:800;margin-top:2px}
+.card .sublabel{color:var(--muted); font-size:12px; margin-top:2px}
+.nav{ position:fixed; left:0; right:0; bottom:0; backdrop-filter: blur(8px);
+  background: rgba(15,15,24,.7); border-top:1px solid rgba(255,255,255,.06);
+  display:flex; gap:10px; padding:10px 14px; justify-content:space-around; z-index:20; }
+.nav .btn{display:grid;place-items:center; gap:6px; font-size:11px; color:var(--muted)}
+.nav .btn .b{ width:42px;height:42px;border-radius:16px;background:var(--pill);
+  display:grid;place-items:center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.btn-pill{padding:10px 14px; background:linear-gradient(90deg,var(--acc1),var(--acc2));
+  border:none; color:white; font-weight:800; border-radius:999px; box-shadow:0 8px 24px rgba(60,60,140,.35)}
+.input{background:var(--panel2); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px; color:var(--fg); outline:none}
+.hr{height:1px;background:rgba(255,255,255,.06); margin:8px 0 10px}
+.chips{display:flex; gap:8px; margin:8px 0 2px 2px}
+.chip{padding:6px 10px; background:var(--pill); border-radius:999px; color:var(--muted); font-size:12px;
+      border:1px solid rgba(255,255,255,.06)}
+.bubbles{position:relative; padding:8px 0 66px}
+.msg{max-width:78%; padding:12px 14px; margin:8px 0; border-radius:16px; line-height:1.25; box-shadow: var(--shadow)}
+.msg.ai{background:#151528}
+.msg.me{background:#241b34; margin-left:auto}
+.msg .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.inputbar{position:fixed; left:0; right:0; bottom:66px; display:flex; gap:8px; padding:8px 14px; z-index:22}
+.inputbar input{flex:1}
+.kv{display:grid;grid-template-columns:1fr auto; gap:8px; align-items:center}
+.kv .key{font-weight:700}
+.code{background:var(--panel2); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre-wrap; color:#d7e4ff}
+.panel{position:fixed;right:0;top:0;bottom:0;width:360px;max-width:92vw;background:rgba(15,15,28,.92);backdrop-filter:blur(10px);box-shadow:-8px 0 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.06);transform:translateX(105%); transition:transform .28s ease; z-index:40; padding:16px}
+.panel.open{transform:translateX(0)}
+.status{font-size:12px;color:var(--muted);min-height:18px}
+.log{background:var(--panel2);border-radius:12px;padding:10px;margin-top:10px;max-height:180px;overflow:auto;font-size:12px;color:var(--muted)}
+</style></head><body><div class='wrap'><div class='hbar'><div class='title'>AETHER <span class='dot'></span> BRAIN</div><div class='top-right'><button class='round small' data-open-integrator title='Integrador'>◇</button></div></div>
+<div class="grid">
+  <div class="card" style="grid-column:1/-1">
+    <div class="label">Infodose Brain • Local</div>
+    <div class="sublabel">Chave prefixo: <code>dual.brain.*</code></div>
+    <div class="hr"></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+      <input id="k" class="input" placeholder="chave (ex.: prompt)">
+      <button class="btn-pill" id="save">Salvar</button>
+      <textarea id="v" class="code" style="grid-column:1/-1;min-height:120px" placeholder="valor..."></textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn-pill" id="del" style="background:linear-gradient(90deg,#ff5a99,#7b61ff)">Excluir</button>
+        <button class="btn-pill" id="copy">Copiar tudo</button>
+        <button class="btn-pill" id="export">Exportar .json</button>
+        <input type="file" id="importFile" hidden accept=".json,application/json">
+        <button class="btn-pill" id="importBtn" style="background:linear-gradient(90deg,#29D3FF,#6CFFB8)">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="grid-column:1/-1">
+    <div class="label">Itens</div>
+    <div class="hr"></div>
+    <div id="list"></div>
+  </div>
+
+  <div class="card" style="grid-column:1/-1">
+    <div class="label">Seeds Rápidos</div>
+    <div class="sublabel">Clique para carregar no editor acima</div>
+    <div class="hr"></div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      <button class="btn-pill" data-seed="system">System Prompt</button>
+      <button class="btn-pill" data-seed="style">Estilo Nebula</button>
+      <button class="btn-pill" data-seed="ritual">Ritual 3•6•9</button>
+    </div>
+  </div>
+</div>
+<script>
+  const list = document.getElementById('list');
+  const k = document.getElementById('k'); const v = document.getElementById('v');
+  function refresh(){
+    list.innerHTML = "";
+    Object.keys(localStorage).filter(x=>x.startsWith('dual.brain.')).sort().forEach(key=>{
+      const row = document.createElement('div'); row.className='kv';
+      const name = document.createElement('div'); name.className='key'; name.textContent = key.replace('dual.brain.','');
+      const actions = document.createElement('div');
+      const btn = document.createElement('button'); btn.className='btn-pill'; btn.textContent='Abrir';
+      btn.addEventListener('click', ()=>{ k.value = name.textContent; v.value = localStorage.getItem(key)||''; });
+      actions.appendChild(btn); row.appendChild(name); row.appendChild(actions); list.appendChild(row);
+    });
+  }
+  document.getElementById('save').addEventListener('click', ()=>{ if(!k.value) return alert('Defina uma chave.');
+    localStorage.setItem('dual.brain.'+k.value, v.value); refresh();
+  });
+  document.getElementById('del').addEventListener('click', ()=>{ if(!k.value) return; localStorage.removeItem('dual.brain.'+k.value); v.value=''; refresh(); });
+  document.getElementById('copy').addEventListener('click', ()=>{
+    const obj = {}; Object.keys(localStorage).filter(x=>x.startsWith('dual.brain.')).forEach(key=>{ obj[key.replace('dual.brain.','')] = localStorage.getItem(key); });
+    navigator.clipboard.writeText(JSON.stringify(obj, null, 2)); alert('Copiado.');
+  });
+  document.getElementById('export').addEventListener('click', ()=>{
+    const obj = {}; Object.keys(localStorage).filter(x=>x.startsWith('dual.brain.')).forEach(key=>{ obj[key] = localStorage.getItem(key); });
+    const blob = new Blob([JSON.stringify(obj, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'dual-brain.json'; a.click();
+  });
+  document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', async (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const text = await file.text(); const obj = JSON.parse(text);
+    Object.entries(obj).forEach(([key,val])=>{ localStorage.setItem(key.startsWith('dual.brain.')?key:('dual.brain.'+key), val); });
+    refresh();
+  });
+  const seeds = {
+    system: "Você é o DUAL Nebula Pro. Responda curto, objetivo e bonito. Foco em UI, PWA, arquétipos e Patch Manager. Do seu jeito. Sempre único, sempre seu.",
+    style: "Tokens: gradientes Nebula, cards metalux, pills, nav inferior, sombra suave, ícones vivos.",
+    ritual: "Ciclo 3•6•9: intenção → ação → revisão. Repetir."
+  };
+  document.querySelectorAll('[data-seed]').forEach(b=> b.addEventListener('click', ()=>{
+    const key = b.getAttribute('data-seed'); k.value = key; v.value = seeds[key]||"";
+  }));
+  refresh();
+</script>
+</div>
+<div class="panel" id="panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="label" style="font-weight:800">Integrador</div>
+    <button class="round small" id="close">✕</button>
+  </div>
+  <div class="sublabel">Backend salvo no dispositivo (DualStore)</div>
+  <div class="hr"></div>
+  <div class="grid" style="grid-template-columns:1fr;gap:10px">
+    <input id="be" class="input" placeholder="http://192.168.0.x:xxxx">
+    <div style="display:flex;gap:8px">
+      <button class="btn-pill" id="save">Salvar</button>
+      <button class="btn-pill" id="test">Test</button>
+      <button class="btn-pill" id="ping" style="background:linear-gradient(90deg,var(--acc2),var(--acc3))">Ping</button>
+      <button class="btn-pill" id="health" style="background:linear-gradient(90deg,#6CFFB8,#29D3FF)">Health</button>
+    </div>
+    <div class="status" id="status">—</div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+<div class="nav"><a class="btn" href="./dual_hub_orion.html"><div class="b">⚡</div>Início</a><a class="btn" href="./dual_chat_pulsar.html"><div class="b">💬</div>Chat</a><a class="btn" href="./dual_brain_aether.html" style="color:white"><div class="b">🧠</div>Brain</a></div><script>
+// DualStore
+const DualStore = {
+  get backend(){ return localStorage.getItem("dual.backend.url") || ""; },
+  set backend(v){ localStorage.setItem("dual.backend.url", (v||"").trim()); },
+};
+function $(s,root=document){ return root.querySelector(s); }
+function el(tag, cls){ const x=document.createElement(tag); if(cls) x.className=cls; return x; }
+async function fetchWithTimeout(url, opts={}, ms=5000){
+  const ctrl = new AbortController(); const id = setTimeout(()=>ctrl.abort(), ms);
+  try{ const res = await fetch(url, {...opts, signal:ctrl.signal}); clearTimeout(id); return res; }
+  catch(e){ clearTimeout(id); throw e; }
+}
+function initIntegratorPanel(){
+  const panel = $("#panel"); if(!panel) return;
+  const be = $("#be"), log = $("#log"), statusEl = $("#status");
+  function openPanel(){ panel.classList.add("open"); be.value = DualStore.backend || ""; }
+  function addLog(line){ const p = el("div"); p.textContent = new Date().toLocaleTimeString()+" • "+line; log.prepend(p); }
+  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") panel.classList.remove("open"); });
+  const openBtn = document.querySelector('[data-open-integrator]'); if(openBtn) openBtn.addEventListener('click', openPanel);
+  $("#close")?.addEventListener('click', ()=> panel.classList.remove('open'));
+  $("#save")?.addEventListener('click', ()=>{ DualStore.backend = be.value; addLog('Salvo: '+DualStore.backend); statusEl.textContent='Backend salvo.'; });
+  async function doGET(path){
+    const base = DualStore.backend; if(!base){ statusEl.textContent='Defina o backend.'; return; }
+    const url = path ? new URL(path, base).toString() : base;
+    statusEl.textContent = 'Carregando...';
+    try{ const res = await fetchWithTimeout(url, {}, 5000); const text = await res.text();
+      statusEl.textContent = (res.ok?'OK ':'ERRO ')+res.status+' — '+url;
+      addLog((res.ok?'[OK] ':'[ERR] ')+url+' → '+text.slice(0,200));
+    }catch(err){ statusEl.textContent = 'Falha na requisição.'; addLog('[ERR] '+(err?.message||err)); }
+  }
+  $("#test")?.addEventListener('click', ()=> doGET(''));
+  $("#ping")?.addEventListener('click', ()=> doGET('/ping'));
+  $("#health")?.addEventListener('click', ()=> doGET('/health'));
+}
+document.addEventListener('DOMContentLoaded', initIntegratorPanel);
+</script></body></html>

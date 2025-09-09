@@ -1,0 +1,142 @@
+<!doctype html><html lang='pt-br'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1, viewport-fit=cover'/><title>PULSAR • CHAT — Nebula Pro</title><style>
+:root{ --bg:#0a0a10; --panel:#0f0f18; --panel2:#121223; --fg:#e7ecff; --muted:#9aa6bd;
+  --acc1:#7B61FF; --acc2:#29D3FF; --acc3:#FF5AD9; --pill:#1a1a2a; --good:#6CFFB8;
+  --shadow: 0 6px 30px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04); }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{ margin:0; font-family: Inter, ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:var(--fg);
+  background: radial-gradient(1200px 800px at 20% -10%, rgba(120,70,255,.24), transparent 60%),
+             radial-gradient(1000px 700px at 120% 110%, rgba(40,200,255,.18), transparent 60%),
+             radial-gradient(800px 600px at -10% 120%, rgba(255,80,180,.16), transparent 60%),
+             linear-gradient(#0b0b12,#0b0b10 60%); }
+a{color:inherit;text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:18px}
+.hbar{display:flex;align-items:center;gap:12px; padding:16px 18px}
+.hbar .title{letter-spacing:.12em; font-weight:800; font-size:22px}
+.hbar .dot{width:8px;height:8px;background:var(--acc2);border-radius:99px; box-shadow:0 0 16px var(--acc2)}
+.top-right{margin-left:auto;display:flex;gap:10px}
+.round{width:36px;height:36px;border-radius:999px; display:grid;place-items:center; background:var(--pill); box-shadow: var(--shadow); border:1px solid rgba(255,255,255,.06)}
+.small{width:30px;height:30px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:6px}
+@media (min-width:720px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+.card{ background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border-radius:20px; padding:16px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.card .ico{width:44px;height:44px;border-radius:16px;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.16), rgba(255,255,255,0) 60%),
+              linear-gradient(135deg, var(--acc1), var(--acc2));
+  display:grid;place-items:center; margin-bottom:10px; filter:saturate(110%); }
+.card .ico svg{width:26px;height:26px; mix-blend-mode:screen}
+.card .label{font-weight:800;margin-top:2px}
+.card .sublabel{color:var(--muted); font-size:12px; margin-top:2px}
+.nav{ position:fixed; left:0; right:0; bottom:0; backdrop-filter: blur(8px);
+  background: rgba(15,15,24,.7); border-top:1px solid rgba(255,255,255,.06);
+  display:flex; gap:10px; padding:10px 14px; justify-content:space-around; z-index:20; }
+.nav .btn{display:grid;place-items:center; gap:6px; font-size:11px; color:var(--muted)}
+.nav .btn .b{ width:42px;height:42px;border-radius:16px;background:var(--pill);
+  display:grid;place-items:center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.btn-pill{padding:10px 14px; background:linear-gradient(90deg,var(--acc1),var(--acc2));
+  border:none; color:white; font-weight:800; border-radius:999px; box-shadow:0 8px 24px rgba(60,60,140,.35)}
+.input{background:var(--panel2); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px; color:var(--fg); outline:none}
+.hr{height:1px;background:rgba(255,255,255,.06); margin:8px 0 10px}
+.chips{display:flex; gap:8px; margin:8px 0 2px 2px}
+.chip{padding:6px 10px; background:var(--pill); border-radius:999px; color:var(--muted); font-size:12px;
+      border:1px solid rgba(255,255,255,.06)}
+.bubbles{position:relative; padding:8px 0 66px}
+.msg{max-width:78%; padding:12px 14px; margin:8px 0; border-radius:16px; line-height:1.25; box-shadow: var(--shadow)}
+.msg.ai{background:#151528}
+.msg.me{background:#241b34; margin-left:auto}
+.msg .meta{font-size:11px;color:var(--muted);margin-top:4px}
+.inputbar{position:fixed; left:0; right:0; bottom:66px; display:flex; gap:8px; padding:8px 14px; z-index:22}
+.inputbar input{flex:1}
+.kv{display:grid;grid-template-columns:1fr auto; gap:8px; align-items:center}
+.kv .key{font-weight:700}
+.code{background:var(--panel2); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre-wrap; color:#d7e4ff}
+.panel{position:fixed;right:0;top:0;bottom:0;width:360px;max-width:92vw;background:rgba(15,15,28,.92);backdrop-filter:blur(10px);box-shadow:-8px 0 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.06);transform:translateX(105%); transition:transform .28s ease; z-index:40; padding:16px}
+.panel.open{transform:translateX(0)}
+.status{font-size:12px;color:var(--muted);min-height:18px}
+.log{background:var(--panel2);border-radius:12px;padding:10px;margin-top:10px;max-height:180px;overflow:auto;font-size:12px;color:var(--muted)}
+</style></head><body><div class='wrap'><div class='hbar'><div class='title'>PULSAR <span class='dot'></span> CHAT</div><div class='top-right'><button class='round small' data-open-integrator title='Integrador'>◇</button></div></div>
+<div class="chips"><div class="chip">Pulsar</div><div class="chip">Nebula</div><div class="chip">online</div></div>
+<div class="bubbles" id="bubbles">
+  <div class="msg ai">Olá, eu sou o DUAL.<div class="meta">10:41</div></div>
+  <div class="msg me">Quero escanear a LAN.<div class="meta">10:42</div></div>
+</div>
+<div class="inputbar">
+  <input id="msg" class="input" placeholder="Mensagem"/>
+  <button class="btn-pill" id="send">Enviar</button>
+</div>
+<script>
+  const bubbles = document.getElementById('bubbles');
+  const msg = document.getElementById('msg');
+  function add(type, text){
+    const d=document.createElement('div'); d.className='msg '+type; d.innerHTML = text + '<div class="meta">'+new Date().toLocaleTimeString().slice(0,5)+'</div>';
+    bubbles.appendChild(d); bubbles.scrollTop = bubbles.scrollHeight;
+  }
+  document.getElementById('send').addEventListener('click', ()=>{
+    if(!msg.value.trim()) return;
+    add('me', msg.value.trim());
+    const q = msg.value.toLowerCase();
+    setTimeout(()=>{
+      if(q.includes('lan')) add('ai','Abra o <span class="chip">LAN Scanner</span> no Hub. Posso abrir o Integrador? <button class="btn-pill" data-open-integrator>Integrador</button>');
+      else add('ai','👍'); initIntegratorPanel();
+    }, 300);
+    msg.value=''; msg.focus();
+  });
+</script>
+</div>
+<div class="panel" id="panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="label" style="font-weight:800">Integrador</div>
+    <button class="round small" id="close">✕</button>
+  </div>
+  <div class="sublabel">Backend salvo no dispositivo (DualStore)</div>
+  <div class="hr"></div>
+  <div class="grid" style="grid-template-columns:1fr;gap:10px">
+    <input id="be" class="input" placeholder="http://192.168.0.x:xxxx">
+    <div style="display:flex;gap:8px">
+      <button class="btn-pill" id="save">Salvar</button>
+      <button class="btn-pill" id="test">Test</button>
+      <button class="btn-pill" id="ping" style="background:linear-gradient(90deg,var(--acc2),var(--acc3))">Ping</button>
+      <button class="btn-pill" id="health" style="background:linear-gradient(90deg,#6CFFB8,#29D3FF)">Health</button>
+    </div>
+    <div class="status" id="status">—</div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+<div class="nav"><a class="btn" href="./dual_hub_orion.html"><div class="b">⚡</div>Início</a><a class="btn" href="./dual_chat_pulsar.html" style="color:white"><div class="b">💬</div>Chat</a><a class="btn" href="./dual_brain_aether.html"><div class="b">🧠</div>Brain</a></div><script>
+// DualStore
+const DualStore = {
+  get backend(){ return localStorage.getItem("dual.backend.url") || ""; },
+  set backend(v){ localStorage.setItem("dual.backend.url", (v||"").trim()); },
+};
+function $(s,root=document){ return root.querySelector(s); }
+function el(tag, cls){ const x=document.createElement(tag); if(cls) x.className=cls; return x; }
+async function fetchWithTimeout(url, opts={}, ms=5000){
+  const ctrl = new AbortController(); const id = setTimeout(()=>ctrl.abort(), ms);
+  try{ const res = await fetch(url, {...opts, signal:ctrl.signal}); clearTimeout(id); return res; }
+  catch(e){ clearTimeout(id); throw e; }
+}
+function initIntegratorPanel(){
+  const panel = $("#panel"); if(!panel) return;
+  const be = $("#be"), log = $("#log"), statusEl = $("#status");
+  function openPanel(){ panel.classList.add("open"); be.value = DualStore.backend || ""; }
+  function addLog(line){ const p = el("div"); p.textContent = new Date().toLocaleTimeString()+" • "+line; log.prepend(p); }
+  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") panel.classList.remove("open"); });
+  const openBtn = document.querySelector('[data-open-integrator]'); if(openBtn) openBtn.addEventListener('click', openPanel);
+  $("#close")?.addEventListener('click', ()=> panel.classList.remove('open'));
+  $("#save")?.addEventListener('click', ()=>{ DualStore.backend = be.value; addLog('Salvo: '+DualStore.backend); statusEl.textContent='Backend salvo.'; });
+  async function doGET(path){
+    const base = DualStore.backend; if(!base){ statusEl.textContent='Defina o backend.'; return; }
+    const url = path ? new URL(path, base).toString() : base;
+    statusEl.textContent = 'Carregando...';
+    try{ const res = await fetchWithTimeout(url, {}, 5000); const text = await res.text();
+      statusEl.textContent = (res.ok?'OK ':'ERRO ')+res.status+' — '+url;
+      addLog((res.ok?'[OK] ':'[ERR] ')+url+' → '+text.slice(0,200));
+    }catch(err){ statusEl.textContent = 'Falha na requisição.'; addLog('[ERR] '+(err?.message||err)); }
+  }
+  $("#test")?.addEventListener('click', ()=> doGET(''));
+  $("#ping")?.addEventListener('click', ()=> doGET('/ping'));
+  $("#health")?.addEventListener('click', ()=> doGET('/health'));
+}
+document.addEventListener('DOMContentLoaded', initIntegratorPanel);
+</script></body></html>

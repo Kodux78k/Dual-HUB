@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dual Infodose — Procedural Pixel Film (Fourier/Chaos)</title>
+<meta name="theme-color" content="#0a0a0f">
+<style>
+  :root{
+    --bg:#0a0a0f; --fg:#e8f6ff; --muted:#9fb6c4; --acc:#00e6ff; --acc2:#ff3af2;
+    --panel:#0f1117cc; --panel-blur:10px;
+    --ring: rgba(0, 230, 255, .4);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:
+      radial-gradient(1200px 700px at 70% -10%, rgba(255,0,255,.06), transparent 60%),
+      radial-gradient(1000px 500px at 0% 100%, rgba(0,255,255,.06), transparent 60%),
+      linear-gradient(42deg, #120016, #04121a 40%, #03070a);
+    color:var(--fg); font: 14px/1.35 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+    overflow:hidden;
+  }
+  /* Canvas overlay: “render no pixel” (na prática: fullscreen overlay) */
+  #filmCanvas{
+    position:fixed; inset:0; width:100vw; height:100vh;
+    image-rendering: pixelated;
+    mix-blend-mode: screen;  /* muda no seletor */
+    pointer-events:none;     /* clicar “atravessa” */
+  }
+  /* HUD minimalista */
+  .hud{
+    position:fixed; top:12px; right:12px; max-width:min(92vw, 420px);
+    background: var(--panel);
+    -webkit-backdrop-filter: blur(var(--panel-blur));
+    backdrop-filter: blur(var(--panel-blur));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; padding:12px 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.03) inset;
+  }
+  .hud h1{margin:0 0 6px; font-size:15px; letter-spacing:.2px; color:#eafcff}
+  .hud .sub{color:var(--muted); font-size:12px; margin-bottom:10px}
+  .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+  .row3{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px}
+  .row4{display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:10px}
+  label{font-size:12px; color:#cce6f7; display:block; margin-bottom:6px}
+  select, input[type="number"], input[type="text"]{
+    width:100%; background:#0a0c12; color:var(--fg); border:1px solid rgba(255,255,255,.12);
+    border-radius:10px; padding:8px 10px; outline:none;
+  }
+  input[type="range"]{width:100%}
+  .btn{
+    width:100%; background:linear-gradient(180deg, #0f1822, #0d0f16);
+    color:var(--fg); border:1px solid rgba(255,255,255,.12); border-radius:12px;
+    padding:10px 12px; cursor:pointer;
+    box-shadow: inset 0 0 20px rgba(0,230,255,.08), 0 1px 0 rgba(255,255,255,.05);
+  }
+  .btn:hover{box-shadow: inset 0 0 24px rgba(0,230,255,.12)}
+  .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.12); background:#0a0c12}
+  .tiny{font-size:11px; color:var(--muted)}
+  .sep{height:10px}
+  .ring{position:absolute; inset:auto 0 -1px 0; height:2px; background:linear-gradient(90deg, transparent, var(--ring), transparent)}
+  .footer{
+    position:fixed; left:12px; bottom:12px; right:auto; display:flex; gap:10px; align-items:center;
+    color:var(--muted); font-size:12px;
+  }
+  .footer .badge{border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:6px 10px; background:#0a0c12}
+  .flex{display:flex; gap:10px; align-items:center}
+  .w100{width:100%}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<canvas id="filmCanvas"></canvas>
+
+<div class="hud" id="hud">
+  <h1>Procedural Pixel Film <span class="tiny">— Fourier/Chaos Live</span></h1>
+  <div class="sub">72×32 por padrão. Renderiza em overlay de tela (pixel art). Exporta JSON do “filme” e grava WebM (se suportado).</div>
+
+  <div class="row">
+    <div>
+      <label>Modo</label>
+      <select id="mode">
+        <option value="HYBRID" selected>HYBRID (Life + Flow + Noise)</option>
+        <option value="LIFE">Game of Life (modulado)</option>
+        <option value="FLOW">Flow/Convolution (vento/água)</option>
+        <option value="NOISE">Value Noise (procedural)</option>
+      </select>
+    </div>
+    <div>
+      <label>Blend</label>
+      <select id="blend">
+        <option value="screen" selected>screen</option>
+        <option value="multiply">multiply</option>
+        <option value="overlay">overlay</option>
+        <option value="normal">normal</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Largura (px)</label>
+      <input id="w" type="number" value="72" min="8" max="512" step="1">
+    </div>
+    <div>
+      <label>Altura (px)</label>
+      <input id="h" type="number" value="32" min="8" max="512" step="1">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Escala do pixel</label>
+      <input id="pixelScale" type="range" min="4" max="20" value="12">
+    </div>
+    <div>
+      <label>Velocidade (dt)</label>
+      <input id="speed" type="range" min="0.2" max="3" step="0.1" value="1.0">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Semente</label>
+      <input id="seed" type="text" value="78Kfilm">
+    </div>
+    <div class="flex">
+      <button class="btn" id="reseed">Reseed</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>“Telephone drift”</label>
+      <input id="drift" type="range" min="0" max="0.02" step="0.0005" value="0.002">
+    </div>
+    <div>
+      <label>Força do áudio</label>
+      <input id="audioGain" type="range" min="0" max="1" step="0.01" value="0.35">
+    </div>
+  </div>
+
+  <div class="row3">
+    <button class="btn" id="start">▶️ Start</button>
+    <button class="btn" id="stop">⏸️ Stop</button>
+    <button class="btn" id="step">⏭️ Step</button>
+  </div>
+
+  <div class="row3" style="margin-top:8px">
+    <button class="btn" id="mic">🎙️ Mic</button>
+    <button class="btn" id="record">⏺️ 15s</button>
+    <button class="btn" id="clear">🧹 Clear</button>
+  </div>
+
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="exportJson">⬇️ Export JSON</button>
+    <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+    <button class="btn" id="importJson">⬆️ Import JSON</button>
+  </div>
+
+  <div class="sep"></div>
+  <div class="tiny">Dica: ative o Mic para “Fourier mode” (usa FFT do WebAudio). Toque/arraste na tela para injetar caos. Rotacione o iPhone (DeviceMotion) para “vento”.</div>
+  <div class="ring"></div>
+</div>
+
+<div class="footer">
+  <div class="badge">⚡ Sempre único, sempre seu</div>
+  <div class="badge">Nebula Pro Overlay</div>
+  <div class="badge" id="status">idle</div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Utils ----------
+  const $ = (sel) => document.querySelector(sel);
+  const canvas = $("#filmCanvas");
+  const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true, willReadFrequently: false });
+
+  // SFC PRNG (determinístico a partir de string)
+  function xmur3(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return () => {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= h >>> 16) >>> 0;
+    };
+  }
+  function sfc32(a, b, c, d) {
+    return function() {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      let t = (a + b) | 0;
+      a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0;
+      c = (c << 21 | c >>> 11);
+      d = (d + 1) | 0;
+      t = (t + d) | 0;
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+  }
+  function seededRngFrom(str) {
+    const seed = xmur3(str);
+    return sfc32(seed(), seed(), seed(), seed());
+  }
+
+  // Mapeamento de cores Nebula (ciano <-> magenta)
+  function palette(v){
+    // v in [0,1]
+    const a = Math.max(0, Math.min(1, v));
+    const r = Math.floor(255 * (0.1 + 0.9 * Math.pow(a, 0.5))); // magenta-ish
+    const g = Math.floor(255 * (0.1 + 0.5 * Math.pow(1 - a, 1.2)));
+    const b = Math.floor(255 * (0.3 + 0.7 * a));
+    return [r, g, b, 255];
+  }
+
+  // -------- State --------
+  let W = 72, H = 32, pixelScale = 12;
+  let mode = "HYBRID";
+  let rng = seededRngFrom("78Kfilm");
+  let t = 0, running = false;
+  let drift = 0.002, speed = 1.0, audioGain = 0.35;
+
+  let field = new Float32Array(W*H);
+  let nextF = new Float32Array(W*H);
+  let life = new Uint8Array(W*H);
+  let nextLife = new Uint8Array(W*H);
+
+  // Audio FFT (WebAudio)
+  let audioCtx = null, analyser = null, fftBins = null, micOn = false;
+
+  // Input/caos
+  let mouse = {x:0, y:0, down:false};
+  let deviceTilt = {x:0, y:0}; // -1..1
+
+  // Log/Replay
+  let eventLog = []; // {time, key, value}
+  const createdAt = Date.now();
+  function logEvent(key, value){
+    eventLog.push({ time: performance.now(), key, value });
+  }
+
+  // ---------- Init ----------
+  function resizeCanvas(){
+    canvas.width = Math.floor(window.innerWidth);
+    canvas.height = Math.floor(window.innerHeight);
+  }
+  window.addEventListener("resize", resizeCanvas, {passive:true});
+  resizeCanvas();
+
+  function alloc(){
+    field = new Float32Array(W*H);
+    nextF = new Float32Array(W*H);
+    life = new Uint8Array(W*H);
+    nextLife = new Uint8Array(W*H);
+  }
+
+  function reseedFrom(str){
+    rng = seededRngFrom(str || "dual");
+    // inicializa “vida” e “campo”
+    for(let i=0;i<W*H;i++){
+      field[i] = rng() * 0.2;
+      life[i] = rng() > 0.8 ? 1 : 0;
+    }
+    t = 0;
+    logEvent("seed", str);
+  }
+
+  function index(x,y){
+    x = (x + W) % W; y = (y + H) % H;
+    return y*W + x;
+  }
+
+  // ---------- Inputs ----------
+  canvas.addEventListener("pointerdown", e=>{ mouse.down = true; injectMouse(e); });
+  window.addEventListener("pointerup", ()=>{ mouse.down = false; });
+  window.addEventListener("pointermove", e=>{ injectMouse(e); });
+
+  function injectMouse(e){
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left)/rect.width * W;
+    mouse.y = (e.clientY - rect.top)/rect.height * H;
+    if(mouse.down){
+      // injetar energia no campo e vida
+      const rad = 3;
+      for(let yy=-rad; yy<=rad; yy++){
+        for(let xx=-rad; xx<=rad; xx++){
+          const d2 = xx*xx + yy*yy;
+          if(d2 <= rad*rad){
+            const i = index(Math.floor(mouse.x)+xx, Math.floor(mouse.y)+yy);
+            field[i] = Math.min(1, field[i] + 0.5);
+            life[i] = 1;
+          }
+        }
+      }
+    }
+  }
+
+  window.addEventListener("deviceorientation", e => {
+    // Normaliza para [-1,1]
+    const gx = Math.max(-1, Math.min(1, (e.gamma || 0)/45));
+    const gy = Math.max(-1, Math.min(1, (e.beta || 0)/45));
+    deviceTilt.x = gx; deviceTilt.y = gy;
+  }, true);
+
+  async function toggleMic(){
+    if(micOn) { micOn = false; $("#status").textContent = "mic: off"; return; }
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.75;
+      fftBins = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser);
+      micOn = true;
+      $("#status").textContent = "mic: on (FFT)";
+    }catch(err){
+      console.warn(err);
+      $("#status").textContent = "mic: erro (perm)";
+    }
+  }
+
+  function pullAudioEnergy(){
+    if(!analyser || !fftBins) return 0;
+    analyser.getByteFrequencyData(fftBins);
+    let sum = 0;
+    for(let i=0;i<fftBins.length;i++) sum += fftBins[i];
+    const energy = sum / (fftBins.length * 255); // 0..1
+    return energy;
+  }
+
+  // ---------- Simulation ----------
+  function neighborsCount(x,y){
+    let c=0;
+    for(let yy=-1; yy<=1; yy++){
+      for(let xx=-1; xx<=1; xx++){
+        if(xx===0 && yy===0) continue;
+        c += life[index(x+xx, y+yy)];
+      }
+    }
+    return c;
+  }
+
+  function stepLife(audioE){
+    const thA = 3; // clássico, mas modularemos pequenas variações
+    const thBmin = 2, thBmax = 3;
+    const jitter = (rng()-0.5) * 0.2 * audioE;
+
+    for(let y=0; y<H; y++){
+      for(let x=0; x<W; x++){
+        const i = y*W + x;
+        const n = neighborsCount(x,y);
+        const alive = life[i];
+        let next = alive;
+        if(alive){
+          next = (n === thA + (jitter>0 ? 0 : 0)) ? 1 : ((n===2 || n===3) ? 1 : 0);
+        }else{
+          next = (n >= thBmin && n <= thBmax) ? 1 : 0;
+        }
+        nextLife[i] = next;
+      }
+    }
+    // swap
+    [life, nextLife] = [nextLife, life];
+  }
+
+  function stepFlow(audioE, dt){
+    // Convolução simples: blur + laplaciano + advecção por tilt, mais injeção de áudio
+    const diff = 0.22 + audioE * 0.25;
+    const feed = 0.02 + audioE * 0.18;
+    const fx = deviceTilt.x * 0.5, fy = deviceTilt.y * 0.5;
+
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const i = y*W + x;
+        const v = field[i];
+
+        // vizinhos 4 + diagonais (kernel 3x3)
+        const vL = field[index(x-1,y)], vR = field[index(x+1,y)];
+        const vU = field[index(x,y-1)], vD = field[index(x,y+1)];
+        const vUL = field[index(x-1,y-1)], vUR = field[index(x+1,y-1)];
+        const vDL = field[index(x-1,y+1)], vDR = field[index(x+1,y+1)];
+
+        const blur = (vL+vR+vU+vD+vUL+vUR+vDL+vDR)/8;
+        const lap = (vL+vR+vU+vD - 4*v);
+
+        // advecção simples (amostra deslocada pela inclinação do device)
+        const ax = Math.round(fx);
+        const ay = Math.round(fy);
+        const adv = field[index(x-ax, y-ay)];
+
+        // dinâmica
+        let nv = v + dt*(diff*lap + 0.25*(blur - v) + 0.15*(adv - v)) + feed*audioE;
+        nextF[i] = Math.max(0, Math.min(1, nv));
+      }
+    }
+    [field, nextF] = [nextF, field];
+  }
+
+  // Value noise básico
+  function hash(x, y, z){
+    // Inteiros -> valor determinístico 0..1
+    let h = x*374761393 + y*668265263 + z*700001 + 0x5bd1e995;
+    h = (h ^ (h >> 13)) * 1274126177;
+    return ((h ^ (h >> 16)) >>> 0) / 4294967295;
+  }
+  function smoothstep(a){ return a*a*(3-2*a); }
+  function valueNoise2D(x, y, t){
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const z = Math.floor(t*10);
+    const h00 = hash(xi, yi, z);
+    const h10 = hash(xi+1, yi, z);
+    const h01 = hash(xi, yi+1, z);
+    const h11 = hash(xi+1, yi+1, z);
+    const u = smoothstep(xf), v = smoothstep(yf);
+    const x1 = h00*(1-u) + h10*u;
+    const x2 = h01*(1-u) + h11*u;
+    return x1*(1-v) + x2*v;
+  }
+
+  function stepNoise(dt, audioE){
+    const scale = 0.15 + audioE * 0.35;
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const i = y*W + x;
+        // mistura coordenadas em “ondas”
+        const v = valueNoise2D(x*scale + t*0.2, y*scale + t*0.17, t*0.07);
+        field[i] = 0.85*field[i] + 0.15*v;
+        // usa vida como faísca extra
+        if(life[i]) field[i] = Math.min(1, field[i] + 0.15);
+      }
+    }
+  }
+
+  function hybridStep(dt){
+    const audioE = pullAudioEnergy() * audioGain;
+    stepLife(audioE);
+    stepFlow(audioE, dt);
+    stepNoise(dt, audioE);
+  }
+
+  // ---------- Rendering ----------
+  // Desenha um buffer W×H para uma canvas offscreen e depois escala sem blur
+  const tmp = document.createElement("canvas");
+  const tmpCtx = tmp.getContext("2d", { willReadFrequently: false });
+
+  function draw(){
+    tmp.width = W; tmp.height = H;
+    const img = tmpCtx.createImageData(W, H);
+    const data = img.data;
+
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const i = y*W + x;
+        // Combina campo e vida
+        const v = Math.max(0, Math.min(1, field[i]*0.85 + life[i]*0.3));
+        const [r,g,b,a] = palette(v);
+        const k = i*4;
+        data[k]=r; data[k+1]=g; data[k+2]=b; data[k+3]=a;
+      }
+    }
+    tmpCtx.putImageData(img, 0, 0);
+
+    // Escala para tela inteira em pixel art
+    ctx.imageSmoothingEnabled = false;
+    const ps = pixelScale;
+    // centralizar mantendo aspect ratio “pixelado” quando possível
+    const cw = W*ps, ch = H*ps;
+    const vw = canvas.width, vh = canvas.height;
+    const sx = Math.floor((vw - cw)/2);
+    const sy = Math.floor((vh - ch)/2);
+    ctx.clearRect(0,0,vw,vh);
+    ctx.drawImage(tmp, sx, sy, cw, ch);
+  }
+
+  // ---------- Loop ----------
+  let raf = null;
+  function frame(){
+    const dt = 0.016 * speed;
+    t += dt;
+
+    // drift sutil (telefone sem fio)
+    if(drift > 0){
+      for(let i=0;i<W*H;i++){
+        field[i] = Math.max(0, Math.min(1, field[i] + (rng() - 0.5) * drift));
+      }
+    }
+
+    if(mode === "LIFE"){ stepLife(pullAudioEnergy()*audioGain); }
+    else if(mode === "FLOW"){ stepFlow(pullAudioEnergy()*audioGain, dt); }
+    else if(mode === "NOISE"){ stepNoise(dt, pullAudioEnergy()*audioGain); }
+    else { hybridStep(dt); }
+
+    draw();
+    if(running) raf = requestAnimationFrame(frame);
+  }
+
+  // ---------- Recording ----------
+  let rec = null, chunks = [];
+  async function record15s(){
+    if(!canvas.captureStream){ alert("captureStream não suportado aqui."); return; }
+    const stream = canvas.captureStream(30);
+    try{
+      rec = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9" });
+    }catch(e){
+      try{ rec = new MediaRecorder(stream, { mimeType: "video/webm" }); }
+      catch(err){ alert("MediaRecorder não suportado."); return; }
+    }
+    chunks = [];
+    rec.ondataavailable = e => { if(e.data && e.data.size>0) chunks.push(e.data); };
+    rec.onstop = () => {
+      const blob = new Blob(chunks, {type: "video/webm"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "procedural-film.webm";
+      a.textContent = "Baixar WebM (15s)";
+      a.className = "btn";
+      a.style.marginTop = "8px";
+      $("#hud").appendChild(a);
+      setTimeout(()=>URL.revokeObjectURL(url), 2*60*1000);
+    };
+    rec.start();
+    setTimeout(()=>{ if(rec && rec.state==="recording") rec.stop(); }, 15000);
+  }
+
+  // ---------- Export/Import JSON ----------
+  function exportJSON(){
+    const payload = {
+      meta: { createdAt, w: W, h: H, mode, pixelScale, speed, drift, audioGain, blend: $("#blend").value },
+      seed: $("#seed").value,
+      events: eventLog
+    };
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "procedural-film-log.json";
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+  }
+
+  function importJSONFile(file){
+    const fr = new FileReader();
+    fr.onload = () => {
+      try{
+        const payload = JSON.parse(fr.result);
+        applyPayload(payload);
+      }catch(e){ alert("JSON inválido."); }
+    };
+    fr.readAsText(file);
+  }
+
+  function applyPayload(p){
+    if(!p || !p.meta) return;
+    W = p.meta.w || W; H = p.meta.h || H;
+    $("#w").value = W; $("#h").value = H;
+    $("#blend").value = p.meta.blend || "screen";
+    canvas.style.mixBlendMode = $("#blend").value;
+    pixelScale = p.meta.pixelScale || pixelScale;
+    $("#pixelScale").value = pixelScale;
+    speed = p.meta.speed || speed; $("#speed").value = speed;
+    drift = p.meta.drift ?? drift; $("#drift").value = drift;
+    audioGain = p.meta.audioGain ?? audioGain; $("#audioGain").value = audioGain;
+    mode = p.meta.mode || mode; $("#mode").value = mode;
+    $("#seed").value = p.seed || "dual";
+
+    alloc();
+    reseedFrom($("#seed").value);
+    // Reaplicar timeline de eventos (aqui simplificado: aplicamos estado final)
+    if(Array.isArray(p.events)){
+      for(const ev of p.events){
+        if(ev.key && typeof ev.value !== "undefined"){
+          applyEvent(ev.key, ev.value);
+        }
+      }
+    }
+    draw();
+  }
+
+  function applyEvent(k,v){
+    switch(k){
+      case "mode": mode = v; $("#mode").value = v; break;
+      case "blend": $("#blend").value = v; canvas.style.mixBlendMode = v; break;
+      case "speed": speed = v; $("#speed").value = v; break;
+      case "drift": drift = v; $("#drift").value = v; break;
+      case "pixelScale": pixelScale = v; $("#pixelScale").value = v; break;
+      case "audioGain": audioGain = v; $("#audioGain").value = v; break;
+      case "size": W = v.w; H = v.h; $("#w").value=W; $("#h").value=H; alloc(); break;
+      case "seed": reseedFrom(String(v)); break;
+    }
+  }
+
+  // ---------- Wiring UI ----------
+  $("#mode").addEventListener("change", e=>{ mode = e.target.value; logEvent("mode", mode); });
+  $("#blend").addEventListener("change", e=>{ canvas.style.mixBlendMode = e.target.value; logEvent("blend", e.target.value); });
+
+  $("#w").addEventListener("change", e=>{
+    W = Math.max(8, Math.min(512, (e.target.value|0)));
+    logEvent("size", {w:W,h:H});
+    alloc(); reseedFrom($("#seed").value);
+  });
+  $("#h").addEventListener("change", e=>{
+    H = Math.max(8, Math.min(512, (e.target.value|0)));
+    logEvent("size", {w:W,h:H});
+    alloc(); reseedFrom($("#seed").value);
+  });
+
+  $("#pixelScale").addEventListener("input", e=>{ pixelScale = +e.target.value; logEvent("pixelScale", pixelScale); draw(); });
+  $("#speed").addEventListener("input", e=>{ speed = +e.target.value; logEvent("speed", speed); });
+  $("#drift").addEventListener("input", e=>{ drift = +e.target.value; logEvent("drift", drift); });
+  $("#audioGain").addEventListener("input", e=>{ audioGain = +e.target.value; logEvent("audioGain", audioGain); });
+
+  $("#reseed").addEventListener("click", ()=>{
+    reseedFrom($("#seed").value || "dual");
+  });
+
+  $("#start").addEventListener("click", ()=>{
+    if(!running){ running = true; raf = requestAnimationFrame(frame); $("#status").textContent = "playing"; }
+  });
+  $("#stop").addEventListener("click", ()=>{
+    running = false; if(raf) cancelAnimationFrame(raf); $("#status").textContent = "paused";
+  });
+  $("#step").addEventListener("click", ()=>{
+    running = false;
+    frame(); $("#status").textContent = "stepped";
+  });
+
+  $("#mic").addEventListener("click", toggleMic);
+  $("#record").addEventListener("click", record15s);
+  $("#clear").addEventListener("click", ()=>{
+    for(let i=0;i<W*H;i++){ field[i]=0; life[i]=0; } draw();
+  });
+
+  $("#exportJson").addEventListener("click", exportJSON);
+  $("#importJson").addEventListener("click", ()=> $("#importFile").click());
+  $("#importFile").addEventListener("change", e=>{
+    const f = e.target.files && e.target.files[0];
+    if(f) importJSONFile(f);
+  });
+
+  // Inicial
+  canvas.style.mixBlendMode = "screen";
+  alloc();
+  reseedFrom($("#seed").value);
+  draw();
+})();
+</script>
+</body>
+</html>
