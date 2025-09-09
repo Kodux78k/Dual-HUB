@@ -215,6 +215,150 @@
         "url": "./apps/Dual_Infodose_NebulaPro_Streaming_ASCII.html",
         "icon": "icons/icon-192-indexrs.png",
         "tags": ["dual","infodose","nebula","ascii","streaming"]
+      },
+      {
+        "key": "dual-monolith-nebulapro-hubchatbrain-v3",
+        "title": "DUAL Monolith NebulaPro HubChatBrain v3",
+        "desc": "Versão monolítica v3 com Hub, Chat e Brain.",
+        "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v3.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","chat","brain","monolith","nebula"]
+      },
+      {
+        "key": "dual-procedural-pixel-film-nebulapro-luxara-v4",
+        "title": "Procedural Pixel Film NebulaPro Luxara v4",
+        "desc": "Versão procedural v4 sob comando da Luxara.",
+        "url": "./apps/Dual_Procedural_Pixel_Film_NebulaPro_LUXARA-v4.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","luxara","nebula"]
+      },
+      {
+        "key": "dual-procedural-pixel-film-nebulapro-br-icons-fix",
+        "title": "Procedural Pixel Film NebulaPro BR Icons Fix",
+        "desc": "Correção de ícones brasileiros para o Pixel Film.",
+        "url": "./apps/Dual_Procedural_Pixel_Film_NebulaPro_BR_Icons_Fix.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","nebula","icons"]
+      },
+      {
+        "key": "dual-monolith-nebulapro-hubchatbrain-v5",
+        "title": "DUAL Monolith NebulaPro HubChatBrain v5",
+        "desc": "Versão monolítica v5 com refine in-bubble e ASCII.",
+        "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v5_refine_inbubble_ASCII.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","chat","brain","ascii","monolith","nebula"]
+      },
+      {
+        "key": "procedural-pixel-film-nebulapro-final-one",
+        "title": "Procedural Pixel Film NebulaPro FINAL ONE",
+        "desc": "Versão final ONE do Pixel Film.",
+        "url": "./apps/Procedural_Pixel_Film_NebulaPro_FINAL_ONE.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","nebula","final"]
+      },
+      {
+        "key": "dual-monolith-nebulapro-hubchatbrain",
+        "title": "DUAL Monolith NebulaPro HubChatBrain",
+        "desc": "Versão base HubChatBrain Monolith NebulaPro.",
+        "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","chat","brain","monolith","nebula"]
+      },
+      {
+        "key": "procedural-pixel-film-nebulapro-final-pro",
+        "title": "Procedural Pixel Film NebulaPro FINAL PRO",
+        "desc": "Versão FINAL PRO do Pixel Film.",
+        "url": "./apps/Procedural_Pixel_Film_NebulaPro_FINAL_PRO.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","nebula","pro"]
+      },
+      {
+        "key": "dual-chat-nebulapro",
+        "title": "Dual Chat NebulaPro",
+        "desc": "Interface clássica do chat NebulaPro.",
+        "url": "./apps/Dual_Chat_NebulaPro.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","nebula","dual"]
+      },
+      {
+        "key": "dual-hub-nebulapro",
+        "title": "DUAL HUB NebulaPro",
+        "desc": "Hub principal no tema NebulaPro.",
+        "url": "./apps/DUAL_HUB_NebulaPro.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["hub","nebula","dual"]
+      },
+      {
+        "key": "dual-chat-pulsar",
+        "title": "Dual Chat Pulsar",
+        "desc": "Versão Pulsar do chat Dual.",
+        "url": "./apps/dual_chat_pulsar.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","dual","pulsar"]
+      },
+      {
+        "key": "dual-chat-nebulapro-v2-luxara-neon-v2",
+        "title": "Dual Chat NebulaPro v2 Luxara Neon",
+        "desc": "Versão v2 com Luxara Neon aplicada.",
+        "url": "./apps/Dual_Chat_NebulaPro-v2_luxara_neon_v2.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","nebula","luxara","neon"]
+      },
+      {
+        "key": "dual-unificado-nebula-pro-radial-haptics-openrouter",
+        "title": "Dual Unificado Nebula Pro Radial Haptics",
+        "desc": "Versão unificada com radial, haptics e OpenRouter.",
+        "url": "./apps/dual_unificado_nebula_pro_radial_haptics_open_router.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["dual","nebula","radial","haptics","openrouter"]
+      },
+      {
+        "key": "dual-procedural-pixel-film-v2",
+        "title": "Dual Procedural Pixel Film v2",
+        "desc": "Segunda versão do Procedural Pixel Film.",
+        "url": "./apps/Dual_Procedural_Pixel_Film-v2.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","dual","nebula"]
+      },
+      {
+        "key": "dual-chat-nebulapro-v2",
+        "title": "Dual Chat NebulaPro v2",
+        "desc": "Segunda versão do chat NebulaPro.",
+        "url": "./apps/Dual_Chat_NebulaPro-v2.html",
+        "icon": "icons/icon-192-chats.png",
+        "tags": ["chat","nebula","dual","v2"]
+      },
+      {
+        "key": "indexhub-safev3-1-nebulapro",
+        "title": "IndexHub Safe v3.1 NebulaPro",
+        "desc": "IndexHub versão Safe v3.1 NebulaPro.",
+        "url": "./apps/indexhub.SAFEv3.1.NebulaPro.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["index","hub","nebula","safe"]
+      },
+      {
+        "key": "procedural-pixel-film-nebulapro0",
+        "title": "Procedural Pixel Film NebulaPro 0",
+        "desc": "Versão inicial do Procedural Pixel Film.",
+        "url": "./apps/procedural_pixel_film_nebula_pro0.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","nebula"]
+      },
+      {
+        "key": "dual-procedural-pixel-film-nebulapro-br-ousado-fix",
+        "title": "Procedural Pixel Film NebulaPro BR Ousado Fix",
+        "desc": "Fix ousado BR para o Pixel Film.",
+        "url": "./apps/Dual_Procedural_Pixel_Film_NebulaPro_BR_Ousado_Fix.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["procedural","pixel","film","nebula","br","ousado"]
+      },
+      {
+        "key": "dual-brain-aether",
+        "title": "Dual Brain Aether",
+        "desc": "Versão Aether do Dual Brain.",
+        "url": "./apps/dual_brain_aether.html",
+        "icon": "icons/icon-192-indexrs.png",
+        "tags": ["brain","dual","aether"]
       }
     ],
 
