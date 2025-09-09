@@ -9,19 +9,19 @@
   "groups": {
     "index_hubs": [
       {
-        "key": "index-nebula",
+        "key": "index-finder",
         "title": "Interface Inicial",
         "desc": "Interface Nebula inicial.",
-        "url": "./apps/index.nebula.html",
-        "icon": "icons/icon-192-indexrs.png",
+        "url": "./apps/dual-finder-pro+Image2CSS.html",
+        "icon": "icons/icon-192-FND.png",
         "tags": ["hub","index","nebula"]
       },
       {
         "key": "index-nebula-unified",
-        "title": "ATIVAR Arquetipo",
+        "title": "HUB NEBULA PRO ",
         "desc": "Interface Nebula unificada.",
-        "url": "./apps/index.nebula.unified.html",
-        "icon": "icons/icon-192-indexrs.png",
+        "url": "./apps/DUAL_HUB_NebulaPro.html",
+        "icon": "icons/icon-192-HUB.png",
         "tags": ["hub","index","nebula","unified"]
       },
       {
@@ -49,19 +49,19 @@
         "tags": ["hub","index","principal"]
       },
       {
-        "key": "index-metalux",
+        "key": "index-luxara",
         "title": " MetaLux",
         "desc": "Interface MetaLux.",
-        "url": "./apps/index-MetaLux.html",
-        "icon": "icons/icon-192-indexrs.png",
+        "url": "./apps/indexhub.SAFEv3.NebulaPro+Image2CSS.html",
+        "icon": "icons/icon-192-IDX.png",
         "tags": ["hub","index","metalux"]
       },
       {
         "key": "index-sumbus-3",
-        "title": "I 3",
-        "desc": "Interface simbólica Sümbüs.",
-        "url": "./apps/index-sümbüs-3.html",
-        "icon": "icons/icon-192-indexrs.png",
+        "title": "IMG PROMPT",
+        "desc": "IMG PROMPT Sümbüs.",
+        "url": "./apps/Dual_Image2CSS_Studio.html",
+        "icon": "icons/icon-192-IMG.png",
         "tags": ["hub","index","sumbus"]
       },
       {
