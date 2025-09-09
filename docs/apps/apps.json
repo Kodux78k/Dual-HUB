@@ -396,6 +396,38 @@
         "icon": "icons/icon-192-chats.png",
         "tags": ["render","kobllux","chat"]
       }
+      {
+  "key": "dual-monolith-nebulapro-hubchatbrain-v6-0",
+  "title": "DUAL Monolith NebulaPro HubChatBrain v6-0",
+  "desc": "Monólito v6-0 do Hub+Chat+Brain NebulaPro.",
+  "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v6-0.html",
+  "icon": "icons/icon-192-NEB.png",
+  "tags": ["hub","chat","brain","nebula","dual","monolith"]
+},
+{
+  "key": "dual-procedural-pixel-film-merged",
+  "title": "Dual Procedural Pixel Film Merged",
+  "desc": "Filme procedural pixelado versão mergeada.",
+  "url": "./apps/Dual_Procedural_Pixel_Film_Merged.html",
+  "icon": "icons/icon-192-IMG.png",
+  "tags": ["film","procedural","pixel","dual","nebula"]
+},
+{
+  "key": "dual-monolith-nebulapro-hubchatbrain-v6",
+  "title": "DUAL Monolith NebulaPro HubChatBrain v6",
+  "desc": "Monólito v6 do Hub+Chat+Brain NebulaPro.",
+  "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v6.html",
+  "icon": "icons/icon-192-NEB.png",
+  "tags": ["hub","chat","brain","nebula","dual","monolith"]
+},
+{
+  "key": "dual-monolith-nebulapro-hubchatbrain",
+  "title": "DUAL Monolith NebulaPro HubChatBrain",
+  "desc": "Versão base do Monólito Hub+Chat+Brain NebulaPro.",
+  "url": "./apps/DUAL_Monolith_NebulaPro_HubChatBrain.html",
+  "icon": "icons/icon-192-NEB.png",
+  "tags": ["hub","chat","brain","nebula","dual","monolith"]
+}
     ],
     "editors_tools": [
       {
