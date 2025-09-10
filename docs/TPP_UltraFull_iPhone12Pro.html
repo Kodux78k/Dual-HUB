@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>TPP • Ultra Full • iPhone 12 Pro</title>
+<meta name="theme-color" content="#0b0b14">
+<style>
+  :root{
+    --bg1:#0c1322; --bg2:#0a101b; --fg:#eef1ff; --muted:#95a0c8;
+    --ring1:#a77cff; --ring2:#5ed0ff; --line:#141a34;
+    --ok:#39ffb6; --warn:#ffd166; --err:#ff6a6a;
+    /* iPhone 12 Pro pixel targets */
+    --pad-offset:36px;
+    --ball-size:14px;
+    --cta-size:156px;
+    --pill-left:22px;
+    --pill-bottom:30px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--fg);
+    background: radial-gradient(120% 100% at 50% -10%, #2a1d45 0%, var(--bg1) 55%) fixed,
+                linear-gradient(180deg, var(--bg1), var(--bg2)) fixed;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+    letter-spacing:.2px; display:grid; place-items:center;
+  }
+  /* Stage: iPhone 12/12 Pro logical width 390pt */
+  .stage{
+    width:min(390px, 96vw);
+    aspect-ratio:9/19.5;
+    border-radius:26px;
+    border:1px solid #0e1330;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+    box-shadow: 0 28px 72px rgba(0,0,0,.45);
+    position:relative; overflow:hidden;
+    padding-top: calc(var(--safe-top));
+    padding-bottom: calc(var(--safe-bottom));
+  }
+  .status{
+    position:absolute; top: calc(12px + var(--safe-top)); left:50%; transform:translateX(-50%);
+    color:#d7deff; font-size:14px; letter-spacing:.4px; opacity:.9; user-select:none; pointer-events:none;
+  }
+  .pong{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
+  .paddle{ position:absolute; width:6px; height:52%; background:#e8eeff14; border:1px solid #ffffff10; border-radius:6px;
+           top:50%; transform:translateY(-50%); }
+  .paddle.left{ left: var(--pad-offset); }
+  .paddle.right{ right: var(--pad-offset); }
+  .ball{ width: var(--ball-size); height: var(--ball-size); border-radius:50%; background:#eef2ff; opacity:.95;
+         box-shadow:0 0 18px rgba(255,255,255,.28); }
+  .cta{
+    position:absolute; left:50%; bottom: calc(var(--pill-bottom) + var(--safe-bottom) + 72px);
+    transform:translateX(-50%);
+    width: var(--cta-size); height: var(--cta-size); border-radius:50%;
+    display:grid; place-items:center; cursor:pointer;
+    background: radial-gradient(60% 60% at 50% 50%, rgba(94,208,255,.25), transparent 70%), #0b0f22;
+    border:1px solid #262b55; box-shadow: 0 20px 48px rgba(0,0,0,.35); user-select:none;
+  }
+  .cta .ring{
+    position:absolute; inset:8px; border-radius:50%;
+    background: conic-gradient(from 0deg, var(--ring1), var(--ring2), var(--ring1));
+    -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%);
+            mask: radial-gradient(circle, transparent 62%, #000 63%);
+    filter: blur(0.3px); opacity:.92; animation: spin 8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg) } }
+  .cta .label{ font-weight:800; letter-spacing:1.2px; font-size:14px; color:#e9eeff; text-transform:uppercase; }
+  .cta.on{ border-color:#3a4191; box-shadow:0 0 50px rgba(94,208,255,.35), inset 0 0 60px rgba(167,124,255,.18) }
+  .btpill{
+    position:absolute; left: var(--pill-left); bottom: calc(var(--pill-bottom) + var(--safe-bottom));
+    display:flex; align-items:center; gap:10px; background:#0a0f20; color:#cfe5ff;
+    border:1px solid #1b2247; border-radius:16px; padding:10px 12px; font-size:13px; box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
+  .btpill svg{ width:16px; height:16px; opacity:.9 }
+  .switch{ width:44px; height:26px; background:#0e1533; border:1px solid #273167; border-radius:999px; position:relative }
+  .knob{ position:absolute; top:2px; left:2px; width:20px; height:20px; background:#e7ecff; border-radius:50%; transition:.2s ease; box-shadow:0 2px 8px rgba(0,0,0,.35) }
+  .switch.on{ background:#163d35; border-color:#1f6a55 }
+  .switch.on .knob{ left:22px; background:#39ffb6 }
+
+  /* Floating action chips (top-right, subtle) */
+  .chips{ position:absolute; right:16px; top: calc(12px + var(--safe-top)); display:flex; flex-direction:column; gap:8px }
+  .chip{ border:1px solid #1b2247; background:#0b1126; color:#dfe5ff; font-size:11px; padding:6px 10px; border-radius:999px; box-shadow:0 6px 16px rgba(0,0,0,.25); }
+  .chip[disabled]{ opacity:.5; filter:saturate(.6) }
+
+  /* Helper toast */
+  .toast{
+    position:absolute; left:50%; bottom: calc(8px + var(--safe-bottom)); transform:translateX(-50%);
+    background:rgba(10,15,32,.8); border:1px solid #1b2247; color:#cfe5ff; font-size:12px;
+    border-radius:12px; padding:8px 12px; opacity:.0; pointer-events:none; transition:.25s ease;
+  }
+  .toast.show{ opacity:1 }
+</style>
+</head>
+<body>
+  <div class="stage" id="app">
+    <div class="status" id="status">Ping Pong Player • TPP</div>
+
+    <div class="pong">
+      <div class="paddle left"></div>
+      <div class="ball" id="ball"></div>
+      <div class="paddle right"></div>
+    </div>
+
+    <div class="cta" id="power" aria-label="Activate">
+      <div class="ring"></div>
+      <div class="label" id="label">Activate</div>
+    </div>
+
+    <div class="btpill" id="bt">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M12 12l6-6-6 6 6 6-6-6-6 6 6-6-6-6 6 6Z" stroke="#5ed0ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Bluetooth</span>
+      <div class="switch" id="btSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="chips">
+      <button class="chip" id="btnIntent" title="Gerador Procedural (sem ping)">Intenção</button>
+      <button class="chip" id="btnRec" title="Gravar WAV">Gravar</button>
+      <button class="chip" id="btnSave" title="Salvar WAV" disabled>Salvar</button>
+    </div>
+
+    <div class="toast" id="toast">Toque em ACTIVATE para iniciar o áudio</div>
+  </div>
+
+<script>
+/* ===== URL presets (scale & seed) ===== */
+function getParams(){
+  const u = new URL(location.href);
+  return { scale:(u.searchParams.get('scale')||'chromatic').toLowerCase(), seed:(u.searchParams.get('seed')||'')+'' };
+}
+const PRESETS=getParams();
+
+/* Seeded PRNG */
+function xmur3(str){ let h=1779033703 ^ str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h ^ str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19);} return function(){ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; } }
+function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; } }
+let RAND=Math.random; if(PRESETS.seed){ const s=xmur3(PRESETS.seed)(); RAND=mulberry32(s); }
+
+/* Scales */
+const SCALES={ chromatic:[0,1,2,3,4,5,6,7,8,9,10,11], major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], pentatonic:[0,2,4,7,9] };
+const SCALE=SCALES[PRESETS.scale]||SCALES.chromatic;
+function quantizeToScale(midi){
+  if(SCALE.length===12) return Math.round(midi);
+  const baseOct=Math.floor(midi/12)*12;
+  let best=Math.round(midi), bestDist=1e9;
+  for(let k=-1;k<=1;k++){ for(const d of SCALE){ const cand=baseOct+d+12*k; const dist=Math.abs(cand-midi); if(dist<bestDist){ bestDist=dist; best=cand; } } }
+  return best;
+}
+
+/* Archetypes */
+const ARCH=[
+  {name:'Nova',base:'sine',partials:[0.55,0.30,0.20],rev:0.32,cut:3200,lfoWave:'sine',lfoDepth:6},
+  {name:'Elysha',base:'triangle',partials:[0.45,0.28,0.18],rev:0.28,cut:3600,lfoWave:'sine',lfoDepth:8},
+  {name:'Kaion',base:'sawtooth',partials:[0.42,0.25,0.16],rev:0.22,cut:4200,lfoWave:'triangle',lfoDepth:10},
+  {name:'Artemis',base:'sine',partials:[0.60,0.34,0.22],rev:0.36,cut:3000,lfoWave:'sine',lfoDepth:7},
+  {name:'Serena',base:'triangle',partials:[0.40,0.24,0.14],rev:0.25,cut:3800,lfoWave:'triangle',lfoDepth:5},
+  {name:'Atlas',base:'square',partials:[0.35,0.22,0.14],rev:0.18,cut:2600,lfoWave:'square',lfoDepth:4},
+  {name:'Kaos',base:'sawtooth',partials:[0.50,0.34,0.26],rev:0.40,cut:4800,lfoWave:'square',lfoDepth:16},
+  {name:'Genus',base:'sine',partials:[0.50,0.29,0.18],rev:0.24,cut:3400,lfoWave:'sine',lfoDepth:6},
+  {name:'Lumine',base:'triangle',partials:[0.48,0.30,0.22],rev:0.30,cut:3600,lfoWave:'sine',lfoDepth:9},
+  {name:'Aion',base:'sine',partials:[0.44,0.28,0.20],rev:0.28,cut:4100,lfoWave:'triangle',lfoDepth:8},
+  {name:'Rhea',base:'sine',partials:[0.62,0.36,0.26],rev:0.38,cut:2900,lfoWave:'sine',lfoDepth:7},
+  {name:'Horus',base:'square',partials:[0.30,0.18,0.12],rev:0.16,cut:2400,lfoWave:'triangle',lfoDepth:5},
+];
+
+/* Utils */
+const $=s=>document.querySelector(s);
+function msToHz(ms){ return 1000/ms; }
+function hzToMidi(f){ return 69+12*Math.log2(f/440); }
+function midiToHz(m){ return 440*Math.pow(2,(m-69)/12); }
+
+/* Audio + WAV capture */
+let actx, master, analyser, analyserFFT, running=false;
+const players={};
+let recorderNode, recBuffersL=[], recBuffersR=[], recLength=0, recording=false;
+function startCapture(){
+  const sp = actx.createScriptProcessor(4096, 2, 2);
+  analyserFFT.connect(sp); sp.connect(actx.destination);
+  sp.onaudioprocess=(e)=>{
+    if(!recording) return;
+    const L=e.inputBuffer.getChannelData(0), R=e.inputBuffer.getChannelData(1);
+    recBuffersL.push(new Float32Array(L)); recBuffersR.push(new Float32Array(R)); recLength+=L.length;
+  };
+  recorderNode=sp;
+}
+function mergeBuffers(buffers, length){ const out=new Float32Array(length); let off=0; for(const b of buffers){ out.set(b,off); off+=b.length; } return out; }
+function interleave(L,R){ const len=L.length+R.length, out=new Float32Array(len); let i=0,j=0; while(i<len){ out[i++]=L[j]; out[i++]=R[j++]; } return out; }
+function floatTo16(view, float32, offset){ for(let i=0;i<float32.length;i++,offset+=2){ let s=Math.max(-1,Math.min(1,float32[i])); view.setInt16(offset, s<0?s*0x8000:s*0x7FFF, true);} }
+function wavBlob(sampleRate){
+  const L=mergeBuffers(recBuffersL, recLength), R=mergeBuffers(recBuffersR, recLength);
+  const inter=interleave(L,R);
+  const buffer=new ArrayBuffer(44 + inter.length*2); const view=new DataView(buffer);
+  // header
+  function str(off, s){ for(let i=0;i<s.length;i++) view.setUint8(off+i, s.charCodeAt(i)); }
+  const bytesPerSample=2, numChannels=2, blockAlign=numChannels*bytesPerSample, byteRate=sampleRate*blockAlign;
+  str(0,'RIFF'); view.setUint32(4, 36 + inter.length*2, true); str(8,'WAVE'); str(12,'fmt ');
+  view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,numChannels,true);
+  view.setUint32(24,sampleRate,true); view.setUint32(28,byteRate,true); view.setUint16(32,blockAlign,true); view.setUint16(34,16,true);
+  str(36,'data'); view.setUint32(40, inter.length*2, true);
+  floatTo16(view, inter, 44);
+  return new Blob([view], {type:'audio/wav'});
+}
+
+function buildAudio(){
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain(); master.gain.value=0.0;
+  analyser=actx.createAnalyser(); analyser.fftSize=2048;
+  analyserFFT=actx.createAnalyser(); analyserFFT.fftSize=2048;
+  analyser.connect(analyserFFT); analyserFFT.connect(master); master.connect(actx.destination);
+  startCapture();
+}
+function createTrack(pan){
+  const panNode=actx.createStereoPanner(); panNode.pan.value=pan;
+  const dry=actx.createGain(); dry.gain.value=0.7;
+  const wet=actx.createGain(); wet.gain.value=0.34;
+  const filter=actx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=3400;
+  const delay=actx.createDelay(1.0); delay.delayTime.value=0.27;
+  const fb=actx.createGain(); fb.gain.value=0.3;
+  let baseL=actx.createOscillator(); baseL.type='sine';
+  let baseR=actx.createOscillator(); baseR.type='sine';
+  const gL=actx.createGain(); gL.gain.value=0.18;
+  const gR=actx.createGain(); gR.gain.value=0.18;
+  baseL.connect(gL); baseR.connect(gR);
+  const sum=actx.createGain(); gL.connect(sum); gR.connect(sum);
+  const partials=[2,3,5].map(()=>({o:actx.createOscillator(), g:actx.createGain()}));
+  partials.forEach((p,i)=>{ p.o.type='sine'; p.g.gain.value=[0.5,0.3,0.2][i]*0.35; p.o.connect(p.g); p.g.connect(filter); });
+  filter.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet);
+  sum.connect(dry); dry.connect(analyser); wet.connect(analyser);
+  analyser.connect(panNode); panNode.connect(analyserFFT);
+  let lfo=actx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.5;
+  let lfoGain=actx.createGain(); lfoGain.gain.value=6;
+  partials.forEach(p=>{ lfo.connect(lfoGain); lfoGain.connect(p.o.detune); });
+  baseL.start(); baseR.start(); partials.forEach(p=>p.o.start()); lfo.start();
+  return {
+    panNode,dry,wet,filter,delay,fb,baseL,baseR,gL,gR,sum,partials,lfo,lfoGain,
+    setFreq(f){
+      let ff=f; while(ff<100) ff*=2; while(ff>900) ff/=2;
+      let midi=hzToMidi(ff); midi=quantizeToScale(midi); const fq=midiToHz(midi);
+      const pc=((Math.round(midi)%12)+12)%12; const arch=ARCH[pc];
+      try{ this.baseL.stop(); }catch{} try{ this.baseR.stop(); }catch{}
+      this.baseL=actx.createOscillator(); this.baseL.type=arch.base;
+      this.baseR=actx.createOscillator(); this.baseR.type=arch.base;
+      this.baseL.connect(this.gL); this.baseR.connect(this.gR);
+      this.baseL.start(); this.baseR.start();
+      this.baseL.frequency.setTargetAtTime(fq,actx.currentTime,0.02);
+      this.baseR.frequency.setTargetAtTime(fq*1.002,actx.currentTime,0.02);
+      const ratios=[2,3,5];
+      arch.partials.forEach((v,i)=>{ const p=this.partials[i]; p.o.frequency.setTargetAtTime(fq*ratios[i],actx.currentTime,0.05); p.g.gain.setTargetAtTime(v*0.35,actx.currentTime,0.1); });
+      this.fb.gain.setTargetAtTime(arch.rev,actx.currentTime,0.1);
+      this.filter.frequency.setTargetAtTime(arch.cut,actx.currentTime,0.1);
+      try{ this.lfo.stop(); }catch{} this.lfo=actx.createOscillator(); this.lfo.type=arch.lfoWave; this.lfo.frequency.value=0.5;
+      this.lfoGain=actx.createGain(); this.lfoGain.gain.value=arch.lfoDepth;
+      this.partials.forEach(p=>{ this.lfo.connect(this.lfoGain); this.lfoGain.connect(p.o.detune); }); this.lfo.start();
+      pushBall();
+      return {fq};
+    },
+    pluck(side=0){
+      const click=actx.createOscillator(); click.type='square';
+      const g=actx.createGain(); g.gain.value=0.001;
+      const p=actx.createStereoPanner(); p.pan.value=side;
+      click.connect(g); g.connect(p); p.connect(master);
+      click.frequency.value=120+Math.random()*240;
+      const t=actx.currentTime;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.05,t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.08);
+      click.start(t); click.stop(t+0.09);
+    }
+  };
+}
+
+/* Engines */
+async function tryLocalFirstPing(){
+  const locals=['http://127.0.0.1:3000','http://127.0.0.1:8080','http://127.0.0.1:8000','http://localhost:3000','http://localhost:8080','http://localhost:8000'];
+  const routers=['http://192.168.1.1','http://192.168.0.1'];
+  const publics=['https://www.google.com/generate_204','https://www.cloudflare.com/cdn-cgi/trace'];
+  const chain=[...locals,...routers,...publics];
+  for(const url of chain){
+    try{ const t0=performance.now(); const res=await fetch(url,{method:'GET',cache:'no-store',mode:'cors'}); if(!res.ok) continue; return {ms:performance.now()-t0, url}; }catch(e){}
+  }
+  throw new Error('sem CORS');
+}
+let intentOn=false;
+function startIntention(){
+  intentOn=true;
+  let phase=Math.random()*10;
+  setInterval(()=>{ if(!intentOn) return;
+    phase+=(Math.random()*0.6+0.2);
+    const baseMs=160+80*Math.sin(phase*0.7)+40*Math.sin(phase*1.3);
+    tick(players.me, Math.max(60,baseMs), -0.2);
+  },540);
+  setInterval(()=>{ if(!intentOn) return;
+    const ms=210+60*Math.sin(phase*0.9+1.2)+(Math.random()*18-9);
+    tick(players.p1, Math.max(70,ms), -0.6);
+  },620);
+  setInterval(()=>{ if(!intentOn) return;
+    const ms=280+90*Math.sin(phase*0.5+2.6)+(Math.random()*22-11);
+    tick(players.p2, Math.max(80,ms), 0.6);
+  },710);
+}
+function startNetwork(){
+  let ok=false;
+  setInterval(async ()=>{
+    if(intentOn) return;
+    try{ const r=await tryLocalFirstPing(); ok=true; tick(players.me, r.ms, -0.2); }catch{}
+  },820);
+  let a=180+Math.random()*40,b=260+Math.random()*40,va=1,vb=-1;
+  setInterval(()=>{ if(intentOn) return; a+=va*(Math.random()*10+2); if(a<90||a>320) va*=-1; tick(players.p1, a+(Math.random()*12-6), -0.6); },620);
+  setInterval(()=>{ if(intentOn) return; b+=vb*(Math.random()*14+3); if(b<110||b>380) vb*=-1; tick(players.p2, b+(Math.random()*16-8), 0.6); },710);
+  setTimeout(()=>{ if(!ok && !intentOn){ startIntention(); $('#status').textContent='intenção (fallback)'; } },3000);
+}
+function startLanMock(){
+  const peers=[{id:'lan1',pan:-0.75,col:'#9ef0ff'},{id:'lan2',pan:-0.25,col:'#fdd66e'},{id:'lan3',pan:0.25,col:'#ff9ab2'},{id:'lan4',pan:0.75,col:'#93ff9a'}];
+  peers.forEach((peer,i)=>{
+    const tr=createTrack(peer.pan); players[peer.id]=tr;
+    let p=150+i*40+Math.random()*30, dir=i%2?1:-1;
+    setInterval(()=>{ if(intentOn) return;
+      p += dir*(Math.random()*10+4); if(p<90||p>380) dir*=-1;
+      tick(tr, p+(Math.random()*16-8), peer.pan);
+    }, 500+i*70);
+  });
+}
+function tick(track, ms, side){
+  const hz=msToHz(ms); track.setFreq(hz); track.pluck(side); pushBall();
+}
+
+/* Bluetooth */
+async function tryBluetoothPeer(){
+  if(!navigator.bluetooth) return;
+  try{
+    const device=await navigator.bluetooth.requestDevice({acceptAllDevices:true});
+    $('#btSwitch').classList.add('on');
+    const tr=createTrack(0.72); players.bt=tr;
+    let t=Math.random()*10;
+    setInterval(()=>{ t+=(Math.random()*0.5+0.2); const ms=240+70*Math.sin(t*0.8)+(Math.random()*18-9); tick(tr, ms, 0.75); },660);
+  }catch(e){}
+}
+
+/* Ball micro-motion */
+function pushBall(){
+  const ball=$('#ball');
+  const x=(Math.random()*60-30);
+  const y=(Math.random()*120-60);
+  ball.animate([{transform:`translate(${x}px,${y}px)`}],{duration:260,fill:'forwards',easing:'ease-out'});
+}
+
+/* Power + chips + recorder */
+const power=$('#power'), label=$('#label'), status=$('#status'), toast=$('#toast');
+power.addEventListener('click', async ()=>{
+  if(!running){
+    buildAudio(); running=true;
+    try{ await actx.resume(); }catch{}
+    players.me=createTrack(0); players.p1=createTrack(-0.42); players.p2=createTrack(0.42);
+    const t=actx.currentTime; master.gain.setValueAtTime(0.0,t); master.gain.linearRampToValueAtTime(0.92,t+2.0);
+    startNetwork(); startLanMock(); tryBluetoothPeer();
+    power.classList.add('on'); label.textContent='Stop'; status.textContent='áudio ativo';
+    toast.classList.remove('show');
+  }else{
+    if(actx.state==='suspended'){ await actx.resume(); status.textContent='áudio ativo'; power.classList.add('on'); label.textContent='Stop'; }
+    else{ await actx.suspend(); status.textContent='áudio pausado'; power.classList.remove('on'); label.textContent='Activate'; }
+  }
+});
+$('#bt').addEventListener('click', tryBluetoothPeer);
+
+let recUrl=null;
+$('#btnRec').addEventListener('click', ()=>{
+  if(!running) return;
+  if(!recorderNode){ startCapture(); }
+  if(!recording){
+    recBuffersL=[]; recBuffersR=[]; recLength=0; recording=true;
+    $('#btnSave').disabled=true; status.textContent='gravando…';
+  }else{
+    recording=false; const wav=wavBlob(actx.sampleRate);
+    if(recUrl) URL.revokeObjectURL(recUrl);
+    recUrl=URL.createObjectURL(wav);
+    const a=document.createElement('a'); a.href=recUrl; a.download='TPP_Session.wav'; a.click();
+    $('#btnSave').disabled=false; status.textContent='gravação pronta';
+  }
+});
+$('#btnSave').addEventListener('click', ()=>{
+  if(recUrl){ const a=document.createElement('a'); a.href=recUrl; a.download='TPP_Session.wav'; a.click(); }
+});
+$('#btnIntent').addEventListener('click', ()=>{
+  if(!running) return;
+  intentOn=!intentOn;
+  if(intentOn){ startIntention(); status.textContent='intenção • procedural'; }
+  else{ status.textContent='rede • pings'; }
+});
+
+/* Intro toast */
+setTimeout(()=> toast.classList.add('show'), 200);
+</script>
+</body>
+</html>

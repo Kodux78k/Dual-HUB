@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>TPP • PixelPerfect (Luxar) — Fluxo/Real + WAV + Preset</title>
+<meta name="theme-color" content="#0b0b14">
+<style>
+  :root{
+    /* core tokens */
+    --bg1:#0c1322; --bg2:#0a101b; --fg:#eef1ff; --muted:#95a0c8;
+    --neb1:#a77cff; --neb2:#5ed0ff; --lux:#ff5bd4; --ok:#39ffb6;
+    --line:#0e1330;
+    /* pixel targets (iPhone 12/13 logical) */
+    --w:390px; --r:26px; --pad:36px; --ball:14px; --cta:156px;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--fg); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto;
+    background:
+      radial-gradient(1600px 900px at 70% -10%, #231737 0%, var(--bg1) 60%),
+      linear-gradient(135deg, var(--bg2), var(--bg1));
+    display:grid; place-items:center;
+  }
+  .phone{
+    width:min(var(--w), 96vw);
+    aspect-ratio:9/19.5;
+    border-radius:var(--r);
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+    box-shadow:0 28px 72px rgba(0,0,0,.45);
+    position:relative; overflow:hidden;
+    padding-top:calc(10px + var(--safe-t)); padding-bottom:calc(12px + var(--safe-b));
+  }
+  /* top bar */
+  .top{
+    position:absolute; top:calc(8px + var(--safe-t)); left:0; right:0;
+    display:flex; justify-content:center; pointer-events:none;
+    filter: drop-shadow(0 6px 22px rgba(167,124,255,.25));
+  }
+  .badge{
+    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    border:1px solid #1b2247; border-radius:999px; background:#0a0f20aa; backdrop-filter: blur(6px);
+    font-size:12px; color:#dfe5ff;
+  }
+  .badge svg{ width:16px; height:16px; opacity:.95 }
+  .muted{ color:#8fa0d2 }
+  .statusline{ display:flex; gap:10px; align-items:center; }
+  /* pong layer */
+  .pong{ position:absolute; inset:0; pointer-events:none; }
+  .p{
+    position:absolute; width:6px; height:52%;
+    background:#e8eeff14; border:1px solid #ffffff12; border-radius:6px;
+    top:50%; transform:translateY(-50%);
+    box-shadow:0 10px 24px rgba(0,0,0,.25);
+  }
+  .pl{ left:var(--pad) } .pr{ right:var(--pad) }
+  .ball{
+    position:absolute; width:var(--ball); height:var(--ball); border-radius:50%;
+    background:#f6f9ff; opacity:.98; border:1px solid #ffffff55;
+    box-shadow:
+      0 0 18px rgba(255,255,255,.25),
+      0 0 36px rgba(94,208,255,.25),
+      0 0 54px rgba(167,124,255,.25);
+  }
+  /* center controls */
+  .center{ position:absolute; left:50%; bottom:calc(110px + var(--safe-b)); transform:translateX(-50%); display:grid; place-items:center; gap:12px }
+  .cta{
+    width:var(--cta); height:var(--cta); border-radius:50%; display:grid; place-items:center; position:relative;
+    cursor:pointer; user-select:none;
+    background:
+      radial-gradient(60% 60% at 50% 50%, rgba(94,208,255,.25), transparent 70%),
+      #0b0f22;
+    border:1px solid #262b55;
+    box-shadow:
+      0 20px 48px rgba(0,0,0,.35),
+      inset 0 0 28px rgba(167,124,255,.12),
+      inset 0 0 46px rgba(94,208,255,.10);
+  }
+  .ring{
+    position:absolute; inset:8px; border-radius:50%;
+    background: conic-gradient(from 0deg, var(--neb1), var(--neb2), var(--neb1));
+    -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%);
+            mask: radial-gradient(circle, transparent 62%, #000 63%);
+    opacity:.92; animation:spin 8s linear infinite;
+    filter: drop-shadow(0 10px 28px rgba(94,208,255,.25));
+  }
+  @keyframes spin{ to{ transform: rotate(360deg) } }
+  .label{ font-weight:800; letter-spacing:1.2px; font-size:14px; text-transform:uppercase }
+  /* chip row */
+  .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center }
+  .chip{
+    border:1px solid #1b2247; background:#0b1126; color:#dfe5ff; font-size:11px;
+    padding:7px 12px; border-radius:999px; box-shadow:0 6px 16px rgba(0,0,0,.25);
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    transition:.18s ease;
+  }
+  .chip:hover{ transform: translateY(-1px); }
+  .chip svg{ width:14px; height:14px; opacity:.95 }
+  .chip[disabled]{ opacity:.5; filter:saturate(.65); cursor:not-allowed }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <!-- Top status -->
+    <div class="top">
+      <div class="badge" id="badge">
+        <!-- TPP logo -->
+        <svg viewBox="0 0 64 24" fill="none" aria-hidden="true">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a77cff"/><stop offset="1" stop-color="#5ed0ff"/></linearGradient></defs>
+          <path d="M4 20V6h10c3 0 5 2 5 4.5S17 15 14 15H10v5H4Z" fill="url(#g1)"/>
+          <path d="M24 20V6h10c3 0 5 2 5 4.5S37 15 34 15h-4v5h-6Z" fill="url(#g1)"/>
+          <path d="M44 20V6h10c3 0 5 2 5 4.5S57 15 54 15h-4v5h-6Z" fill="url(#g1)"/>
+        </svg>
+        <div class="statusline">
+          <span>Modo: <b id="modeTxt">Fluxo</b></span>
+          <span>• Escala: <b id="scaleTxt">chromatic</b></span>
+          <span>• Seed: <span id="seedTxt" class="muted">—</span></span>
+          <span>• <span id="msTxt" class="muted">—</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pong layer -->
+    <div class="pong">
+      <div class="p pl"></div>
+      <div class="p pr"></div>
+      <div class="ball" id="ball"></div>
+    </div>
+
+    <!-- Center controls -->
+    <div class="center">
+      <div class="cta" id="power" title="Activate">
+        <div class="ring"></div>
+        <div class="label" id="label">Activate</div>
+      </div>
+
+      <div class="row">
+        <!-- Fluxo / Real switch (chip) -->
+        <button class="chip" id="modeChip" title="Fluxo ⇄ Real">
+          <!-- mode icon -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 12h7M4 12l3-3m-3 3l3 3M20 12h-7m7 0l-3-3m3 3l-3 3" stroke="#5ed0ff" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span id="modeChipTxt">Fluxo</span>
+        </button>
+
+        <!-- Preset (escala/seed) -->
+        <button class="chip" id="presetBtn" title="Preset (escala/seed)">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3v4m0 10v4M3 12h4m10 0h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18" stroke="#a77cff" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          Preset
+        </button>
+
+        <!-- Record -->
+        <button class="chip" id="recBtn" title="Gravar/Parar WAV">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="5.5" stroke="#ff5bd4" stroke-width="1.6"/>
+          </svg>
+          Gravar
+        </button>
+
+        <!-- Save -->
+        <button class="chip" id="saveBtn" title="Salvar WAV" disabled>
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M7 10v7a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-7" stroke="#39ffb6" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M12 4v9m0 0l-3-3m3 3l3-3" stroke="#39ffb6" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          Salvar
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ─────────────────────────────
+   Helpers / URL presets
+   ───────────────────────────── */
+const $ = s => document.querySelector(s);
+function getParams(){
+  const u = new URL(location.href);
+  return {
+    scale:(u.searchParams.get('scale')||'chromatic').toLowerCase(),
+    seed:(u.searchParams.get('seed')||'')
+  };
+}
+const PRE = getParams();
+$('#scaleTxt').textContent = PRE.scale;
+$('#seedTxt').textContent  = PRE.seed || '—';
+
+/* Seeded PRNG */
+function xmur3(str){ let h=1779033703 ^ str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h ^ str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19);} return function(){ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; } }
+function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; } }
+let RAND = Math.random; if(PRE.seed){ RAND = mulberry32(xmur3(PRE.seed)()); }
+
+/* Scales & quantize */
+const SCALES={ chromatic:[0,1,2,3,4,5,6,7,8,9,10,11], major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], pentatonic:[0,2,4,7,9] };
+const SCALE = SCALES[PRE.scale] || SCALES.chromatic;
+function quantizeToScale(m){
+  if(SCALE.length===12) return Math.round(m);
+  const base=Math.floor(m/12)*12;
+  let best=Math.round(m), bestDist=1e9;
+  for(let k=-1;k<=1;k++){
+    for(const d of SCALE){
+      const cand=base + d + 12*k;
+      const dist=Math.abs(cand - m);
+      if(dist<bestDist){ bestDist=dist; best=cand; }
+    }
+  }
+  return best;
+}
+
+/* math helpers */
+function msToHz(ms){ return 1000/ms; }
+function hzToMidi(f){ return 69 + 12*Math.log2(f/440); }
+function midiToHz(m){ return 440 * Math.pow(2,(m-69)/12); }
+
+/* ─────────────────────────────
+   Audio — Pad Luxar
+   ───────────────────────────── */
+let actx, master, analyser, analyserFFT, running=false;
+function buildAudio(){
+  actx=new (window.AudioContext||window.webkitAudioContext)();
+  master=actx.createGain(); master.gain.value=0.0;
+  analyser=actx.createAnalyser();
+  analyserFFT=actx.createAnalyser();
+  analyser.connect(analyserFFT); analyserFFT.connect(master); master.connect(actx.destination);
+}
+function createPad(pan){
+  const panN=actx.createStereoPanner(); panN.pan.value=pan;
+  const dry=actx.createGain(); dry.gain.value=.72;
+  const wet=actx.createGain(); wet.gain.value=.30;
+
+  const f=actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3400;
+  const d=actx.createDelay(1.0); d.delayTime.value=.26;
+  const fb=actx.createGain(); fb.gain.value=.28;
+
+  let L=actx.createOscillator(); L.type='sine';
+  let R=actx.createOscillator(); R.type='sine';
+  const gL=actx.createGain(); gL.gain.value=.18;
+  const gR=actx.createGain(); gR.gain.value=.18;
+
+  L.connect(gL); R.connect(gR);
+  const sum=actx.createGain(); gL.connect(sum); gR.connect(sum);
+
+  const parts=[2,3,5].map(()=>({o:actx.createOscillator(), g:actx.createGain()}));
+  parts.forEach((p,i)=>{ p.o.type='sine'; p.g.gain.value=[.5,.3,.2][i]*.35; p.o.connect(p.g); p.g.connect(f); });
+
+  f.connect(d); d.connect(fb); fb.connect(d); d.connect(wet);
+  sum.connect(dry); dry.connect(analyser); wet.connect(analyser);
+  analyser.connect(panN); panN.connect(analyserFFT);
+
+  let lfo=actx.createOscillator(); lfo.type='sine'; lfo.frequency.value=.6;
+  let lfoG=actx.createGain(); lfoG.gain.value=6; parts.forEach(p=>{ lfo.connect(lfoG); lfoG.connect(p.o.detune); });
+
+  L.start(); R.start(); parts.forEach(p=>p.o.start()); lfo.start();
+
+  return {
+    setFreq(fq0){
+      let ff=fq0; while(ff<110) ff*=2; while(ff>880) ff/=2;
+      let m = hzToMidi(ff); m = quantizeToScale(m);
+      const fq = midiToHz(m);
+      try{ L.stop(); }catch(e){} try{ R.stop(); }catch(e){}
+      L=actx.createOscillator(); L.type='sine';
+      R=actx.createOscillator(); R.type='sine';
+      L.connect(gL); R.connect(gR); L.start(); R.start();
+      L.frequency.setTargetAtTime(fq, actx.currentTime, .02);
+      R.frequency.setTargetAtTime(fq*1.002, actx.currentTime, .02);
+      f.frequency.setTargetAtTime(3400, actx.currentTime, .1);
+    }
+  };
+}
+let padL, padR;
+
+/* ─────────────────────────────
+   Modes & Fluxo
+   ───────────────────────────── */
+let mode='fluxo';
+$('#modeChip').addEventListener('click', ()=>{
+  mode = (mode==='fluxo') ? 'real' : 'fluxo';
+  $('#modeTxt').textContent = mode==='fluxo' ? 'Fluxo' : 'Real';
+  $('#modeChipTxt').textContent = mode==='fluxo' ? 'Fluxo' : 'Real';
+  $('#msTxt').textContent = mode==='real' ? 'Aguardando implementação real' : '—';
+});
+let periodMs=220, fluxoTimer=null;
+function startFluxo(){
+  if(fluxoTimer) clearInterval(fluxoTimer);
+  fluxoTimer = setInterval(()=>{
+    const jitter = (RAND()*28 - 14);
+    periodMs = Math.max(90, Math.min(600, periodMs + jitter));
+    const hz = msToHz(periodMs);
+    padL.setFreq(hz*0.75);
+    padR.setFreq(hz*1.00);
+    $('#msTxt').textContent = periodMs.toFixed(1)+" ms • "+hz.toFixed(2)+" Hz";
+  }, 560);
+}
+
+/* ─────────────────────────────
+   Pixel-Pong (L↔R bounce)
+   ───────────────────────────── */
+function startBounce(){
+  const box = document.querySelector('.phone').getBoundingClientRect();
+  const leftX = 36+10, rightX = box.width-36-10; // paddles+gap
+  const midY = box.height*0.52;
+  const ball = $('#ball');
+  let dir=1;
+  function leg(){
+    const ms = Math.max(80, Math.min(1000, periodMs));
+    const x0 = (dir===1)?leftX:rightX, x1=(dir===1)?rightX:leftX;
+    ball.animate(
+      [{transform:`translate(${x0}px,${midY}px)`},{transform:`translate(${x1}px,${midY}px)`}],
+      {duration:ms, easing:'linear', fill:'forwards'}
+    );
+    dir*=-1;
+    setTimeout(leg, ms);
+  }
+  ball.style.transform=`translate(${leftX}px,${midY}px)`;
+  leg();
+}
+
+/* ─────────────────────────────
+   WAV Recorder (ScriptProcessor)
+   ───────────────────────────── */
+let recNode, recL=[], recR=[], recLen=0, recording=false, recUrl=null;
+function startCapture(){
+  if(recNode) return;
+  const sp=actx.createScriptProcessor(4096,2,2);
+  analyserFFT.connect(sp); sp.connect(actx.destination);
+  sp.onaudioprocess=(e)=>{
+    if(!recording) return;
+    const L=e.inputBuffer.getChannelData(0), R=e.inputBuffer.getChannelData(1);
+    recL.push(new Float32Array(L)); recR.push(new Float32Array(R)); recLen+=L.length;
+  };
+  recNode=sp;
+}
+function merge(buffers, length){ const out=new Float32Array(length); let off=0; for(const b of buffers){ out.set(b,off); off+=b.length; } return out; }
+function interleave(L,R){ const len=L.length+R.length, out=new Float32Array(len); let i=0,j=0; while(i<len){ out[i++]=L[j]; out[i++]=R[j++]; } return out; }
+function wavBlob(sampleRate){
+  const L=merge(recL,recLen), R=merge(recR,recLen);
+  const I=interleave(L,R);
+  const buf=new ArrayBuffer(44+I.length*2); const v=new DataView(buf);
+  function str(o,s){ for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); }
+  const nCh=2, bps=2, ba=nCh*bps, br=sampleRate*ba;
+  str(0,'RIFF'); v.setUint32(4,36+I.length*2,true); str(8,'WAVE'); str(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nCh,true);
+  v.setUint32(24,sampleRate,true); v.setUint32(28,br,true); v.setUint16(32,ba,true); v.setUint16(34,16,true);
+  str(36,'data'); v.setUint32(40,I.length*2,true);
+  let off=44;
+  for(let i=0;i<I.length;i++,off+=2){
+    let s=Math.max(-1,Math.min(1,I[i]));
+    v.setInt16(off, s<0?s*0x8000:s*0x7FFF, true);
+  }
+  return new Blob([v], {type:'audio/wav'});
+}
+
+/* ─────────────────────────────
+   Preset prompt (escala/seed)
+   ───────────────────────────── */
+$('#presetBtn').addEventListener('click', ()=>{
+  const scale = prompt("Escala (chromatic/major/minor/pentatonic):", PRE.scale || "chromatic");
+  const seed  = prompt("Seed ASCII (vazio = aleatório):", PRE.seed || "");
+  const u = new URL(location.href);
+  if(scale) u.searchParams.set('scale', scale);
+  if(seed!==null){ if(seed==="") u.searchParams.delete('seed'); else u.searchParams.set('seed', seed); }
+  location.href = u.toString();
+});
+
+/* ─────────────────────────────
+   Power + REC/SAVE
+   ───────────────────────────── */
+$('#power').addEventListener('click', async ()=>{
+  if(!running){
+    buildAudio(); running=true;
+    try{ await actx.resume(); }catch(e){}
+    padL = createPad(-.30);
+    padR = createPad(+.30);
+    const t=actx.currentTime; master.gain.setValueAtTime(0,t); master.gain.linearRampToValueAtTime(.92,t+1.8);
+    if(mode==='fluxo') startFluxo();
+    startBounce();
+    $('#label').textContent='Stop';
+  }else{
+    if(actx.state==='suspended'){ await actx.resume(); }
+    else{ await actx.suspend(); }
+  }
+});
+
+$('#recBtn').addEventListener('click', ()=>{
+  if(!running) return;
+  startCapture();
+  if(!recording){
+    recL=[]; recR=[]; recLen=0; recording=true;
+    $('#recBtn').innerHTML = `<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" stroke="#ff5bd4" stroke-width="1.6"/></svg> Parar`;
+    $('#saveBtn').disabled = true;
+  }else{
+    recording=false;
+    const blob = wavBlob(actx.sampleRate);
+    if(recUrl) URL.revokeObjectURL(recUrl);
+    recUrl = URL.createObjectURL(blob);
+    // auto-download
+    const a=document.createElement('a'); a.href=recUrl; a.download='TPP_PixelPerfect.wav'; a.click();
+    $('#recBtn').innerHTML = `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5.5" stroke="#ff5bd4" stroke-width="1.6"/></svg> Gravar`;
+    $('#saveBtn').disabled = false;
+  }
+});
+
+$('#saveBtn').addEventListener('click', ()=>{
+  if(recUrl){ const a=document.createElement('a'); a.href=recUrl; a.download='TPP_PixelPerfect.wav'; a.click(); }
+});
+</script>
+</body>
+</html>

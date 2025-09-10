@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>PingPong Sonifier • PING → HERTZ • Nebula Pro</title>
+<meta name="theme-color" content="#0b0b14">
+<style>
+  :root{
+    --bg:#0a0b13; --bg2:#0b0d1a; --fg:#e9ecff; --muted:#9aa4c7;
+    --acc:#a77cff; --acc2:#5ed0ff; --ok:#5bffcf; --warn:#ffd166; --err:#ff5b8f;
+    --panel:#0e1224cc; --glass:rgba(255,255,255,.06);
+    --ring:rgba(167,124,255,.5); --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background: radial-gradient(1200px 800px at 70% -10%, #20142e 0%, #0a0b13 55%), linear-gradient(135deg, #0b0d1a, #0a0b13);
+       color:var(--fg); font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto; min-height:100vh; display:flex; flex-direction:column;}
+  header{position:sticky; top:0; backdrop-filter: blur(10px); background:linear-gradient(180deg, rgba(12,13,24,.85), rgba(12,13,24,.35)); border-bottom:1px solid var(--glass); z-index:5}
+  .wrap{max-width:1024px; margin:0 auto; padding:14px 16px;}
+  h1{font-size:20px; margin:0; letter-spacing:.5px; display:flex; align-items:center; gap:10px;}
+  h1 .dot{width:10px;height:10px;border-radius:50%; background:conic-gradient(from 0deg, var(--acc), var(--acc2)); box-shadow:0 0 18px var(--acc2)}
+  main{flex:1; display:grid; grid-template-columns: 1fr; gap:16px; padding:18px; max-width:1024px; margin:0 auto; width:100%}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid var(--glass); border-radius:var(--radius); box-shadow:var(--shadow);}
+  .card .head{padding:14px 16px; border-bottom:1px solid var(--glass); display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .card .body{padding:14px 16px}
+  .row{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+  label{font-size:12px; color:var(--muted)}
+  input[type="text"], input[type="number"], select{
+    background:#0a0f20; color:var(--fg); border:1px solid #1b2240; border-radius:12px; padding:10px 12px; outline:none; min-width:0;
+  }
+  input[type="range"]{ width:160px }
+  button{
+    background:linear-gradient(180deg, #a77cff, #7c5bff); color:white; border:none; border-radius:12px; padding:10px 14px; cursor:pointer;
+    box-shadow: 0 8px 20px rgba(167,124,255,.25); font-weight:600; letter-spacing:.3px;
+  }
+  button.ghost{ background:transparent; color:var(--acc2); border:1px solid #1b2240 }
+  .pill{padding:6px 10px; border:1px solid var(--glass); border-radius:999px; display:inline-flex; gap:8px; align-items:center; background:#0a0f20}
+  .big{font-size:28px; font-weight:700}
+  canvas{width:100%; height:160px; display:block; border-radius:14px; background: #070a14; border:1px solid #121631}
+  .grid{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:900px){ .grid{ grid-template-columns: 1.2fr 1fr } }
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th, td{ padding:8px 10px; border-bottom:1px solid #141a36; color:#cdd2ff}
+  th{ color:#9aa4c7; text-align:left; font-weight:600; }
+  .badge{ font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--glass)}
+  .ok{ color:var(--ok)} .warn{ color:var(--warn)} .err{ color:var(--err)}
+  .note{ font-weight:700 }
+  .muted{ color:var(--muted) }
+  .hue{ width:14px;height:14px;border-radius:50%; border:1px solid rgba(255,255,255,.25) }
+  .footer{padding:20px; text-align:center; color:#7e86b6; font-size:12px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="wrap row">
+      <h1><span class="dot"></span> PingPong Sonifier <span class="muted">• converta latência em música</span></h1>
+      <div class="pill" id="statusPill">Status: <strong id="status">pronto</strong></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="head">
+        <div class="row">
+          <div class="badge">PING → HERTZ</div>
+          <div class="muted">f = 1000 / ms</div>
+        </div>
+        <div class="row">
+          <button id="startBtn">▶️ Iniciar Áudio</button>
+          <button id="stopBtn" class="ghost">⏹️ Parar</button>
+        </div>
+      </div>
+      <div class="body grid">
+        <div>
+          <div class="row" style="margin-bottom:8px">
+            <label>URL para ping:</label>
+            <input id="url" type="text" value="https://www.cloudflare.com/cdn-cgi/trace" style="flex:1; min-width:220px">
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Intervalo (ms):</label>
+            <input id="interval" type="number" value="200" min="20" step="1" style="width:120px">
+            <label>Timeout (ms):</label>
+            <input id="timeout" type="number" value="3000" min="100" step="100" style="width:120px">
+            <button id="togglePing">🔁 Pingar</button>
+            <button id="singlePing" class="ghost">🔂 Ping Único</button>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Manual (ms):</label>
+            <input id="manualMs" type="number" placeholder="ex: 108" style="width:140px">
+            <button id="playManual" class="ghost">🎧 Ouvir este ms</button>
+            <span class="muted">ouça qualquer ms como tom</span>
+          </div>
+
+          <div class="row">
+            <div class="pill">ms: <span class="big" id="msVal">–</span></div>
+            <div class="pill">Hz: <span class="big" id="hzVal">–</span></div>
+            <div class="pill">Nota: <span class="note" id="noteVal">–</span></div>
+            <div class="pill">Cor: <span class="hue" id="hue" style="background:#fff"></span></div>
+          </div>
+          <div style="margin-top:12px">
+            <canvas id="canvasMs" height="160"></canvas>
+          </div>
+        </div>
+
+        <div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Octave Lift:</label>
+            <input id="octLift" type="range" min="0" max="8" step="1" value="5">
+            <span class="muted">sobe a frequência para audição</span>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Quantizar (12-TET):</label>
+            <select id="quantize">
+              <option value="off">off</option>
+              <option value="on" selected>on</option>
+            </select>
+            <label>Escala:</label>
+            <select id="scale">
+              <option value="chromatic" selected>cromática</option>
+              <option value="major">maior</option>
+              <option value="minor">menor</option>
+              <option value="pentatonic">pentatônica</option>
+            </select>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Pad (parciais):</label>
+            <input id="harm1" type="range" min="0" max="1" step="0.01" value="0.6"> 2ª
+            <input id="harm2" type="range" min="0" max="1" step="0.01" value="0.35"> 3ª
+            <input id="harm3" type="range" min="0" max="1" step="0.01" value="0.25"> 5ª
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>Reverb (feedback):</label>
+            <input id="rev" type="range" min="0" max="0.95" step="0.01" value="0.35">
+            <label>Cutoff:</label>
+            <input id="cut" type="range" min="200" max="8000" step="1" value="2400">
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <label>LFO depth:</label>
+            <input id="lfoDepth" type="range" min="0" max="100" step="1" value="8">
+            <label>Balance (L/R):</label>
+            <input id="balance" type="range" min="-1" max="1" step="0.01" value="0">
+          </div>
+          <div>
+            <canvas id="canvasFFT" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="head">
+        <div class="row"><div class="badge">Log Musical</div><span class="muted">últimos 30 eventos</span></div>
+        <button id="clearLog" class="ghost">Limpar</button>
+      </div>
+      <div class="body">
+        <table id="logTbl">
+          <thead><tr><th>Hora</th><th>ms</th><th>Hz</th><th>Nota</th><th>Evento</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">Feito para você, Kodux — Nebula Pro • Ping → Música • Sempre único, sempre seu.</div>
+
+<script>
+// ===== Utilities
+const $ = sel => document.querySelector(sel);
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+const now = () => new Date().toLocaleTimeString();
+
+function msToHz(ms){ return 1000/ ms; }
+function hzToMidi(f){ return 69 + 12 * Math.log2(f/440); }
+function midiToHz(m){ return 440 * Math.pow(2, (m-69)/12); }
+
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function midiToName(m){
+  const n = Math.round(m);
+  const name = NOTE_NAMES[(n % 12 + 12) % 12];
+  const oct = Math.floor(n/12) - 1;
+  return name + oct;
+}
+function quantizeToScale(midi, scale){
+  // chromatic = round to nearest
+  const n = Math.round(midi);
+  if(scale === 'chromatic') return n;
+  const degrees = {
+    major:     [0,2,4,5,7,9,11],
+    minor:     [0,2,3,5,7,8,10],
+    pentatonic:[0,2,4,7,9],
+  }[scale] || [0,2,4,5,7,9,11];
+  const pc = ((n % 12) + 12) % 12;
+  let best = n, bestDist = 1e9;
+  for(let k=-24;k<=24;k++){
+    for(const d of degrees){
+      const cand = 12*k + d;
+      const midiCand = 12*Math.floor(n/12) + cand;
+      const dist = Math.abs(midiCand - midi);
+      if(dist < bestDist){ bestDist = dist; best = midiCand; }
+    }
+  }
+  return best;
+}
+function hueForFreq(f){
+  // Map 20..20000 Hz → 260..0 deg approx (violet..red)
+  const lf = Math.log10(clamp(f,20,20000));
+  const t = (lf - Math.log10(20)) / (Math.log10(20000)-Math.log10(20));
+  const hue = 260*(1-t);
+  return `hsl(${hue.toFixed(1)} 90% 60%)`;
+}
+
+// ===== Audio graph
+let actx, master, panNode, analyser, analyserFFT;
+let oscBaseL, oscBaseR, partials = [];
+let lfo, lfoGain;
+let filter, delay, feedback, wet, dry;
+let running = false;
+
+// Build or rebuild the graph
+function buildAudio(){
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = 0.8;
+  panNode = actx.createStereoPanner();
+  analyser = actx.createAnalyser(); analyser.fftSize = 2048;
+  analyserFFT = actx.createAnalyser(); analyserFFT.fftSize = 2048;
+
+  // Base oscillators (PING left, PONG right)
+  oscBaseL = actx.createOscillator(); oscBaseL.type = 'sine';
+  oscBaseR = actx.createOscillator(); oscBaseR.type = 'sine';
+  const gainL = actx.createGain(); gainL.gain.value = 0.22;
+  const gainR = actx.createGain(); gainR.gain.value = 0.22;
+  oscBaseL.connect(gainL);
+  oscBaseR.connect(gainR);
+
+  // Harmonic PAD partials (three)
+  for(let i=0;i<3;i++){
+    const o = actx.createOscillator(); o.type='sine';
+    const g = actx.createGain(); g.gain.value = [0.6,0.35,0.25][i];
+    o.connect(g); partials.push({o,g,ratio:[2,3,5][i]});
+  }
+
+  // Simple "reverb": lowpass -> delay feedback -> wet
+  filter = actx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value = 2400;
+  delay = actx.createDelay(1.0); delay.delayTime.value = 0.28;
+  feedback = actx.createGain(); feedback.gain.value = 0.35;
+  wet = actx.createGain(); wet.gain.value = 0.35;
+  dry = actx.createGain(); dry.gain.value = 0.8;
+
+  // LFO for subtle vibrato/pad motion
+  lfo = actx.createOscillator(); lfo.type='sine'; lfo.frequency.value = 0.5;
+  lfoGain = actx.createGain(); lfoGain.gain.value = 6; // cents
+
+  // Connect graph
+  // Base tones
+  gainL.connect(dry);
+  gainR.connect(dry);
+  // Partials into filter/reverb
+  partials.forEach(p => p.g.connect(filter));
+  filter.connect(delay);
+  delay.connect(feedback);
+  feedback.connect(delay); // feedback loop
+  delay.connect(wet);
+
+  // Sum to master
+  dry.connect(analyser);
+  wet.connect(analyser);
+  analyser.connect(panNode);
+  panNode.connect(analyserFFT);
+  analyserFFT.connect(master);
+  master.connect(actx.destination);
+
+  // Modulation: LFO pitch on partials
+  partials.forEach(p => {
+    const det = p.o.detune;
+    lfo.connect(lfoGain); lfoGain.connect(det);
+  });
+
+  // Start sources
+  oscBaseL.start();
+  oscBaseR.start();
+  partials.forEach(p=>p.o.start());
+  lfo.start();
+
+  running = true;
+}
+
+// Set audio params from UI
+function applyAudioParams(freq){
+  // Octave lift
+  const k = parseInt($('#octLift').value,10);
+  let f = freq * Math.pow(2,k);
+  // Quantize
+  if($('#quantize').value === 'on'){
+    const scale = $('#scale').value;
+    const midi = hzToMidi(f);
+    const mq = quantizeToScale(midi, scale);
+    f = midiToHz(mq);
+  }
+  // Update bases (slight detune for stereo width)
+  oscBaseL.frequency.setTargetAtTime(f, actx.currentTime, 0.02);
+  oscBaseR.frequency.setTargetAtTime(f*1.002, actx.currentTime, 0.02);
+
+  // Harmonic partials (2nd, 3rd, 5th)
+  const h1 = parseFloat($('#harm1').value);
+  const h2 = parseFloat($('#harm2').value);
+  const h3 = parseFloat($('#harm3').value);
+  [h1,h2,h3].forEach((gainVal,i)=>{
+    partials[i].o.frequency.setTargetAtTime(f*partials[i].ratio, actx.currentTime, 0.05);
+    partials[i].g.gain.setTargetAtTime(gainVal*0.35, actx.currentTime, 0.1);
+  });
+
+  // Reverb-ish & filter
+  feedback.gain.setTargetAtTime(parseFloat($('#rev').value), actx.currentTime, 0.1);
+  filter.frequency.setTargetAtTime(parseFloat($('#cut').value), actx.currentTime, 0.1);
+
+  // Balance & LFO depth
+  panNode.pan.setTargetAtTime(parseFloat($('#balance').value), actx.currentTime, 0.1);
+  lfoGain.gain.setTargetAtTime(parseFloat($('#lfoDepth').value), actx.currentTime, 0.1);
+
+  // Visual labels
+  $('#hzVal').textContent = f.toFixed(2);
+  const midi = hzToMidi(f);
+  $('#noteVal').textContent = midiToName(midi);
+  $('#hue').style.background = hueForFreq(f);
+}
+
+// LFO rate from variability of ping
+let lastMs = null;
+function variabilityToLfo(currMs){
+  if(lastMs==null){ lastMs = currMs; return; }
+  const diff = Math.abs(currMs - lastMs);
+  // Map diff (0..500ms) -> LFO (0.1..6 Hz)
+  const rate = 0.1 + 5.9 * clamp(diff/500, 0, 1);
+  if(lfo) lfo.frequency.setTargetAtTime(rate, actx.currentTime, 0.2);
+  lastMs = currMs;
+}
+
+// Pluck/Click on each ping
+function pingPluck(){
+  if(!actx) return;
+  const click = actx.createOscillator(); click.type='square';
+  const g = actx.createGain(); g.gain.value = 0.001;
+  click.connect(g); g.connect(master);
+  click.frequency.value = 120 + Math.random()*240;
+  const t = actx.currentTime;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.05, t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.08);
+  click.start(t); click.stop(t+0.09);
+}
+
+// ===== Ping engine
+let pingTimer = null;
+async function doPing(url, timeoutMs){
+  const ctrl = new AbortController();
+  const to = setTimeout(()=>ctrl.abort(), timeoutMs);
+  const t0 = performance.now();
+  try{
+    // HEAD is often blocked; GET with cache: 'no-store' works better
+    const res = await fetch(url, {method:'GET', cache:'no-store', mode:'cors', signal: ctrl.signal});
+    const t1 = performance.now();
+    clearTimeout(to);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return t1 - t0;
+  }catch(e){
+    clearTimeout(to);
+    throw e;
+  }
+}
+function startPingLoop(){
+  if(pingTimer) return;
+  const url = $('#url').value;
+  const iv = parseInt($('#interval').value,10);
+  const to = parseInt($('#timeout').value,10);
+  $('#status').textContent = 'pingando...';
+  pingTimer = setInterval(async ()=>{
+    try{
+      const ms = await doPing(url, to);
+      onPing(ms, 'PING');
+      // PONG concept: a slight delayed mirror to right channel
+      setTimeout(()=> onPing(ms*1.01, 'PONG'), 20);
+    }catch(err){
+      logEvent('—', '—', '—', 'ERRO: '+(err.message||err));
+      $('#status').textContent = 'erro de ping';
+    }
+  }, iv);
+}
+function stopPingLoop(){
+  if(pingTimer){ clearInterval(pingTimer); pingTimer=null; }
+  $('#status').textContent = 'pronto';
+}
+
+// Handle a ping → update audio + visuals
+function onPing(ms, tag){
+  const hzRaw = msToHz(ms);
+  $('#msVal').textContent = ms.toFixed(1);
+  $('#status').textContent = tag;
+  variabilityToLfo(ms);
+  pingPluck();
+
+  applyAudioParams(hzRaw);
+  logEvent(ms.toFixed(1), (1000/ms).toFixed(2), $('#noteVal').textContent, tag);
+  pushMs(ms);
+}
+
+// ===== Visualizers
+const msBuf = new Array(240).fill(NaN);
+function pushMs(ms){ msBuf.push(ms); if(msBuf.length>240) msBuf.shift(); }
+
+const cMs = $('#canvasMs'); const cxMs = cMs.getContext('2d');
+function drawMs(){
+  const w=cMs.width, h=cMs.height;
+  cxMs.clearRect(0,0,w,h);
+  // axes
+  cxMs.strokeStyle='#131934'; cxMs.lineWidth=1;
+  cxMs.beginPath(); cxMs.moveTo(0,h-20); cxMs.lineTo(w,h-20); cxMs.stroke();
+  // series
+  const maxMs = 800; // clamp for view
+  cxMs.beginPath();
+  for(let i=0;i<msBuf.length;i++){
+    const v = msBuf[i];
+    const x = i/msBuf.length*w;
+    const y = h - 20 - (isNaN(v)?0: (clamp(v,0,maxMs)/maxMs)*(h-30));
+    if(i===0) cxMs.moveTo(x,y); else cxMs.lineTo(x,y);
+  }
+  cxMs.strokeStyle='#5ed0ff'; cxMs.lineWidth=2; cxMs.stroke();
+  requestAnimationFrame(drawMs);
+}
+function drawFFT(){
+  const c = $('#canvasFFT'); const cx = c.getContext('2d');
+  const w=c.width, h=c.height;
+  const arr = new Uint8Array(analyserFFT.frequencyBinCount);
+  function loop(){
+    cx.clearRect(0,0,w,h);
+    if(analyserFFT){
+      analyserFFT.getByteFrequencyData(arr);
+      const barW = w/arr.length;
+      for(let i=0;i<arr.length;i++){
+        const v = arr[i]/255;
+        const y = v * h;
+        cx.fillStyle = `rgba(167,124,255,${0.1+0.9*v})`;
+        cx.fillRect(i*barW, h-y, barW*0.9, y);
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+drawMs();
+drawFFT();
+
+// ===== Log
+function logEvent(ms, hz, note, evt){
+  const tbody = $('#logTbl tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${now()}</td><td>${ms}</td><td>${hz}</td><td>${note}</td><td>${evt}</td>`;
+  tbody.prepend(tr);
+  while(tbody.children.length>30) tbody.removeChild(tbody.lastChild);
+}
+
+// ===== Wiring UI
+$('#startBtn').addEventListener('click', async ()=>{
+  if(!running) buildAudio();
+  try{ await actx.resume(); }catch{}
+  $('#status').textContent = 'áudio ativo';
+});
+$('#stopBtn').addEventListener('click', ()=>{
+  try{ actx && actx.suspend(); }catch{}
+  $('#status').textContent = 'áudio pausado';
+});
+$('#togglePing').addEventListener('click', ()=>{
+  if(pingTimer){ stopPingLoop(); $('#togglePing').textContent='🔁 Pingar'; }
+  else{ startPingLoop(); $('#togglePing').textContent='⏸️ Pausar Ping'; }
+});
+$('#singlePing').addEventListener('click', async ()=>{
+  try{
+    const ms = await doPing($('#url').value, parseInt($('#timeout').value,10));
+    onPing(ms, 'PING');
+    setTimeout(()=> onPing(ms*1.01, 'PONG'), 20);
+  }catch(err){
+    logEvent('—','—','—','ERRO: '+(err.message||err));
+  }
+});
+$('#playManual').addEventListener('click', ()=>{
+  const v = parseFloat($('#manualMs').value);
+  if(!isFinite(v)||v<=0) return;
+  onPing(v, 'MANUAL');
+});
+
+['octLift','quantize','scale','harm1','harm2','harm3','rev','cut','lfoDepth','balance'].forEach(id=>{
+  const el = $('#'+id);
+  el.addEventListener('input', ()=>{
+    // re-apply with last measured ms (if any)
+    const msTxt = $('#msVal').textContent;
+    if(msTxt && msTxt !== '–'){
+      const ms = parseFloat(msTxt);
+      applyAudioParams(msToHz(ms));
+    }
+  });
+});
+
+$('#clearLog').addEventListener('click', ()=> $('#logTbl tbody').innerHTML='');
+
+// Resize canvases for crispness
+function resizeCanvas(c){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  c.width = Math.round(rect.width * dpr);
+  c.height = Math.round(rect.height * dpr);
+}
+function onResize(){
+  [$('#canvasMs'), $('#canvasFFT')].forEach(resizeCanvas);
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+// Hints
+console.log('%cPingPong Sonifier','color:#a77cff;font-weight:bold', '→ Converta latências em música. Use com fones para melhor imagem estéreo.');
+</script>
+</body>
+</html>
