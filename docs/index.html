@@ -226,6 +226,49 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
     height:16px;
     margin-right:.35rem;
   }
+
+  /* === Perfil input container e DevDocs === */
+  /* wrapper estilizado para inputs de SK e Treinamento */
+  .input-wrap{
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    padding: 8px;
+    display: grid;
+    gap: 8px;
+    box-shadow: var(--shadow);
+  }
+  .input-wrap .row{ display:flex; gap:8px; align-items:center; }
+  .input-wrap .label{ font-size:11px; color:var(--muted); letter-spacing:.04em; }
+  .input-wrap .hint{ font-size:11px; color:#a6b8ff99; }
+  .input-wrap .input, .input-wrap textarea{
+    background:#0f1326;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:10px;
+    color:var(--fg);
+    padding:10px 12px;
+    outline:none;
+  }
+  /* botão com borda tracejada para upload */
+  .btn-ghost-clip{ background:transparent; border:1px dashed rgba(255,255,255,.16); }
+
+  /* Painel Dev Docs para avatar */
+  .devdocs-panel{
+    position:fixed;
+    inset:auto 12px 90px 12px;
+    z-index:80;
+    background:linear-gradient(180deg,rgba(15,16,32,.96),rgba(15,16,32,.92));
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:16px;
+    padding:12px;
+    box-shadow:0 18px 60px rgba(0,0,0,.5);
+    max-width:820px;
+    margin:0 auto;
+  }
+  .devdocs-panel h4{ margin:4px 0 10px; font-size:13px; letter-spacing:.06em; }
+  .devdocs-panel .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .devdocs-panel .mini{ background:#121223; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.08); font-size:12px; max-height:220px; overflow:auto; }
+  .devdocs-panel .row{ display:flex; gap:8px; }
 </style>
 </head>
 <body>
@@ -412,20 +455,45 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
 <section class="view" id="view-apps">
   <div class="app-frame">
     <div class="header"><div class="title">DUAL <span>• APPS</span></div></div>
-    <div class="page">
-      <div class="section">★ FAVORITOS</div>
-      <div class="grid" id="apps-favorites"></div>
-      <div class="section">⟳ RECENTES</div>
-      <div class="grid" id="apps-recents"></div>
-      <div id="apps-groups-container"></div>
+    <div class="page" style="display:grid; gap:12px">
+      <!-- Toolbar -->
+      <div class="card" style="display:grid; gap:8px">
+        <div class="row" style="display:flex; gap:8px; align-items:center">
+          <input id="search" class="input" placeholder="Buscar apps..." style="flex:1">
+          <select id="sort" class="input" style="width:160px">
+            <option value="az">A–Z</option>
+            <option value="za">Z–A</option>
+          </select>
+          <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)">
+            <input id="sameTab" type="checkbox" checked> abrir dentro do hub
+          </label>
+        </div>
+        <div id="countApps" class="sublabel">—</div>
+      </div>
+      <!-- Conteúdo agrupado -->
+      <div id="content"></div>
+      <!-- Memória de páginas abertas (rail) -->
+      <div id="memRail" class="card" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+        <button id="memToggle" class="btn btn--sm btn--ghost">Memória</button>
+        <button id="memClear"  class="btn btn--sm btn--ghost">Limpar</button>
+      </div>
     </div>
   </div>
 </section>
 
     <section class="view" id="view-profile">
       <div style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
-        <div style="width:84px;height:84px;border-radius:50%;display:grid;place-items:center;margin:4px auto 8px;background:radial-gradient(120% 120% at 70% 0%,#231a52,#0d122a);border:1px solid #ffffff18;box-shadow:var(--shadow)">
+        <div id="profile-avatar" style="width:84px;height:84px;border-radius:50%;display:grid;place-items:center;margin:4px auto 8px;background:radial-gradient(120% 120% at 70% 0%,#231a52,#0d122a);border:1px solid #ffffff18;box-shadow:var(--shadow); cursor:pointer" title="Clique para alterar foto ou abrir Dev Docs">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#cfd6ff" stroke-width="1.6"/><path d="M5 19c1.5-3.2 4.3-5 7-5s5.5 1.8 7 5" stroke="#5ed0ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div id="profile-avatar-menu" class="card" style="display:none;max-width:280px;margin:0 auto; text-align:center">
+          <div class="label">Avatar & Dev</div>
+          <div class="hr"></div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <input id="profile-avatar-file" type="file" accept="image/*" hidden>
+            <button id="btn-change-photo" class="btn btn--md btn--accent">Alterar foto</button>
+            <button id="btn-devdocs" class="btn btn--md btn--ghost">Dev Docs</button>
+          </div>
         </div>
         <div class="card">
           <div style="font-size:11px;color:var(--muted)">Nome</div>
@@ -446,15 +514,29 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
         <div class="card">
           <div class="label">OpenRouter & Treinamento</div>
           <div class="hr"></div>
-          <div style="display:grid;gap:8px">
-            <div style="display:flex;gap:8px">
+
+          <!-- SK -->
+          <div class="input-wrap">
+            <div class="label">Chave OpenRouter</div>
+            <div class="row">
               <input id="profile-sk" class="input" placeholder="sk-or-v1-..." style="flex:1">
-              <button id="profile-saveSK" class="btn btn--md btn--prime">Salvar</button>
+              <button id="profile-pasteSK" class="btn btn--md btn--ghost" title="Colar da área de transferência">📋 Colar</button>
+              <button id="profile-saveSK"  class="btn btn--md btn--prime">Salvar</button>
             </div>
+            <div class="hint">Guardado em <code>infodose:brain.userSK</code> e <code>infodose:userSK</code></div>
+          </div>
+
+          <!-- Treinamento -->
+          <div class="input-wrap">
+            <div class="label">Treinamento</div>
             <textarea id="profile-training" class="input" rows="5" placeholder="Cole seu treinamento..."></textarea>
-            <div style="display:flex;gap:8px;justify-content:flex-end">
+            <div class="row">
+              <input id="profile-training-file" type="file" accept=".txt,.json" hidden>
+              <button id="profile-uploadTraining" class="btn btn--md btn--ghost btn-ghost-clip">⤒ Upload TXT/JSON</button>
+              <div style="flex:1"></div>
               <button id="profile-saveTraining" class="btn btn--md btn--accent">Salvar Treinamento</button>
             </div>
+            <div class="hint">Aceita .txt direto ou .json com <code>{"training":"..."}</code> ou um array de strings.</div>
           </div>
         </div>
       </div>
@@ -850,10 +932,10 @@ menuSheet.addEventListener('click', (e)=>{
     const acts=document.createElement('div');
     acts.className='actions';
     acts.innerHTML = `
-      <button class="act btn btn--sm btn--accent" data-act="expand">＋ Expandir</button>
-      <button class="act btn btn--sm btn--accent" data-act="copy">⎘ Copiar</button>
-      <button class="act btn btn--sm btn--accent" data-act="pulse">◉ Pulso</button>
-      <button class="act btn btn--sm btn--accent" data-act="refine">↻ Refinar</button>`;
+      <button class="act btn btn--sm btn--accent" data-act="expand">＋</button>
+      <button class="act btn btn--sm btn--accent" data-act="copy">⎘</button>
+      <button class="act btn btn--sm btn--accent" data-act="pulse">◉</button>
+      <button class="act btn btn--sm btn--accent" data-act="refine">↻</button>`;
     b.appendChild(acts);
     row.appendChild(b);
     if(who==='me'){
@@ -1061,46 +1143,22 @@ document.getElementById('btnIntegrator').addEventListener('click', ()=>{
 </script>
 
 <script>
+// Desativa loader simples e delega render ao motor completo
 (function(){
-  const appsView = document.getElementById('view-apps');
-  if(!appsView) return;
-  const grid = appsView.querySelector('.grid');
-  let appsLoaded=false;
-  async function loadApps(){
-    if(appsLoaded) return;
-    appsLoaded=true;
-    if(!grid) return;
-    grid.innerHTML='';
-    try{
-      const res = await fetch('./apps/apps.json', {cache:'no-store'});
-      const data = await res.json();
-      let appsList = [];
-      if(Array.isArray(data)) { appsList = data; }
-      else if(Array.isArray(data.apps)) { appsList = data.apps; }
-      else if(data.groups && typeof data.groups === 'object') {
-        for(const key in data.groups){ const arr=data.groups[key]; if(Array.isArray(arr)) appsList=appsList.concat(arr); }
-      }
-      appsList.forEach(app=>{
-        const div=document.createElement('div');
-        div.className='card';
-        const iconHtml = app.icon ?
-          `<img src="${app.icon}" alt="" style="width:32px;height:32px;border-radius:8px">` :
-          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6" height="6" rx="2" stroke="#5ed0ff" stroke-width="1.6"></rect><rect x="14" y="4" width="6" height="6" rx="2" stroke="#a77cff" stroke-width="1.6"></rect><rect x="4" y="14" width="6" height="6" rx="2" stroke="#ff5bd4" stroke-width="1.6"></rect><rect x="14" y="14" width="6" height="6" rx="2" stroke="#cfd6ff" stroke-width="1.6"></rect></svg>';
-        div.innerHTML = `<div class="ico">${iconHtml}</div><h3>${app.name || app.title || 'App'}</h3><p>${app.desc || app.description || ''}</p>`;
-        if(app.url) div.addEventListener('click', ()=>{ window.open(app.url, '_blank'); });
-        grid.appendChild(div);
-      });
-    }catch(e){
-      console.warn(e);
-      if(grid) grid.innerHTML='<div style="padding:8px;color:var(--muted)">Não foi possível carregar os apps.</div>';
-    }
-  }
-  // Attach loadApps to nav clicks
+  // Mantemos a função loadApps para retrocompatibilidade, mas ela não faz nada.
+  async function loadApps(){}
+  // Ao navegar para Apps, disparar render() do motor agrupado
   document.querySelectorAll('[data-nav]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ if(btn.dataset.nav==='apps') loadApps(); });
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.nav==='apps'){
+        try{ render(); }catch(_){}
+      }
+    });
   });
-  // Auto-load if URL hash points to apps
-  if(location.hash && location.hash.toLowerCase().includes('apps')) loadApps();
+  // Se a URL já aponta para apps, dispara render()
+  if(location.hash && location.hash.toLowerCase().includes('apps')){
+    try{ render(); }catch(_){}
+  }
 })();
 </script>
 
@@ -1658,14 +1716,16 @@ let VIEWER_OPEN=false;
 function openApp(app){
   try{ localStorage.setItem('infodose:lastView', JSON.stringify(app)); }catch{}
   addToMem(app);
-  // Open in new tab if sameTab is unchecked
-  if(!$sameTab.checked){
+  // verifica checkbox de mesma aba com fallback seguro
+  const sameTab = !!(document.getElementById('sameTab') && document.getElementById('sameTab').checked);
+  // abre em nova aba se a preferência de mesma aba estiver desativada
+  if(!sameTab){
     const lref = getLocalByUrl(app.url);
     const targetUrl = lref ? blobUrlFromLocal(lref) : app.url;
     window.open(targetUrl, '_blank', 'noopener');
     return;
   }
-  // Otherwise mount viewer inside Apps (if present) or fallback to body
+  // Caso contrário monta o viewer dentro de Apps (se presente) ou fallback no body
   unlockAudioOnce();
   speak('Abrindo ' + (app.title||'aplicativo'));
   const lref2 = getLocalByUrl(app.url);
@@ -2119,6 +2179,139 @@ $('#fileImport')?.addEventListener('change', (e)=>{
   });
   document.addEventListener('DOMContentLoaded', syncFields);
   if(document.readyState !== 'loading') syncFields();
+})();
+</script>
+
+<!-- Perfil: botões de colar SK, upload de treinamento TXT/JSON, avatar interativo e Dev Docs -->
+<script>
+(function(){
+  // Botão de colar SK a partir da área de transferência
+  async function pasteInto(id){
+    try{
+      const t = await navigator.clipboard.readText();
+      const el = document.getElementById(id);
+      if(el){ el.value = (t||'').trim(); }
+    }catch{ alert('Não foi possível ler a área de transferência.'); }
+  }
+  const pasteBtn = document.getElementById('profile-pasteSK');
+  if(pasteBtn){ pasteBtn.addEventListener('click', ()=> pasteInto('profile-sk')); }
+
+  // Upload de arquivo de treinamento (.txt ou .json)
+  const upBtn  = document.getElementById('profile-uploadTraining');
+  const upFile = document.getElementById('profile-training-file');
+  const txt    = document.getElementById('profile-training');
+  function normalizeJsonTraining(obj){
+    try{
+      if(typeof obj === 'string') return obj;
+      if(Array.isArray(obj)) return obj.join('\n\n');
+      if(obj && typeof obj === 'object'){
+        if(typeof obj.training === 'string') return obj.training;
+        if(Array.isArray(obj.training)) return obj.training.join('\n\n');
+      }
+    }catch{}
+    return '';
+  }
+  if(upBtn && upFile && txt){
+    upBtn.addEventListener('click', ()=> upFile.click());
+    upFile.addEventListener('change', ()=>{
+      const f = (upFile.files||[])[0]; if(!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const raw = String(reader.result||'');
+          if(/\.json$/i.test(f.name)){
+            const obj = JSON.parse(raw);
+            txt.value = normalizeJsonTraining(obj) || raw;
+          } else {
+            txt.value = raw;
+          }
+        }catch{ txt.value = String(reader.result||''); }
+      };
+      reader.readAsText(f);
+      upFile.value='';
+    });
+  }
+
+  // Avatar interativo: permite trocar foto e abrir painel Dev Docs
+  const KEY_IMG='infodose:profile.avatarDataURL';
+  const av   = document.getElementById('profile-avatar');
+  const menu = document.getElementById('profile-avatar-menu');
+  const file = document.getElementById('profile-avatar-file');
+  if(av){
+    const data = localStorage.getItem(KEY_IMG);
+    if(data){ av.style.backgroundImage = `url(${data})`; av.style.backgroundSize='cover'; av.innerHTML=''; }
+    av.addEventListener('click', ()=>{
+      if(menu) menu.style.display = (menu.style.display==='none' || !menu.style.display) ? 'block' : 'none';
+    });
+  }
+  document.getElementById('btn-change-photo')?.addEventListener('click', ()=> file?.click());
+  if(file){ file.addEventListener('change', ()=>{
+    const f=(file.files||[])[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ localStorage.setItem(KEY_IMG, String(r.result||'')); location.reload(); };
+    r.readAsDataURL(f);
+  }); }
+
+  // Painel Dev Docs: manipula localStorage e injeta CSS ao vivo
+  document.getElementById('btn-devdocs')?.addEventListener('click', ()=>{
+    let host=document.querySelector('.devdocs-panel');
+    if(host){ host.remove(); return; }
+    host=document.createElement('div'); host.className='devdocs-panel card';
+    const ls = Object.keys(localStorage).sort().map(k=> `<div><b>${k}</b><br><code>${(localStorage.getItem(k)||'').replace(/[<&>]/g,s=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[s]))}</code></div>`).join('');
+    host.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="label">Dev Docs</div>
+        <button class="btn btn--sm btn--ghost" id="devdocs-close">✕</button>
+      </div>
+      <div class="grid">
+        <div class="mini">
+          <h4>localStorage</h4>
+          <div style="display:flex; gap:6px; margin-bottom:8px">
+            <input id="dev-k" class="input" placeholder="chave" style="flex:1">
+            <input id="dev-v" class="input" placeholder="valor" style="flex:1">
+            <button id="dev-set" class="btn btn--sm btn--accent">Set</button>
+            <button id="dev-del" class="btn btn--sm btn--ghost">Del</button>
+          </div>
+          <div id="dev-ls">${ls || '<i>vazio</i>'}</div>
+        </div>
+        <div class="mini">
+          <h4>CSS Injection</h4>
+          <textarea id="dev-css" class="input" rows="10" placeholder="/* CSS ao vivo */"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="dev-apply-css" class="btn btn--sm btn--prime">Aplicar</button>
+            <button id="dev-clear-css" class="btn btn--sm btn--ghost">Limpar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(host);
+    const devLS = () => {
+      const box=document.getElementById('dev-ls');
+      const ls = Object.keys(localStorage).sort().map(k=> `<div><b>${k}</b><br><code>${(localStorage.getItem(k)||'').replace(/[<&>]/g,s=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[s]))}</code></div>`).join('');
+      box.innerHTML = ls || '<i>vazio</i>';
+    };
+    document.getElementById('devdocs-close')?.addEventListener('click', ()=> host.remove());
+    document.getElementById('dev-set')?.addEventListener('click', ()=>{
+      const k=document.getElementById('dev-k').value.trim();
+      const v=document.getElementById('dev-v').value;
+      if(!k) return;
+      localStorage.setItem(k,v);
+      devLS();
+    });
+    document.getElementById('dev-del')?.addEventListener('click', ()=>{
+      const k=document.getElementById('dev-k').value.trim();
+      if(!k) return;
+      localStorage.removeItem(k);
+      devLS();
+    });
+    const STYLE_KEY='infodose:dev.css';
+    const styleEl = document.createElement('style'); styleEl.id='__dev_css__';
+    document.head.appendChild(styleEl);
+    const applyCSS=()=>{ styleEl.textContent = document.getElementById('dev-css').value || ''; localStorage.setItem(STYLE_KEY, styleEl.textContent); };
+    const clearCSS=()=>{ styleEl.textContent=''; document.getElementById('dev-css').value=''; localStorage.removeItem(STYLE_KEY); };
+    document.getElementById('dev-apply-css').addEventListener('click', applyCSS);
+    document.getElementById('dev-clear-css').addEventListener('click', clearCSS);
+    const saved = localStorage.getItem(STYLE_KEY)||''; if(saved){ document.getElementById('dev-css').value=saved; applyCSS(); }
+  });
 })();
 </script>
 </body>
