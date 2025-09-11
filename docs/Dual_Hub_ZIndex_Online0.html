@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>DUAL • HUB — Nebula Pro (Z-Index Online)</title>
+<meta name="theme-color" content="#0b0b14">
+<style>
+  :root{
+    --bg:#0a0b13; --bg-2:#0b0d1a; --fg:#e9ecff; --muted:#9aa4c7; --soft:#c6c9ff33;
+    --acc:#a77cff; --acc-2:#29d3ff; --mag:#ff5bd4; --ok:#5bffcf;
+    --ring:rgba(167,124,255,.35); --tabsH:72px; --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+    radial-gradient(1200px 900px at 50% -160px,#2a1e60 0%,#1c1540 45%,#0b0d1a 80%,#070812 100%),#05060c;
+    color:var(--fg); font:14px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .app{min-height:100dvh;display:flex;flex-direction:column}
+  header.top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #ffffff14;backdrop-filter:saturate(130%) blur(6px)}
+  .title{font-weight:900;letter-spacing:.16em;display:flex;gap:.5ch;align-items:center}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--acc-2);box-shadow:0 0 18px var(--acc-2)}
+  .icon-btn{width:36px;height:36px;border:1px solid #ffffff18;border-radius:12px;background:#0e1326;display:grid;place-items:center;cursor:pointer}
+  main{flex:1;position:relative}
+  section.view{position:absolute;inset:0;display:none;padding:12px;padding-bottom:calc(var(--tabsH) + 16px);overflow:auto}
+  section.view.active{display:block}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;height:var(--tabsH);display:flex;gap:10px;justify-content:space-around;align-items:center;background:linear-gradient(180deg,#0b0e1a,#070a14);border-top:1px solid #ffffff14;z-index:90;backdrop-filter:blur(8px)}
+  .tab-btn{width:46px;height:46px;border-radius:14px;border:1px solid #ffffff18;background:#10142a;display:grid;place-items:center}
+  .tab-btn.active{outline:1px solid var(--ring)}
+  /* Cards */
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid #ffffff14;border-radius:16px;padding:12px;box-shadow:0 12px 36px rgba(0,0,0,.35)}
+  .grid{display:grid;gap:12px}
+  @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  /* CHAT */
+  #view-chat .wrap{max-width:1100px;margin:0 auto}
+  #view-chat .header{position:sticky;top:0;z-index:2;display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:8px;border-radius:12px;background:linear-gradient(180deg,rgba(18,20,42,.92),rgba(18,20,42,.65))}
+  #view-chat .scroll{min-height:60dvh;max-height:calc(100dvh - 260px);overflow:auto;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+  .row{display:flex;gap:8px;margin:10px}
+  .row .avatar{width:34px;height:34px;border-radius:10px;background:#12162a;border:1px solid #ffffff14;display:grid;place-items:center}
+  .bubble{max-width:100%;padding:12px 14px;border:1px solid #ffffff14;border-radius:16px;box-shadow:0 12px 24px rgba(0,0,0,.28)}
+  .ai{background:linear-gradient(180deg,rgba(90,60,180,.32),rgba(60,40,120,.32))}
+  .me{background:linear-gradient(180deg,rgba(41,211,255,.28),rgba(154,124,255,.28))}
+  .ascii{font:12px/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas;white-space:pre;opacity:.7;margin-top:6px}
+  .composer{position:fixed;left:12px;right:12px;bottom:calc(var(--tabsH) + 8px);z-index:80;display:flex;gap:8px;align-items:center;padding:10px;border-radius:14px;background:#101427;border:1px solid #ffffff18}
+  .composer input{flex:1;border:1px solid #ffffff18;border-radius:12px;padding:12px;background:#0e1428;color:var(--fg)}
+  .cbtn{width:38px;height:38px;border-radius:10px;border:1px solid #ffffff18;background:#0f1428;display:grid;place-items:center}
+  /* APPS viewer com keep-tabs */
+  .viewer{position:fixed;inset:0;background:#000;z-index:70}
+  .viewer.keep-tabs{position:absolute;inset:8px 8px calc(var(--tabsH) + 10px) 8px;background:rgba(0,0,0,.85);border:1px solid #ffffff18;border-radius:18px}
+  .viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .viewer-footer{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+  /* Loader overlay */
+  .infodose-loader{position:fixed;inset:0;z-index:99998;display:none;place-items:center;background:rgba(0,0,0,.38);backdrop-filter:blur(8px) saturate(130%)}
+  .infodose-loader .dot{width:16px;height:16px;border-radius:50%;background:#29d3ff;box-shadow:0 0 24px #29d3ff;animation:neb 0.9s infinite alternate}
+  @keyframes neb{to{transform:scale(1.35);opacity:.75}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="title">DUAL <span class="dot"></span> HUB</div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" id="btnMenu" title="Opções">⋯</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="grid">
+        <div class="card" style="display:flex;gap:10px;align-items:center">
+          <img src="./icons/others/hub_lan_scanner.svg" width="42" height="42" alt="">
+          <div><b>LAN Scanner</b><div style="color:#9aa4c7">Descobrir dispositivos</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center">
+          <img src="./icons/others/hub_bind.svg" width="42" height="42" alt="">
+          <div><b>Bind</b><div style="color:#9aa4c7">Conectar & parear</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center">
+          <img src="./icons/others/hub_relatorio.svg" width="42" height="42" alt="">
+          <div><b>Relatório</b><div style="color:#9aa4c7">Métricas e logs</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:10px;align-items:center">
+          <img src="./icons/others/hub_memoria.svg" width="42" height="42" alt="">
+          <div><b>Memória</b><div style="color:#9aa4c7">Docs & sessões</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="view-chat" class="view">
+      <div class="wrap">
+        <div class="header card">
+          <img src="./icons/others/hub_chat.svg" width="22" height="22" alt="">
+          <b>DUAL • CHAT</b>
+          <div style="flex:1"></div>
+          <small id="chatStatus" style="opacity:.7">modo: auto</small>
+        </div>
+        <div class="scroll" id="chat-list"></div>
+      </div>
+
+      <div class="composer">
+        <button class="cbtn" id="chat-btnMic" title="Ditado">🎙️</button>
+        <input id="chat-input" placeholder="Digite uma mensagem…">
+        <button class="cbtn" id="chat-btnSend" title="Enviar">➤</button>
+      </div>
+    </section>
+
+    <!-- BRAIN (SK/Treinamento) -->
+    <section id="view-brain" class="view">
+      <div class="grid" style="max-width:980px;margin:0 auto">
+        <div class="card">
+          <div style="color:#9aa4c7;font-size:12px">Nome</div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <input id="profile-name" placeholder="Seu nome" style="flex:1;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff">
+            <button class="cbtn" id="profile-saveName">Salvar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="color:#9aa4c7;font-size:12px">OpenRouter & Treinamento</div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <input id="profile-sk" placeholder="sk-or-v1-..." style="flex:1;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff">
+            <button class="cbtn" id="profile-saveSK">Salvar</button>
+          </div>
+          <textarea id="profile-training" rows="5" placeholder="Cole seu treinamento..." style="width:100%;margin-top:8px;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff"></textarea>
+          <div style="text-align:right;margin-top:6px">
+            <button class="cbtn" id="profile-saveTraining">Salvar Treinamento</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APPS -->
+    <section id="view-apps" class="view">
+      <div class="card" style="max-width:1180px;margin:0 auto;padding:14px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <img src="./icons/others/hub_apps.svg" width="22" height="22">
+          <b>DUAL • APPS</b>
+          <div style="flex:1"></div>
+          <label style="font-size:12px;color:#9aa4c7"><input id="sameTab" type="checkbox" checked> abrir dentro do hub</label>
+        </div>
+        <div id="apps-body" style="margin-top:12px">Coloque seu <code>apps.json</code> em <code>./</code> ou <code>./apps/</code>.</div>
+      </div>
+    </section>
+
+    <!-- PERFIL (atalho) -->
+    <section id="view-profile" class="view">
+      <div class="card" style="max-width:980px;margin:0 auto">
+        <img src="./icons/others/hub_perfil.svg" width="28" height="28" style="vertical-align:-6px">
+        <b> Perfil & Preferências</b>
+        <div style="margin-top:10px;color:#9aa4c7">Use a aba <b>Brain</b> para salvar sua SK e o Treinamento.</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-nav="home" title="Início"><img src="./icons/others/favicon.svg" width="22" height="22"></button>
+    <button class="tab-btn" data-nav="chat"  title="Chat"><img src="./icons/others/hub_chat.svg" width="22" height="22"></button>
+    <button class="tab-btn" data-nav="brain" title="Brain"><img src="./icons/others/hub_cloud.svg" width="22" height="22"></button>
+    <button class="tab-btn" data-nav="apps"  title="Apps"><img src="./icons/others/hub_apps.svg" width="22" height="22"></button>
+    <button class="tab-btn" data-nav="profile" title="Perfil"><img src="./icons/others/hub_perfil.svg" width="22" height="22"></button>
+  </nav>
+</div>
+
+<!-- Loader -->
+<div class="infodose-loader" id="infodoseLoader"><div class="dot"></div></div>
+
+<script>
+/* ===== Helpers ===== */
+const $=(s,root=document)=>root.querySelector(s);
+const $$=(s,root=document)=>Array.from(root.querySelectorAll(s));
+function showLoader(){ $('#infodoseLoader').style.display='grid'; }
+function hideLoader(){ $('#infodoseLoader').style.display='none'; }
+
+/* ===== Router ===== */
+const views={home:$('#view-home'), chat:$('#view-chat'), brain:$('#view-brain'), apps:$('#view-apps'), profile:$('#view-profile')};
+function navTo(k){ for(const v in views) views[v].classList.remove('active'); (views[k]||views.home).classList.add('active');
+  $$('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.nav===k)); history.replaceState({},'', '#/'+k); }
+const initHash=location.hash.replace('#/',''); if(views[initHash]) navTo(initHash);
+$$('.tab-btn').forEach(b=>b.addEventListener('click',()=>navTo(b.dataset.nav)));
+
+/* ===== Chat ===== */
+const list=$("#chat-list"), input=$("#chat-input"), btnSend=$("#chat-btnSend");
+let msgCounter=0;
+function asciiFrames(){return[
+"▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
+"  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
+"    ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
+"  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁"];}
+function chatBubble(text,who='ai'){
+  const row=document.createElement('div'); row.className='row';
+  if(who==='ai'){const av=document.createElement('div'); av.className='avatar'; av.textContent='🔮'; row.appendChild(av);}
+  const b=document.createElement('div'); b.className='bubble '+who; b.textContent=text;
+  const pre=document.createElement('pre'); pre.className='ascii'; pre.textContent=asciiFrames()[0]; b.appendChild(pre);
+  row.appendChild(b);
+  if(who==='me'){const av=document.createElement('div'); av.className='avatar'; av.textContent='⚡'; row.appendChild(av);}
+  list.appendChild(row); list.scrollTop=list.scrollHeight;
+}
+function persist(){ try{
+  const msgs=[...list.querySelectorAll('.row')].map(r=>({who:r.querySelector('.bubble.me')?'me':'ai',text:r.querySelector('.bubble').childNodes[0].textContent}));
+  localStorage.setItem('dual.chat.history', JSON.stringify(msgs));
+} catch{} }
+function restore(){ list.innerHTML=''; const raw=localStorage.getItem('dual.chat.history');
+  if(raw){ try{ JSON.parse(raw).forEach(m=>chatBubble(m.text,m.who)); }catch{ chatBubble('Contexto limpo.','ai'); } }
+  else { chatBubble('Olá! Salve sua SK em Brain para usar a IA online.','ai'); }
+}
+restore();
+
+/* ===== OpenRouter (online) ===== */
+function getSK(){
+  try{
+    const brain=JSON.parse(localStorage.getItem('infodose:brain')||'{}');
+    return localStorage.getItem('infodose:userSK') || brain.userSK || '';
+  }catch{return localStorage.getItem('infodose:userSK')||''}
+}
+function getModel(){
+  return localStorage.getItem('infodose:model') || 'openrouter/auto';
+}
+async function sendToOpenRouter(prompt, ctx=[]){
+  const SK=getSK(); if(!SK) throw new Error('SK ausente. Salve em Brain.');
+  const model=getModel();
+  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+SK,
+      'HTTP-Referer': location.origin,
+      'X-Title':'Dual Hub Nebula'
+    },
+    body: JSON.stringify({ model, messages:[...ctx,{role:'user',content:prompt}], temperature:0.7 })
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const data=await r.json();
+  return data?.choices?.[0]?.message?.content || '(sem conteúdo)';
+}
+async function reply(prompt){
+  const p=prompt.trim(); if(!p) return;
+  // Regras locais rápidas
+  if(/(lan|scan)/i.test(p)) { chatBubble('🔎 Varredura LAN (mock): 192.168.0.10, .21, .45','ai'); return; }
+  // Online se SK existir
+  const hasSK=!!getSK();
+  try{
+    if(hasSK){
+      showLoader();
+      const raw=localStorage.getItem('dual.chat.history'); const ctx=[];
+      if(raw){ try{ JSON.parse(raw).slice(-6).forEach(m=>ctx.push({role:(m.who==='me'?'user':'assistant'),content:m.text})) }catch{} }
+      const out=await sendToOpenRouter(p, ctx);
+      chatBubble(out,'ai');
+    } else {
+      chatBubble('💡 Salve sua SK em Brain para usar a IA online.\nEnquanto isso, respondo local: '+p,'ai');
+    }
+  }catch(e){
+    chatBubble('Falha ao consultar a IA: '+(e?.message||e),'ai');
+  } finally{ hideLoader(); persist(); }
+}
+function send(){ const t=input.value.trim(); if(!t) return; chatBubble(t,'me'); input.value=''; persist(); reply(t); }
+btnSend.addEventListener('click',send);
+input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+/* ===== Brain/Profile sync ===== */
+function readBrain(){ try{return JSON.parse(localStorage.getItem('infodose:brain')||'{}')||{}}catch{return{}} }
+function writeBrain(o){ try{localStorage.setItem('infodose:brain', JSON.stringify(o))}catch{} }
+$('#profile-saveName').addEventListener('click',()=>{ const v=$('#profile-name').value.trim(); if(!v) return; showLoader(); try{
+  localStorage.setItem('infodose:userName',v); const b=readBrain(); b.userName=v; writeBrain(b);
+} finally{ hideLoader(); }});
+$('#profile-saveSK').addEventListener('click',()=>{ const v=$('#profile-sk').value.trim(); showLoader(); try{
+  localStorage.setItem('infodose:userSK',v); const b=readBrain(); b.userSK=v; writeBrain(b);
+} finally{ hideLoader(); }});
+$('#profile-saveTraining').addEventListener('click',()=>{ const v=$('#profile-training').value; showLoader(); try{
+  const b=readBrain(); b.training=v; writeBrain(b);
+} finally{ hideLoader(); }});
+
+/* ===== Apps (viewer embutido com Minimizar) ===== */
+async function tryFetch(u){ try{const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw 0; return await r.json(); }catch{return null} }
+async function loadApps(){
+  const cands=['./apps.json','./apps/apps.json']; let RAW=null;
+  for(const u of cands){ RAW=await tryFetch(u); if(RAW) break; }
+  const host=$('#apps-body'); if(!RAW){ host.innerHTML='<div class="card">apps.json não encontrado.</div>'; return; }
+  const list=Array.isArray(RAW.apps)?RAW.apps:(RAW.groups?Object.values(RAW.groups).flat():[]);
+  host.innerHTML=''; list.forEach(a=>{
+    const el=document.createElement('div'); el.className='card'; el.style.marginBottom='8px';
+    el.innerHTML=`<div style="display:flex;gap:10px;align-items:center">
+      <img src="${a.icon||'./icons/others/hub_apps.svg'}" width="40"><div style="flex:1">
+      <div style="font-weight:900">${a.title||a.key||'App'}</div><div style="color:#9aa4c7">${a.desc||''}</div></div>
+      <button class="cbtn open">Abrir</button><button class="cbtn inj">Injection</button></div>`;
+    el.querySelector('.open').addEventListener('click',()=>openApp(a));
+    el.querySelector('.inj').addEventListener('click',()=>navigator.clipboard.writeText('<!-- INFODOSE footer -->\\n<div class="infodose-footer">⬅ Voltar ao Hub</div>'));
+    host.appendChild(el);
+  });
+}
+function openApp(app){
+  const appsFrame=$('#view-apps .card'); const mountInApps=!!appsFrame;
+  const v=document.createElement('div'); v.className='viewer'+(mountInApps?' keep-tabs':'');
+  v.innerHTML=`<iframe src="${app.url}" allow="autoplay; clipboard-read; clipboard-write; fullscreen"></iframe>
+    <div class="viewer-footer">
+      <button class="cbtn" id="backHub">⬅ Hub</button>
+      <button class="cbtn" id="minimize">—</button>
+      <button class="cbtn" id="copyInj">⎘</button>
+    </div>`;
+  (mountInApps?appsFrame:document.body).appendChild(v);
+  const f=v.querySelector('iframe');
+  const badge=document.createElement('button');
+  badge.textContent='◐ Reabrir App'; badge.className='cbtn';
+  Object.assign(badge.style,{position:'fixed',right:'12px',bottom:'calc(var(--tabsH) + 12px)',zIndex:'80',display:'none'});
+  document.body.appendChild(badge);
+  v.querySelector('#backHub').addEventListener('click',()=>{ v.remove(); badge.remove(); });
+  v.querySelector('#minimize').addEventListener('click',()=>{ f.style.display='none'; badge.style.display='inline-flex'; });
+  v.querySelector('#copyInj').addEventListener('click',()=>navigator.clipboard.writeText('<!-- INFODOSE footer -->\\n<div class="infodose-footer">⬅ Voltar ao Hub</div>'));
+  badge.addEventListener('click',()=>{ f.style.display=''; badge.style.display='none'; });
+}
+loadApps();
+</script>
+</body>
+</html>

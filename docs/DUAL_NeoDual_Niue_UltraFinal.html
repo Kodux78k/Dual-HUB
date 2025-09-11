@@ -1,0 +1,415 @@
+
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>DUAL • NeoDual — Niue UltraFinal</title>
+<meta name="theme-color" content="#0b0b14">
+<style>
+  :root{
+    /* ===== Escala global (ajuste aqui) ===== */
+    --ui-scale: .88;               /* ↓ menor / ↑ maior */
+    --tab-size: calc(40px * var(--ui-scale));
+    --btn-size: calc(34px * var(--ui-scale));
+    --cbtn-size: calc(30px * var(--ui-scale));
+    --radius: 14px;
+    --tabsH: 64px;
+    --gap: 10px;
+
+    /* Cores base Nebula Pro */
+    --bg:#090a12; --bg-2:#0b0d1a; --fg:#e9ecff; --muted:#9aa4c7;
+    --acc:#a77cff; --acc-2:#29d3ff; --mag:#ff5bd4; --ok:#5bffcf; --ring:rgba(167,124,255,.32);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--fg);
+    background:
+      radial-gradient(1200px 900px at 50% -220px, #2a1f52 0%, rgba(42,31,82,.0) 58%),
+      radial-gradient(900px 900px at 115% -140px, #0b2b44 0%, rgba(11,43,68,0) 50%),
+      radial-gradient(1100px 1100px at -10% -240px, #26143e 0%, rgba(38,20,62,0) 45%),
+      #05060c;
+  }
+  .app{min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  header.top{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.02));border-bottom:1px solid #ffffff14}
+  .title{display:flex;gap:.6ch;align-items:center;font-weight:900;letter-spacing:.18em}
+  .title .dot{width:6px;height:6px;border-radius:99px;background:var(--acc);box-shadow:0 0 16px var(--acc)}
+  .hdr-actions{display:flex;gap:8px}
+  .icon-btn{width:var(--btn-size);height:var(--btn-size);display:grid;place-items:center;border-radius:12px;background:#0e1222;border:1px solid #ffffff15;cursor:pointer}
+  main{flex:1;position:relative}
+  section.view{position:absolute;inset:0;display:none;padding:10px;padding-bottom:calc(var(--tabsH) + 12px);overflow:auto}
+  section.view.active{display:block;animation:fade .18s ease-out}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;height:var(--tabsH);display:flex;justify-content:space-around;align-items:center;gap:10px;background:linear-gradient(180deg,#0b0e1a,#080a14);border-top:1px solid #ffffff12;backdrop-filter:blur(8px)}
+  .tab-btn{--size:var(--tab-size);width:var(--size);height:var(--size);display:grid;place-items:center;border:1px solid #ffffff18;background:#101427;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.30);cursor:pointer}
+  .tab-btn.active{outline:1px solid var(--ring)}
+  .tab-btn img{width:1.15rem;height:1.15rem;opacity:.95}
+
+  /* ===== Cards (mais densos) ===== */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+  .card{border:1px solid #ffffff12;border-radius:14px;padding:10px;background:
+      radial-gradient(380px 220px at 80% 0%,rgba(167,124,255,.12),rgba(41,211,255,.08) 50%,rgba(255,91,212,.06) 80%,transparent)}
+  .card .ico{width:40px;height:40px;border-radius:10px;background:#0e1426;border:1px solid #ffffff14;display:grid;place-items:center;overflow:hidden}
+  .card .ico img{width:24px;height:24px;opacity:.92}
+  .row{display:flex;gap:8px;align-items:center}
+
+  /* ===== Chat (composer compacto + full-bleed) ===== */
+  #view-chat .app-frame{min-height:calc(100dvh - var(--tabsH));padding:0 0 calc(var(--tabsH) + 12px)}
+  #view-chat .header{position:sticky;top:0;display:flex;gap:8px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(180deg,rgba(12,14,26,.95),rgba(12,14,26,.6))}
+  #view-chat .scroll{height:calc(100dvh - 192px);overflow:auto;padding:8px}
+  #view-chat .row{display:flex;gap:8px;margin:8px}
+  #view-chat .row.ai{justify-content:flex-start}
+  #view-chat .row.me{justify-content:flex-end}
+  #view-chat .avatar{width:calc(var(--cbtn-size) - 2px);height:calc(var(--cbtn-size) - 2px);border-radius:12px;display:grid;place-items:center;background:#11172e;border:1px solid #ffffff18}
+  #view-chat .bubble{max-width:100%;padding:9px 11px;border-radius:14px;border:1px solid #ffffff12;background:linear-gradient(180deg,rgba(90,60,180,.26),rgba(60,40,120,.26))}
+  #view-chat .bubble.me{background:linear-gradient(180deg,rgba(41,211,255,.26),rgba(154,124,255,.26))}
+  #view-chat .bubble .ascii{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.3px;line-height:1.1;white-space:pre;opacity:.7;margin-top:6px}
+  #view-chat .composer{position:fixed;left:10px;right:10px;bottom:calc(var(--tabsH) + 6px);display:flex;gap:6px;background:#101427;border:1px solid #ffffff18;border-radius:12px;padding:6px;align-items:center}
+  #view-chat input[type=text]{flex:1;background:#0e1428;color:var(--fg);border:1px solid #ffffff18;border-radius:8px;padding:9px}
+  #view-chat .cbtn{width:var(--cbtn-size);height:var(--cbtn-size);display:grid;place-items:center;border:1px solid #ffffff18;background:#0e1326;border-radius:9px;cursor:pointer}
+  #view-chat .actions .btn{padding:.28rem .55rem;font-size:11.5px;border-radius:9px;border:1px solid #ffffff18;background:#0f1326;cursor:pointer}
+  #view-chat .timestamp{font-size:11.5px;color:#a3b4c2;margin:2px 10px}
+
+  /* ===== Apps ===== */
+  #view-apps .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+  @media(min-width:760px){#view-apps .grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  @media(min-width:1080px){#view-apps .grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  .acard{border:1px solid #ffffff14;border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center;background:#0c1224}
+  .acard img{width:34px;height:34px;border-radius:10px;background:#0e1326;border:1px solid #ffffff12;padding:7px}
+  .chip{font-size:11.5px;padding:.24rem .55rem;border-radius:999px;border:1px solid #ffffff18;background:#0e1426;color:#cfe2ff}
+
+  /* ===== Layout toggles ===== */
+  body.fullbleed #view-chat .app-frame{ /* já full-bleed por padrão */ }
+  body.carded   #view-chat .app-frame{max-width:1024px;margin:0 auto;border-radius:18px;box-shadow:0 36px 100px rgba(0,0,0,.45);padding-left:10px;padding-right:10px}
+
+  /* ===== Temas extras ===== */
+  body.theme-luxara{ --fg:#f7ecff; --muted:#d1b9ff; --acc:#ff7af2; --acc-2:#ffe069; }
+  body.theme-ignyra{ --fg:#eef8ff; --muted:#a7c7ff; --acc:#ff375f; --acc-2:#29d3ff; }
+  body.theme-elysha{ --fg:#e9feff; --muted:#a6e0ff; --acc:#29d3ff; --acc-2:#8a5cff; }
+
+  @media(max-width:480px){
+    .tab-btn{--size: calc(38px * var(--ui-scale));}
+    #view-chat .scroll{height:calc(100dvh - 188px)}
+  }
+</style>
+</head>
+<body class="theme-nebula fullbleed">
+<div class="app">
+  <header class="top">
+    <div class="title">DUAL <span class="dot"></span> NEO</div>
+    <div class="hdr-actions">
+      <button class="icon-btn" id="btnLayout" title="Layout">▭</button>
+      <button class="icon-btn" id="btnMenu" title="Menu">⋯</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="grid">
+        <button class="card" data-open="lan"><div class="ico"><img src="./icons/others/hub_lan_scanner.svg"></div><div><b>LAN Scanner</b><div style="font-size:12px;color:var(--muted)">Descobrir dispositivos</div></div></button>
+        <button class="card" data-open="bind"><div class="ico"><img src="./icons/others/hub_bind.svg"></div><div><b>Bind</b><div style="font-size:12px;color:var(--muted)">Conectar & parear</div></div></button>
+        <button class="card" data-open="report"><div class="ico"><img src="./icons/others/hub_relatorio.svg"></div><div><b>Relatório</b><div style="font-size:12px;color:var(--muted)">Métricas e logs</div></div></button>
+        <button class="card" data-open="memory"><div class="ico"><img src="./icons/others/hub_memoria.svg"></div><div><b>Memória</b><div style="font-size:12px;color:var(--muted)">Docs & sessões</div></div></button>
+        <button class="card" data-nav="apps"><div class="ico"><img src="./icons/others/hub_apps.svg"></div><div><b>Apps</b><div style="font-size:12px;color:var(--muted)">Atalhos</div></div></button>
+        <button class="card" data-nav="profile"><div class="ico"><img src="./icons/others/hub_perfil.svg"></div><div><b>Usuário</b><div style="font-size:12px;color:var(--muted)">Preferências</div></div></button>
+      </div>
+    </section>
+
+    <section class="view" id="view-chat">
+      <div class="app-frame">
+        <div class="header">
+          <div style="font-weight:800;letter-spacing:.1em">DUAL • CHAT • Niue</div>
+          <div style="flex:1"></div>
+          <button class="icon-btn" id="chat-btnMore" title="Ações">⋯</button>
+        </div>
+        <div id="chat-list" class="scroll"></div>
+
+        <div class="composer">
+          <button class="cbtn" id="chat-btnMic" title="Ditado">🎙️</button>
+          <input id="chat-input" type="text" placeholder="Digite uma mensagem…">
+          <button class="cbtn" id="chat-btnAttach" title="Anexo">📎</button>
+          <button class="cbtn" id="chat-btnSend" title="Enviar">➤</button>
+        </div>
+
+        <!-- Sheets -->
+        <div id="chat-sheet" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(var(--tabsH) + 74px);border:1px solid #ffffff18;background:#0e1326;padding:10px;border-radius:12px;z-index:59">
+          <div class="row" style="flex-wrap:wrap">
+            <button class="chip" data-act="clear">Limpar chat</button>
+            <button class="chip" data-act="export">Exportar JSON</button>
+            <button class="chip" data-act="import">Importar JSON</button>
+            <button class="chip" data-act="tts">TTS on/off</button>
+            <button class="chip" data-act="reactions">Reações ASCII</button>
+            <span style="flex:1"></span>
+            <button class="chip" id="chat-close">Fechar</button>
+          </div>
+          <input type="file" id="chat-file" hidden accept="application/json">
+        </div>
+
+        <div id="reactions-sheet" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(var(--tabsH) + 74px);border:1px solid #ffffff18;background:#0e1326;padding:10px;border-radius:12px;z-index:59">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Reações ASCII</div>
+          <div id="reactions-grid" class="row" style="flex-wrap:wrap;gap:6px"></div>
+          <div style="text-align:right;margin-top:6px"><button class="chip" id="re-close">Fechar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-apps">
+      <div class="grid" id="apps-grid"></div>
+      <div class="card" id="apps-viewer" style="display:none;position:fixed;inset:10px 10px calc(var(--tabsH) + 10px) 10px;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:60">
+        <iframe id="apps-frame" style="position:absolute;inset:10px;border:0;border-radius:12px" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+        <div class="row" style="position:absolute;right:14px;bottom:14px;gap:6px">
+          <button class="chip" id="apps-back">⬅ Hub</button>
+          <button class="chip" id="apps-open">↗ nova aba</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-profile">
+      <div class="grid">
+        <div class="card" style="grid-column:1/-1">
+          <div style="font-size:12px;color:var(--muted)">Nome</div>
+          <div class="row" style="margin-top:6px"><input id="profile-name" placeholder="Seu nome" style="flex:1;background:#0e1426;border:1px solid #ffffff18;border-radius:8px;padding:8px"><button class="icon-btn" id="profile-saveName" title="Salvar">💾</button></div>
+        </div>
+        <div class="card" style="grid-column:1/-1">
+          <div style="font-size:12px;color:var(--muted)">OpenRouter</div>
+          <div class="row" style="margin-top:6px"><input id="profile-sk" placeholder="sk-or-v1-..." style="flex:1;background:#0e1426;border:1px solid #ffffff18;border-radius:8px;padding:8px"><button class="icon-btn" id="profile-saveSK" title="Salvar">💾</button></div>
+          <textarea id="profile-training" rows="4" placeholder="Cole o treinamento..." style="margin-top:8px;width:100%;background:#0e1426;border:1px solid #ffffff18;border-radius:8px;padding:8px;color:var(--fg)"></textarea>
+          <div style="text-align:right;margin-top:6px"><button class="icon-btn" id="profile-saveTraining" title="Salvar">💾</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-nav="home"  title="Início"><img src="./icons/others/icon-64.png"  alt=""></button>
+    <button class="tab-btn"        data-nav="chat"  title="Chat"><img src="./icons/others/hub_chat.svg"  alt=""></button>
+    <button class="tab-btn"        data-nav="apps"  title="Apps"><img src="./icons/others/hub_apps.svg"  alt=""></button>
+    <button class="tab-btn"        data-nav="profile" title="Perfil"><img src="./icons/others/hub_perfil.svg"  alt=""></button>
+  </nav>
+</div>
+
+<script>
+(function(){
+  const $  = (s,root=document)=>root.querySelector(s);
+  const $$ = (s,root=document)=>Array.from(root.querySelectorAll(s));
+
+  /* ===== Router ===== */
+  const views = {home:$('#view-home'), chat:$('#view-chat'), apps:$('#view-apps'), profile:$('#view-profile')};
+  function navTo(k){ for(const v in views) views[v].classList.remove('active'); (views[k]||views.home).classList.add('active');
+    $$('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.nav===k));
+    history.replaceState({},'', '#/'+k);
+    if(k==='apps') loadApps();
+  }
+  const h = location.hash.replace('#/',''); if(views[h]) navTo(h);
+  $$('.tab-btn').forEach(b=> b.addEventListener('click', ()=> navTo(b.dataset.nav)));
+  $$('.card[data-nav]').forEach(b=> b.addEventListener('click', ()=> navTo(b.dataset.nav)));
+  $$('.card[data-open]').forEach(b=> b.addEventListener('click', ()=>{ navTo('chat'); chatBubble('Abrindo '+b.dataset.open+'…','me'); }));
+
+  /* ===== Layout / Tema ===== */
+  function setTheme(name){
+    const map = {nebula:'theme-nebula', luxara:'theme-luxara', ignyra:'theme-ignyra', elysha:'theme-elysha'};
+    const cls = map[name]||'theme-nebula';
+    document.body.classList.remove('theme-nebula','theme-luxara','theme-ignyra','theme-elysha');
+    document.body.classList.add(cls);
+    try{ localStorage.setItem('niue.theme', cls); }catch(_){}
+  }
+  setTheme((localStorage.getItem('niue.theme')||'theme-nebula').replace('theme-',''));
+  const btnLayout = $('#btnLayout');
+  btnLayout.addEventListener('click', ()=>{
+    const b=document.body;
+    const to = b.classList.contains('carded') ? 'fullbleed' : 'carded';
+    b.classList.remove('carded','fullbleed'); b.classList.add(to);
+    try{ localStorage.setItem('niue.layout', to); }catch(_){}
+  });
+  (function(){ const saved = localStorage.getItem('niue.layout'); if(saved){ document.body.classList.remove('carded','fullbleed'); document.body.classList.add(saved); }})();
+
+  // Menu rápido
+  const menuBtn = $('#btnMenu');
+  const menu = document.createElement('div');
+  menu.style.cssText='display:none;position:fixed;right:10px;bottom:calc(var(--tabsH) + 76px);border:1px solid #ffffff18;background:#0e1326;padding:10px;border-radius:12px;z-index:60';
+  menu.innerHTML = '<div class="row" style="flex-wrap:wrap;gap:6px">'+
+    '<button class="chip" data-theme="nebula">Nebula</button>'+
+    '<button class="chip" data-theme="luxara">Luxara</button>'+
+    '<button class="chip" data-theme="ignyra">Ignyra</button>'+
+    '<button class="chip" data-theme="elysha">Elysha</button>'+
+    '<span style="flex:1"></span>'+
+    '<button class="chip" id="menu-close">Fechar</button></div>';
+  document.body.appendChild(menu);
+  menuBtn.addEventListener('click', ()=> menu.style.display = (menu.style.display==='block'?'none':'block'));
+  $('#menu-close').addEventListener('click', ()=> menu.style.display='none');
+  menu.addEventListener('click', (e)=>{ const x=e.target.closest('[data-theme]'); if(!x) return; setTheme(x.dataset.theme); menu.style.display='none'; });
+
+  /* ===== Chat ===== */
+  const list = $("#chat-list"), input=$("#chat-input");
+  const btnSend=$("#chat-btnSend"), btnMore=$("#chat-btnMore");
+  const STORAGE_KEY="niue.chat.v1";
+  let TTS_ON = (localStorage.getItem('niue.tts.on')||'1')==='1';
+
+  const ASCII = [
+`╭────────── pulso em expansão ──────────╮
+│ ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁        │
+╰───────────────────────────────────────╯`,
+`╭────────── pulso em expansão ──────────╮
+│   ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁      │
+╰───────────────────────────────────────╯`,
+`╭────────── pulso em expansão ──────────╮
+│     ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁    │
+╰───────────────────────────────────────╯`,
+`╭────────── pulso em expansão ──────────╮
+│       ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁  │
+╰───────────────────────────────────────╯`
+  ];
+
+  function persist(){
+    const msgs=[...list.querySelectorAll('.row')].map(r=>{
+      const who=r.classList.contains('me')?'me':'ai';
+      const text=r.querySelector('.bubble').childNodes[0].textContent;
+      return {who,text};
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+  }
+  function restore(){
+    list.innerHTML=''; const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw){ chatBubble("Olá, eu sou o Dual (Niue). Fale comigo!", 'ai'); return; }
+    try{ JSON.parse(raw).forEach(m=> chatBubble(m.text, m.who)); }catch(e){ chatBubble("Contexto novo iniciado.", 'ai'); }
+    list.scrollTop = list.scrollHeight;
+  }
+  function speak(text){
+    try{
+      if(!TTS_ON || !('speechSynthesis' in window)) return;
+      const u = new SpeechSynthesisUtterance(text);
+      const v = speechSynthesis.getVoices().find(v=>/pt-BR|pt_/i.test(v.lang||'')) || speechSynthesis.getVoices()[0];
+      if(v){ u.voice=v; u.lang=v.lang||'pt-BR'; } else { u.lang='pt-BR'; }
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    }catch{}
+  }
+  function chatBubble(text, who='ai'){
+    const row=document.createElement('div'); row.className='row '+who;
+    if(who==='ai'){ const av=document.createElement('div'); av.className='avatar'; av.textContent='🔮'; row.appendChild(av); }
+    const b=document.createElement('div'); b.className='bubble '+(who==='me'?'me':''); b.textContent=text;
+    const ascii=document.createElement('pre'); ascii.className='ascii'; ascii.textContent=ASCII[0]; b.appendChild(ascii);
+    row.appendChild(b);
+    if(who==='me'){ const av=document.createElement('div'); av.className='avatar'; av.textContent='⚡'; row.appendChild(av); }
+    list.appendChild(row);
+    const ts=document.createElement('div'); ts.className='timestamp'; ts.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); list.appendChild(ts);
+    list.scrollTop=list.scrollHeight; persist();
+    if(who==='ai') speak(text);
+    let i=0; setInterval(()=>{ ascii.textContent = ASCII[i=(i+1)%ASCII.length]; }, 850);
+  }
+  function send(){ const t=input.value.trim(); if(!t) return; chatBubble(t,'me'); input.value=''; setTimeout(()=> chatBubble("Eco: "+t,'ai'), 220); }
+  btnSend.addEventListener('click', send);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+  // Reações ASCII
+  const REACTIONS = ["( ͡° ͜ʖ ͡°)","¯\\_(ツ)_/¯","(•‿•)","(╯°□°）╯︵ ┻━┻","◉—◉","▲","○","☐","~ onda ~"];
+  const sheet = $('#chat-sheet'); const rSheet = $('#reactions-sheet'); const rGrid = $('#reactions-grid');
+  rGrid.innerHTML=''; REACTIONS.forEach(t=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=t; b.title=t; b.addEventListener('click',()=>{ const el=input; const ins=' '+t+' '; const st=el.selectionStart||el.value.length, en=el.selectionEnd||el.value.length; el.value = el.value.slice(0,st)+ins+el.value.slice(en); rSheet.style.display='none'; el.focus(); el.selectionStart=el.selectionEnd=st+ins.length; }); rGrid.appendChild(b); });
+  $('#re-close').addEventListener('click', ()=> rSheet.style.display='none');
+
+  btnMore.addEventListener('click', ()=> sheet.style.display = (sheet.style.display==='block'?'none':'block'));
+  $('#chat-close').addEventListener('click', ()=> sheet.style.display='none');
+  sheet.addEventListener('click', (e)=>{
+    const act=(e.target.closest('[data-act]')||{}).dataset.act||'';
+    if(!act) return;
+    if(act==='clear'){ localStorage.removeItem(STORAGE_KEY); restore(); }
+    if(act==='export'){
+      const dump=localStorage.getItem(STORAGE_KEY)||'[]';
+      const blob=new Blob([dump],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='niue_chat.json'; a.click();
+    }
+    if(act==='import'){ $('#chat-file').click(); }
+    if(act==='tts'){ TTS_ON=!TTS_ON; localStorage.setItem('niue.tts.on', TTS_ON?'1':'0'); }
+    if(act==='reactions'){ rSheet.style.display='block'; }
+  });
+  $('#chat-file').addEventListener('change', e=>{
+    const f=(e.target.files||[])[0]; if(!f) return;
+    const r=new FileReader(); r.onload=()=>{ try{ JSON.parse(String(r.result||'[]')); localStorage.setItem(STORAGE_KEY, r.result); restore(); }catch{} };
+    r.readAsText(f); e.target.value='';
+  });
+
+  restore();
+
+  /* ===== Apps ===== */
+  const APPS_MEM_KEY='niue:apps.mem', FAVS_KEY='niue:favs';
+  function iconFor(app){
+    if(app.icon) return app.icon;
+    const t=((app.tags||[]).join(' ')+' '+(app.title||'')+' '+(app.key||'')+' '+(app.url||'')).toLowerCase();
+    if(/chat|render/.test(t)) return './icons/others/hub_chat.svg';
+    if(/perfil|user|profile/.test(t)) return './icons/others/hub_perfil.svg';
+    if(/bind|pair/.test(t)) return './icons/others/hub_bind.svg';
+    if(/relat/.test(t)) return './icons/others/hub_relatorio.svg';
+    if(/mem|memo|doc/.test(t)) return './icons/others/hub_memoria.svg';
+    if(/lan|scan|network/.test(t)) return './icons/others/hub_lan_scanner.svg';
+    if(/download/.test(t)) return './icons/others/hub_download.svg';
+    if(/upload/.test(t)) return './icons/others/hub_upload.svg';
+    if(/health|status/.test(t)) return './icons/others/hub_health.svg';
+    return './icons/others/hub_apps.svg';
+  }
+  function loadFavs(){ try{ return new Set(JSON.parse(localStorage.getItem(FAVS_KEY)||'[]')); }catch{return new Set();} }
+  function saveFavs(s){ try{ localStorage.setItem(FAVS_KEY, JSON.stringify([...s])); }catch{} }
+  const FAVS = loadFavs(); function isFav(app){ const k=(app.key||app.url||app.title||'')+''; return FAVS.has(k); }
+  function toggleFav(app){ const k=(app.key||app.url||app.title||'')+''; if(FAVS.has(k)) FAVS.delete(k); else FAVS.add(k); saveFavs(FAVS); loadApps(); }
+
+  function addToMem(app){
+    try{
+      const m = JSON.parse(localStorage.getItem(APPS_MEM_KEY)||'[]');
+      const it={key:app.key||app.url||app.title,title:app.title||app.key||'App',url:app.url,ts:Date.now()};
+      const idx=m.findIndex(x=>x.url===it.url||x.key===it.key); if(idx>=0) m.splice(idx,1);
+      m.unshift(it); if(m.length>10) m.length=10;
+      localStorage.setItem(APPS_MEM_KEY, JSON.stringify(m));
+    }catch{}
+  }
+
+  async function tryFetch(url){ try{ const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw 0; return await r.json(); }catch{ return null; } }
+
+  async function loadApps(){
+    const grid=$('#apps-grid'); grid.innerHTML='';
+    let RAW=null; for(const u of ['./apps.json','./apps/apps.json','./docs/apps/apps.json','/apps/apps.json']){ RAW=await tryFetch(u); if(RAW) break; }
+    const list = Array.isArray(RAW?.apps)? RAW.apps : (RAW?.groups? Object.values(RAW.groups).flat().filter(Boolean) : []);
+    if(!list?.length){ grid.innerHTML='<div class="acard"><img src="./icons/others/hub_upload.svg"><div><b>apps.json não encontrado</b><div style="color:var(--muted);font-size:12px">Coloque em ./apps/apps.json</div></div></div>'; return; }
+    list.forEach(app=>{
+      const el=document.createElement('div'); el.className='acard';
+      el.innerHTML = `<img src="${iconFor(app)}"><div style="flex:1">
+        <div style="display:flex;gap:6px;align-items:center">
+          <div style="font-weight:800">${app.title||app.key||'App'}</div>
+          <button class="chip fav">${isFav(app)?'★':'☆'}</button>
+        </div>
+        <div style="color:var(--muted);font-size:12px">${app.desc||''}</div>
+        <div class="row" style="margin-top:6px">
+          <button class="chip open">Abrir</button>
+          <button class="chip view">Viewer</button>
+          <button class="chip inj">Injection</button>
+        </div></div>`;
+      el.querySelector('.open').addEventListener('click',()=>{ addToMem(app); window.open(app.url,'_blank'); });
+      el.querySelector('.view').addEventListener('click',()=>{ addToMem(app); const v=$('#apps-viewer'); const f=$('#apps-frame'); v.style.display='block'; f.src=app.url; });
+      el.querySelector('.inj').addEventListener('click',()=> navigator.clipboard.writeText('<!-- INFODOSE footer -->\n<div class="infodose-footer">⬅ Voltar ao Hub</div>'));
+      el.querySelector('.fav').addEventListener('click',()=> toggleFav(app));
+      grid.appendChild(el);
+    });
+  }
+  $('#apps-back').addEventListener('click',()=>{ $('#apps-viewer').style.display='none'; $('#apps-frame').src='about:blank'; });
+  $('#apps-open').addEventListener('click',()=>{ const f=$('#apps-frame'); if(f.src) window.open(f.src,'_blank'); });
+
+  /* ===== Profile / Brain (unificados) ===== */
+  const KEY_BRAIN='niue:brain', KEY_NAME='niue:userName', KEY_SK='niue:userSK';
+  const readBrain=()=>{ try{ return JSON.parse(localStorage.getItem(KEY_BRAIN)||'{}')||{} }catch(e){ return {} } };
+  const writeBrain=o=>{ try{ localStorage.setItem(KEY_BRAIN, JSON.stringify(o)); }catch(e){} };
+
+  $('#profile-saveName').addEventListener('click', ()=>{ const n=($('#profile-name')?.value||'').trim(); if(!n) return;
+    localStorage.setItem(KEY_NAME, n); const b=readBrain(); b.userName=n; writeBrain(b); });
+  $('#profile-saveSK').addEventListener('click', ()=>{ const sk=($('#profile-sk')?.value||'').trim(); localStorage.setItem(KEY_SK, sk);
+    const b=readBrain(); b.userSK=sk; writeBrain(b); });
+  $('#profile-saveTraining').addEventListener('click', ()=>{ const t=($('#profile-training')?.value||''); const b=readBrain(); b.training=t; writeBrain(b); });
+
+  // Prefill se já existir
+  (function prefill(){
+    const b=readBrain();
+    if($('#profile-name') && (localStorage.getItem(KEY_NAME)||b.userName)) $('#profile-name').value = localStorage.getItem(KEY_NAME)||b.userName||'';
+    if($('#profile-sk')   && (localStorage.getItem(KEY_SK)  ||b.userSK))   $('#profile-sk').value   = localStorage.getItem(KEY_SK)  ||b.userSK  ||'';
+    if($('#profile-training') && b.training) $('#profile-training').value = b.training;
+  })();
+
+})();
+</script>
+</body>
+</html>

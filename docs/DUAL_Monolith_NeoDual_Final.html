@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>DUAL • NeoDual — Refatoração Final</title>
+  <meta name="theme-color" content="#0b0b14">
+  <style>
+    :root{
+      /* Ajuste global de escala: diminua para encolher botões/abas */
+      --ui-scale: 0.92;
+      --tab-size: calc(44px * var(--ui-scale));
+      --btn-size: calc(36px * var(--ui-scale));
+      --cbtn-size: calc(34px * var(--ui-scale));
+      --tabsH: 72px;
+      --bg:#090a12; --fg:#e9ecff; --muted:#9aa4c7;
+      --acc:#a77cff; --acc-2:#29d3ff; --mag:#ff5bd4; --ok:#5bffcf;
+      --ring:rgba(167,124,255,.32);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--fg);
+      background:
+        radial-gradient(1000px 720px at 50% -140px, #2a1f52 0%, rgba(42,31,82,0) 55%),
+        radial-gradient(900px 900px at 110% -120px, #0b2b44 0%, rgba(11,43,68,0) 50%),
+        radial-gradient(1200px 1200px at -10% -200px, #26143e 0%, rgba(38,20,62,0) 45%),
+        #05060c;
+    }
+    .app{min-height:100dvh;display:flex;flex-direction:column}
+    header.top{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.02));border-bottom:1px solid #ffffff14}
+    .title{display:flex;gap:.6ch;align-items:center;font-weight:900;letter-spacing:.18em}
+    .title .dot{width:6px;height:6px;border-radius:99px;background:var(--acc);box-shadow:0 0 16px var(--acc)}
+    .hdr-actions{display:flex;gap:8px}
+    .icon-btn{width:var(--btn-size);height:var(--btn-size);display:grid;place-items:center;border-radius:14px;background:#0e1222;border:1px solid #ffffff15;cursor:pointer}
+    main{flex:1;position:relative}
+    section.view{position:absolute;inset:0;display:none;padding:12px;padding-bottom:calc(var(--tabsH) + 14px);overflow:auto}
+    section.view.active{display:block;animation:fade .18s ease-out}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+    nav.tabs{position:fixed;left:0;right:0;bottom:0;height:var(--tabsH);display:flex;justify-content:space-around;align-items:center;gap:10px;background:linear-gradient(180deg,#0b0e1a,#080a14);border-top:1px solid #ffffff12;backdrop-filter:blur(8px)}
+    .tab-btn{--size:var(--tab-size);width:var(--size);height:var(--size);display:grid;place-items:center;border:1px solid #ffffff18;background:#101427;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.35);cursor:pointer}
+    .tab-btn.active{outline:1px solid var(--ring)}
+    .tab-btn img{width:1.3rem;height:1.3rem;opacity:.9}
+    /* Home cards */
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .card{border:1px solid #ffffff12;border-radius:16px;padding:12px;background:radial-gradient(400px 240px at 80% 0%,rgba(167,124,255,.12),rgba(41,211,255,.08) 50%,rgba(255,91,212,.06) 80%,transparent);display:flex;gap:12px;align-items:center;cursor:pointer}
+    .card .ico{width:42px;height:42px;border-radius:10px;background:#0e1426;border:1px solid #ffffff14;display:grid;place-items:center;overflow:hidden}
+    .card .ico img{width:26px;height:26px;opacity:.92}
+    .card b{display:block;font-weight:800}
+    .card small{display:block;font-size:12px;color:var(--muted)}
+    /* Chat */
+    #view-chat .app-frame{min-height:calc(100dvh - var(--tabsH));padding:0 0 calc(var(--tabsH) + 14px)}
+    #view-chat .header{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;padding:8px;border-radius:12px;background:linear-gradient(180deg,rgba(12,14,26,.95),rgba(12,14,26,.6))}
+    #view-chat .scroll{height:calc(100dvh - 210px);overflow:auto;padding:8px}
+    #view-chat .row{display:flex;gap:8px;margin:8px}
+    #view-chat .row.ai{justify-content:flex-start}
+    #view-chat .row.me{justify-content:flex-end}
+    #view-chat .avatar{width:calc(var(--cbtn-size) - 2px);height:calc(var(--cbtn-size) - 2px);border-radius:12px;display:grid;place-items:center;background:#11172e;border:1px solid #ffffff18}
+    #view-chat .bubble{max-width:100%;padding:10px 12px;border-radius:16px;border:1px solid #ffffff12;box-shadow:0 10px 18px rgba(0,0,0,.32);font-size:15px;background:linear-gradient(180deg,rgba(90,60,180,.32),rgba(60,40,120,.28))}
+    #view-chat .bubble.me{background:linear-gradient(180deg,rgba(41,211,255,.32),rgba(154,124,255,.28))}
+    #view-chat .bubble .ascii{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.1;white-space:pre;opacity:.7;margin-top:6px}
+    #view-chat .composer{position:fixed;left:10px;right:10px;bottom:calc(var(--tabsH) + 6px);display:flex;gap:8px;align-items:center;background:#101427;border:1px solid #ffffff18;border-radius:14px;padding:8px}
+    #view-chat input[type=text]{flex:1;background:#0e1428;color:var(--fg);border:1px solid #ffffff18;border-radius:10px;padding:10px;font-size:15px}
+    #view-chat .cbtn{width:var(--cbtn-size);height:var(--cbtn-size);display:grid;place-items:center;background:#0e1326;border:1px solid #ffffff18;border-radius:10px;cursor:pointer}
+    /* Apps */
+    #view-apps .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media(min-width:760px){#view-apps .grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(min-width:1080px){#view-apps .grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    .acard{border:1px solid #ffffff14;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;background:#0c1224}
+    .acard img{width:40px;height:40px;border-radius:10px;background:#0e1326;border:1px solid #ffffff12;padding:8px;box-sizing:border-box}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="title">DUAL <span class="dot"></span> NEO</div>
+      <div class="hdr-actions">
+        <button class="icon-btn" id="btnMenu" title="Menu"><img src="./icons/others/hub_config.svg" alt="Menu"></button>
+      </div>
+    </header>
+    <main>
+      <section id="view-home" class="view active">
+        <div class="grid">
+          <div class="card" data-open="lan"><div class="ico"><img src="./icons/others/hub_lan_scanner.svg" alt="LAN"></div><div><b>LAN Scanner</b><small>Descobrir dispositivos</small></div></div>
+          <div class="card" data-open="bind"><div class="ico"><img src="./icons/others/hub_bind.svg" alt="Bind"></div><div><b>Bind</b><small>Conectar &amp; parear</small></div></div>
+          <div class="card" data-open="report"><div class="ico"><img src="./icons/others/hub_relatorio.svg" alt="Relatório"></div><div><b>Relatório</b><small>Métricas e logs</small></div></div>
+          <div class="card" data-open="memory"><div class="ico"><img src="./icons/others/hub_memoria.svg" alt="Memória"></div><div><b>Memória</b><small>Docs &amp; sessões</small></div></div>
+          <div class="card" data-nav="apps"><div class="ico"><img src="./icons/others/hub_apps.svg" alt="Apps"></div><div><b>Apps</b><small>Atalhos</small></div></div>
+          <div class="card" data-nav="profile"><div class="ico"><img src="./icons/others/hub_perfil.svg" alt="Perfil"></div><div><b>Usuário</b><small>Preferências</small></div></div>
+        </div>
+      </section>
+      <section id="view-chat" class="view">
+        <div class="app-frame">
+          <div class="header">
+            <div style="font-weight:800;letter-spacing:.1em">DUAL • CHAT</div>
+            <div style="flex:1"></div>
+            <img src="./icons/others/hub_chat.svg" alt="Chat" style="width:20px;height:20px;opacity:.9">
+          </div>
+          <div id="chat-list" class="scroll"></div>
+          <div class="composer">
+            <button class="cbtn" id="chat-btnMic" title="Ditado">🎙️</button>
+            <input id="chat-input" type="text" placeholder="Digite uma mensagem…">
+            <button class="cbtn" id="chat-btnSend" title="Enviar">➤</button>
+          </div>
+        </div>
+      </section>
+      <section id="view-brain" class="view">
+        <div class="grid">
+          <div class="card" style="grid-column:1/-1">
+            <b>Salvar chave &amp; treinamento</b>
+            <small>Chave da API / treinamento</small>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input id="brain-sk" placeholder="sk-or-v1-..." style="flex:1">
+              <button class="icon-btn" id="brain-saveSK" title="Salvar"><img src="./icons/others/hub_download.svg" alt="Salvar"></button>
+            </div>
+            <textarea id="brain-training" rows="4" placeholder="Cole o treinamento..." style="margin-top:8px;width:100%"></textarea>
+            <div style="text-align:right;margin-top:6px"><button class="icon-btn" id="brain-saveTraining" title="Salvar"><img src="./icons/others/hub_download.svg" alt="Salvar"></button></div>
+          </div>
+        </div>
+      </section>
+      <section id="view-apps" class="view">
+        <div id="apps-grid" class="grid"></div>
+      </section>
+      <section id="view-profile" class="view">
+        <div class="grid">
+          <div class="card" style="grid-column:1/-1">
+            <b>Seu nome</b>
+            <small>Nome de usuário</small>
+            <div style="display:flex;gap:8px;margin-top:6px"><input id="profile-name" placeholder="Seu nome" style="flex:1"><button class="icon-btn" id="profile-saveName" title="Salvar"><img src="./icons/others/hub_download.svg" alt="Salvar"></button></div>
+          </div>
+          <div class="card" style="grid-column:1/-1">
+            <b>OpenRouter Key</b>
+            <small>Chave sk-ou-v1</small>
+            <div style="display:flex;gap:8px;margin-top:6px"><input id="profile-sk" placeholder="sk-or-v1-..." style="flex:1"><button class="icon-btn" id="profile-saveSK" title="Salvar"><img src="./icons/others/hub_download.svg" alt="Salvar"></button></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <nav class="tabs">
+      <button class="tab-btn active" data-nav="home" title="Início"><img src="./icons/others/icon-64.png" alt="Início"></button>
+      <button class="tab-btn" data-nav="chat" title="Chat"><img src="./icons/others/hub_chat.svg" alt="Chat"></button>
+      <button class="tab-btn" data-nav="brain" title="Brain"><img src="./icons/others/hub_memoria.svg" alt="Brain"></button>
+      <button class="tab-btn" data-nav="apps" title="Apps"><img src="./icons/others/hub_apps.svg" alt="Apps"></button>
+      <button class="tab-btn" data-nav="profile" title="Perfil"><img src="./icons/others/hub_perfil.svg" alt="Perfil"></button>
+    </nav>
+  </div>
+  <script>
+    (function(){
+      const $ = (s,root=document) => root.querySelector(s);
+      const $$ = (s,root=document) => Array.from(root.querySelectorAll(s));
+      const views = {home:$('#view-home'), chat:$('#view-chat'), brain:$('#view-brain'), apps:$('#view-apps'), profile:$('#view-profile')};
+      function navTo(k){ for(const v in views) views[v] && views[v].classList.remove('active'); (views[k]||views.home).classList.add('active'); $$('nav.tabs .tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav===k)); history.replaceState({},'', '#/'+k); if(k==='apps') loadApps(); }
+      $$('nav.tabs .tab-btn').forEach(btn => btn.addEventListener('click', () => navTo(btn.dataset.nav)));
+      $$('#view-home .card[data-nav]').forEach(c => c.addEventListener('click', () => navTo(c.dataset.nav)));
+      $$('#view-home .card[data-open]').forEach(c => c.addEventListener('click', () => { navTo('chat'); chatBubble('Abrindo '+c.dataset.open+'…','me'); }));
+      const list = $('#chat-list'); const input = $('#chat-input');
+      function asciiFrames(){ return [
+        '▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁',
+        '  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁',
+        '    ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁',
+        '  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁'
+      ]; }
+      function chatBubble(text, who='ai'){
+        const row = document.createElement('div'); row.className = 'row '+who;
+        if(who==='ai'){ const av=document.createElement('div'); av.className='avatar'; av.textContent='🔮'; row.appendChild(av); }
+        const b=document.createElement('div'); b.className='bubble'+(who==='me'?' me':''); b.textContent = text;
+        const ascii=document.createElement('pre'); ascii.className='ascii'; ascii.textContent = asciiFrames()[0]; b.appendChild(ascii);
+        row.appendChild(b);
+        if(who==='me'){ const av=document.createElement('div'); av.className='avatar'; av.textContent='⚡'; row.appendChild(av); }
+        list.appendChild(row);
+        list.scrollTop = list.scrollHeight;
+        if(who==='ai'){ const frames = asciiFrames(); let i=0; setInterval(() => { ascii.textContent = frames[(i=(i+1)%frames.length)]; }, 800); }
+      }
+      function send(){ const t=input.value.trim(); if(!t) return; chatBubble(t,'me'); input.value=''; }
+      $('#chat-btnSend').addEventListener('click', send);
+      input.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); send(); } });
+      const KEY_BRAIN='infodose:brain'; const KEY_NAME='infodose:userName'; const KEY_SK='infodose:userSK';
+      const readBrain = () => { try{ return JSON.parse(localStorage.getItem(KEY_BRAIN)||'{}'); }catch(e){ return {}; } };
+      const writeBrain = (o) => { try{ localStorage.setItem(KEY_BRAIN, JSON.stringify(o)); }catch(e){} };
+      $('#brain-saveSK').addEventListener('click', () => { const b=readBrain(); b.userSK=($('#brain-sk').value||'').trim(); writeBrain(b); localStorage.setItem(KEY_SK, b.userSK||''); });
+      $('#brain-saveTraining').addEventListener('click', () => { const b=readBrain(); b.training=$('#brain-training').value||''; writeBrain(b); });
+      $('#profile-saveName').addEventListener('click', () => { const n=($('#profile-name').value||'').trim(); if(!n) return; localStorage.setItem(KEY_NAME, n); const b=readBrain(); b.userName=n; writeBrain(b); });
+      $('#profile-saveSK').addEventListener('click', () => { const sk=($('#profile-sk').value||'').trim(); localStorage.setItem(KEY_SK, sk); const b=readBrain(); b.userSK=sk; writeBrain(b); });
+      async function fetchJSON(url){ try{ const r=await fetch(url); if(!r.ok) throw 0; return await r.json(); } catch(e){ return null; } }
+      function iconFor(app){ const t=((app.tags||[]).join(' ')+' '+(app.title||'')+' '+(app.key||'')+' '+(app.url||'')).toLowerCase();
+        if(/chat/.test(t)) return './icons/others/hub_chat.svg';
+        if(/perfil|user|profile/.test(t)) return './icons/others/hub_perfil.svg';
+        if(/bind/.test(t)) return './icons/others/hub_bind.svg';
+        if(/relat/.test(t)) return './icons/others/hub_relatorio.svg';
+        if(/mem|memo|doc/.test(t)) return './icons/others/hub_memoria.svg';
+        if(/lan|scan/.test(t)) return './icons/others/hub_lan_scanner.svg';
+        if(/download/.test(t)) return './icons/others/hub_download.svg';
+        if(/upload/.test(t)) return './icons/others/hub_upload.svg';
+        if(/health/.test(t)) return './icons/others/hub_health.svg';
+        return './icons/others/hub_apps.svg'; }
+      async function loadApps(){
+        const grid = $('#apps-grid'); grid.innerHTML='';
+        let data = null;
+        for(const u of ['./apps.json','./apps/apps.json','./docs/apps/apps.json','/apps/apps.json']){
+          data = await fetchJSON(u); if(data) break;
+        }
+        const list = Array.isArray(data?.apps)? data.apps : (data?.groups? Object.values(data.groups).flat().filter(Boolean) : []);
+        if(!list.length){ grid.innerHTML = '<div class="acard"><img src="./icons/others/hub_upload.svg"><div><b>apps.json não encontrado</b><div style="color:var(--muted);font-size:12px">Coloque em ./apps/apps.json</div></div></div>'; return; }
+        list.forEach(app => {
+          const el = document.createElement('div'); el.className='acard';
+          el.innerHTML = `<img src="${iconFor(app)}" alt=""><div style="flex:1"><b>${app.title||app.key||'App'}</b><div style="color:var(--muted);font-size:12px">${app.desc||''}</div><div style="display:flex;gap:6px;margin-top:6px"><button class="icon-btn open" title="Abrir"><img src="./icons/others/hub_apps.svg"></button><button class="icon-btn inj" title="Copiar"><img src="./icons/others/hub_download.svg"></button></div></div>`;
+          el.querySelector('.open').addEventListener('click', () => { window.open(app.url,'_blank'); });
+          el.querySelector('.inj').addEventListener('click', () => { navigator.clipboard.writeText('<!-- INFODOSE -->'); });
+          grid.appendChild(el);
+        });
+      }
+      $('#btnMenu').addEventListener('click', () => { alert('Menu rápido ainda não implementado'); });
+      const h=location.hash.replace('#/',''); if(views[h]) navTo(h);
+    })();
+  </script>
+</body>
+</html>
