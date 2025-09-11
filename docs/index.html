@@ -341,6 +341,57 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
         </div>
       </div>
     </section>
+    <!-- Trinity view: dedicado à fusão UNO/DUAL/TRINITY -->
+    <section class="view" id="view-trinity">
+      <div class="app-frame">
+        <div class="header">
+          <div class="title">DUAL <span>• TRINITY</span></div>
+          <div style="flex:1"></div>
+          <button class="hbtn" id="trinity-btnOpenHubs" title="Abrir Hub de Arquétipos">◎</button>
+        </div>
+        <div class="page" style="padding:8px">
+          <div class="section">Fusão Trinity</div>
+          <div class="grid">
+            <div class="card">
+              <div class="ico">🧿</div>
+              <div>
+                <h3>Dual‑App acoplado</h3>
+                <p>Execução simbiótica dentro do Monólito</p>
+                <div class="row">
+                  <button class="btn" id="trinity-open-dual">Abrir</button>
+                  <button class="btn" id="trinity-ping-dual">Ping</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ico">◎</div>
+              <div>
+                <h3>Arquétipos & Manifestos</h3>
+                <p>Hubs, temas, vozes e PWA por arquétipo</p>
+                <div class="row">
+                  <button class="btn" id="trinity-open-hubs">Abrir Hubs</button>
+                  <button class="btn" id="trinity-sync-theme">Sync Tema/TTS</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ico">🔘</div>
+              <div>
+                <h3>Dual Finder</h3>
+                <p>Cérebro local & memória</p>
+                <div class="row">
+                  <button class="btn" id="trinity-open-finder">Abrir</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="viewer" id="trinity-viewer" style="display:none">
+            <iframe id="trinity-frame" allow="autoplay; clipboard-read; clipboard-write"></iframe>
+            <div class="viewer-footer"><button class="btn" id="trinity-back">⬅ Voltar</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <nav class="tabs">
@@ -364,13 +415,22 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
     <button class="tab-btn" data-nav="profile" title="Perfil" aria-label="Perfil">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#cfd6ff" stroke-width="1.6"/><path d="M5 19c1.5-3.2 4.3-5 7-5s5.5 1.8 7 5" stroke="#5ed0ff" stroke-width="1.6" stroke-linecap="round"/></svg>
     </button>
+
+    <!-- Nova aba Trinity: integra o Dual‑App e Hubs de arquétipos -->
+    <button class="tab-btn" data-nav="trinity" title="Trinity" aria-label="Trinity">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="#a77cff" stroke-width="1.6"/>
+        <circle cx="12" cy="12" r="3.2" stroke="#5ed0ff" stroke-width="1.6"/>
+      </svg>
+    </button>
   </nav>
 </div>
 
 <script>
 /* ===== Helpers & Router ===== */
 function $(s,root=document){return root.querySelector(s)}
-const views = {home:$('#view-home'), chat:$('#view-chat'), brain:$('#view-brain'), apps:$('#view-apps'), profile:$('#view-profile')};
+// Inclui a view Trinity no roteamento
+const views = {home:$('#view-home'), chat:$('#view-chat'), brain:$('#view-brain'), apps:$('#view-apps'), profile:$('#view-profile'), trinity:$('#view-trinity')};
 function navTo(key){ for(const v in views) views[v].classList.remove('active'); (views[key]||views.home).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.nav===key)); history.replaceState({}, "", "#/"+key); }
 const h = location.hash.replace("#/",""); if(views[h]) navTo(h);
@@ -1735,5 +1795,74 @@ $('#fileImport')?.addEventListener('change', (e)=>{
 })();
 </script>
 
+<!-- Trinity integration scripts: carregados após todo o conteúdo para evitar conflitos -->
+<script src="./trinity-bridge.js"></script>
+<script src="./monolith-boost.js"></script>
+
+<!-- Trinity Tab + Arquétipo Sync (dedicado) -->
+<script>
+// Funções do painel Trinity: abrir Dual-App, Hubs, Finder e sync
+(function(){
+  function openTrinityViewer(url){
+    const viewer=document.getElementById('trinity-viewer');
+    const frame=document.getElementById('trinity-frame');
+    if(viewer && frame){ frame.src=url; viewer.style.display='block'; }
+  }
+  // Fechar viewer
+  const backBtn=document.getElementById('trinity-back');
+  if(backBtn){ backBtn.addEventListener('click', ()=>{
+    const viewer=document.getElementById('trinity-viewer');
+    const frame=document.getElementById('trinity-frame');
+    if(viewer && frame){ frame.src='about:blank'; viewer.style.display='none'; }
+  }); }
+  // Abrir Dual‑App acoplado
+  const btnDual=document.getElementById('trinity-open-dual');
+  if(btnDual){ btnDual.addEventListener('click', ()=> openTrinityViewer('./Dual_App_io100_0_base_improved_cleaned_Updated_noSplashPLAYER-0_FIX_TOGGLE_FETCH_0.html') ); }
+  // Ping para testar handshake
+  const btnPing=document.getElementById('trinity-ping-dual');
+  if(btnPing){ btnPing.addEventListener('click', ()=>{
+    try{ Trinity.pushToDualApp('ping — Trinity handshake'); if(window.chatBubble) chatBubble('▶ Dual-App acionado','ai'); }catch(e){ if(window.chatBubble) chatBubble('Falha Trinity','ai'); }
+  }); }
+  // Abrir Hubs (index.html V3.2)
+  const btnHubs=document.getElementById('trinity-open-hubs');
+  if(btnHubs){ btnHubs.addEventListener('click', ()=> openTrinityViewer('./index.html') ); }
+  // Abrir Dual Finder (Umbotão)
+  const btnFinder=document.getElementById('trinity-open-finder');
+  if(btnFinder){ btnFinder.addEventListener('click', ()=> openTrinityViewer('./Umbotao-0.html') ); }
+  // Sync Tema/TTS do Dual-App
+  const btnSync=document.getElementById('trinity-sync-theme');
+  if(btnSync){ btnSync.addEventListener('click', ()=>{
+    try{ Trinity.syncFromDual(); if(window.chatBubble) chatBubble('Sincronizado com Dual-App','ai'); }catch(e){ if(window.chatBubble) chatBubble('Falha ao sincronizar','ai'); }
+  }); }
+  // Botão no header (Trinity tab) para abrir Hubs
+  const hdrHubs=document.getElementById('trinity-btnOpenHubs');
+  if(hdrHubs){ hdrHubs.addEventListener('click', ()=>{ openTrinityViewer('./index.html'); }); }
+})();
+
+// Escuta mensagens do Hub de Arquétipos para aplicar temas/vozes/manifests
+(function(){
+  window.addEventListener('message', function(ev){
+    const m = ev.data || {};
+    if(!m || !m.__TRINITY__) return;
+    if(m.type === 'ARCH_MANIFEST'){
+      try{
+        // aplicar variáveis de tema
+        const vars = m.data?.vars || {};
+        Object.entries(vars).forEach(([k,v])=> document.documentElement.style.setProperty(k, v));
+        // salvar arquétipo ativo
+        if(m.data?.arch) localStorage.setItem('dual.theme.arch', m.data.arch);
+        // preset de TTS
+        if(m.data?.tts?.preset) localStorage.setItem('infodose:ttsPreset', m.data.tts.preset);
+        // manifest dinâmico
+        const link=document.querySelector('link[rel="manifest"]');
+        if(link && m.data?.pwa?.manifest) link.setAttribute('href', m.data.pwa.manifest);
+        // service worker (opcional)
+        if('serviceWorker' in navigator && m.data?.pwa?.sw){ navigator.serviceWorker.register(m.data.pwa.sw).catch(()=>{}); }
+        if(window.chatBubble) chatBubble(`Arquétipo ativo: ${m.data.arch || '—'}`,'ai', {arch:'Nova'});
+      }catch(e){}
+    }
+  });
+})();
+</script>
 </body>
 </html>
