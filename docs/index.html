@@ -199,32 +199,56 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
     position: static;
     display:flex;
     flex-wrap:wrap;
-    gap:6px;
-    margin-top:8px;
+    gap:4px;
+    margin-top:6px;
     padding-top:6px;
     border-top:1px dashed rgba(255,255,255,.08);
+    /* reserva altura para evitar "pulos" quando os botões aparecem */
+    min-height:26px;
   }
 
-  /* Buttons inside chat bubbles adopt unified style */
+  /* Botões dentro das bolhas – versão micro */
   #view-chat .bubble .actions .btn{
     appearance:none;
     border:1px solid rgba(255,255,255,.10);
     background:linear-gradient(180deg,#0f1428,#0b1122);
     color:var(--fg);
     font-weight:800;
-    border-radius:10px;
-    padding:.42rem .66rem;
-    font-size:12px;
+    border-radius:8px;
+    padding:.28rem .48rem;
+    font-size:11px;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
+    line-height:1;
   }
   #view-chat .bubble .actions .btn i{
     display:inline-grid;
     place-items:center;
     width:16px;
     height:16px;
-    margin-right:.35rem;
+    margin-right:.30rem;
+  }
+
+  /* Define altura fixa para ASCII para evitar reflow em animação */
+  #view-chat .bubble .ascii{
+    display:block;
+    height:1.1em;
+    line-height:1.1;
+    white-space:pre;
+    overflow:hidden;
+    font-variant-ligatures:none;
+    margin-top:6px;
+  }
+
+  /* Isola cada bolha em seu próprio contexto e previne transições no interior */
+  #view-chat .row{ contain:layout paint; }
+  #view-chat .bubble{
+    will-change:transform,opacity;
+    transition: opacity .16s ease, transform .16s ease;
+  }
+  #view-chat .bubble *{
+    transition:none !important;
   }
 
   /* === Perfil input container e DevDocs === */
@@ -932,10 +956,10 @@ menuSheet.addEventListener('click', (e)=>{
     const acts=document.createElement('div');
     acts.className='actions';
     acts.innerHTML = `
-      <button class="act btn btn--sm btn--accent" data-act="expand">＋</button>
-      <button class="act btn btn--sm btn--accent" data-act="copy">⎘</button>
-      <button class="act btn btn--sm btn--accent" data-act="pulse">◉</button>
-      <button class="act btn btn--sm btn--accent" data-act="refine">↻</button>`;
+      <button class="act btn btn--sm btn--accent" data-act="expand">＋ Expandir</button>
+      <button class="act btn btn--sm btn--accent" data-act="copy">⎘ Copiar</button>
+      <button class="act btn btn--sm btn--accent" data-act="pulse">◉ Pulso</button>
+      <button class="act btn btn--sm btn--accent" data-act="refine">↻ Refinar</button>`;
     b.appendChild(acts);
     row.appendChild(b);
     if(who==='me'){
@@ -954,8 +978,13 @@ menuSheet.addEventListener('click', (e)=>{
     scrollChatToEnd();
     if(TTS_ON && who==='ai') speak(text, arch);
     if(who==='ai') setActiveArchetype(arch);
-    // animate ascii subtly
-    const frames = asciiWaveFrames(); let i=0; setInterval(()=>{ ascii.textContent = frames[i=(i+1)%frames.length]; }, 800);
+    // animação ASCII: utiliza helper global para limitar o número de bolhas animadas
+    const frames = asciiWaveFrames();
+    if(window.__INFODOSE_ASCII__ && window.__INFODOSE_ASCII__.startAscii){
+      window.__INFODOSE_ASCII__.startAscii(ascii, frames, 800);
+    } else {
+      let i=0; setInterval(()=>{ ascii.textContent = frames[i=(i+1)%frames.length]; }, 800);
+    }
   }
 
   function persist(){
@@ -1143,21 +1172,21 @@ document.getElementById('btnIntegrator').addEventListener('click', ()=>{
 </script>
 
 <script>
-// Desativa loader simples e delega render ao motor completo
+// Desativa loader simples e passa a chamar load() para Apps
 (function(){
   // Mantemos a função loadApps para retrocompatibilidade, mas ela não faz nada.
   async function loadApps(){}
-  // Ao navegar para Apps, disparar render() do motor agrupado
+  // Ao navegar para Apps, disparar load() do motor agrupado
   document.querySelectorAll('[data-nav]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if(btn.dataset.nav==='apps'){
-        try{ render(); }catch(_){}
+        try{ load(); }catch(_){}
       }
     });
   });
-  // Se a URL já aponta para apps, dispara render()
+  // Se a URL já aponta para apps, dispara load()
   if(location.hash && location.hash.toLowerCase().includes('apps')){
-    try{ render(); }catch(_){}
+    try{ load(); }catch(_){}
   }
 })();
 </script>
@@ -1716,15 +1745,8 @@ let VIEWER_OPEN=false;
 function openApp(app){
   try{ localStorage.setItem('infodose:lastView', JSON.stringify(app)); }catch{}
   addToMem(app);
-  // verifica checkbox de mesma aba com fallback seguro
-  const sameTab = !!(document.getElementById('sameTab') && document.getElementById('sameTab').checked);
-  // abre em nova aba se a preferência de mesma aba estiver desativada
-  if(!sameTab){
-    const lref = getLocalByUrl(app.url);
-    const targetUrl = lref ? blobUrlFromLocal(lref) : app.url;
-    window.open(targetUrl, '_blank', 'noopener');
-    return;
-  }
+  // força abrir dentro do hub sempre via iFrame (ignora sameTab)
+  const sameTab = true;
   // Caso contrário monta o viewer dentro de Apps (se presente) ou fallback no body
   unlockAudioOnce();
   speak('Abrindo ' + (app.title||'aplicativo'));
@@ -2313,6 +2335,24 @@ $('#fileImport')?.addEventListener('change', (e)=>{
     const saved = localStorage.getItem(STYLE_KEY)||''; if(saved){ document.getElementById('dev-css').value=saved; applyCSS(); }
   });
 })();
+</script>
+<!-- Limita animação ASCII e evita reflow no chat -->
+<script>
+  (function(){
+    // número de bolhas que terão animação ativa (ajustável via localStorage: dual.brain.ascii.activeCount)
+    const ACTIVE_COUNT = parseInt(localStorage.getItem('dual.brain.ascii.activeCount') || '1', 10);
+    const running = [];
+    function startAscii(el, frames, interval=800){
+      let i = 0;
+      const id = setInterval(()=>{ el.textContent = frames[i = (i+1) % frames.length]; }, interval);
+      running.unshift({el, id});
+      while(running.length > ACTIVE_COUNT){
+        const old = running.pop();
+        try{ clearInterval(old.id); }catch{}
+      }
+    }
+    window.__INFODOSE_ASCII__ = { startAscii };
+  })();
 </script>
 </body>
 </html>
