@@ -43,6 +43,30 @@
   .tab-btn{--size:46px;width:var(--size);height:var(--size);border-radius:16px;display:grid;place-items:center;background:linear-gradient(180deg,#12152a,#0d1124);border:1px solid #ffffff12;box-shadow:var(--shadow);opacity:.85}
   .tab-btn.active{opacity:1;outline:1px solid var(--ring)}
 
+  /* === Unified button styles for Nebula (Trinity & chat actions) === */
+  .btn, .hbtn, .btn-pill, .btn-ghost {
+    appearance:none;
+    cursor:pointer;
+    user-select:none;
+    border:1px solid rgba(255,255,255,.10);
+    background:linear-gradient(180deg,#0f1428,#0b1122);
+    color:var(--fg);
+    font-weight:800;
+    letter-spacing:.02em;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    transition:.18s transform ease, .18s filter ease, .18s opacity ease;
+  }
+  .btn:active, .hbtn:active, .btn-pill:active, .btn-ghost:active { transform:translateY(1px); }
+  /* sizes */
+  .btn--sm { padding:.4rem .7rem; font-size:12px; border-radius:10px; }
+  .btn--md { padding:.55rem .9rem; font-size:13px; border-radius:12px; }
+  .btn--lg { padding:.7rem 1.0rem; font-size:14px; border-radius:14px; }
+  /* color variations */
+  .btn--prime { background:linear-gradient(90deg,var(--acc), var(--acc-2)); color:#0b0b14; border-color:transparent; }
+  .btn--accent { border-color:rgba(255,255,255,.16); }
+  .btn--ghost { background:transparent; border-color:rgba(255,255,255,.12); }
+
   /* CHAT */
   #view-chat .app-frame{ width:100%;width:100%;max-width:1024px;margin:0 auto;position:relative;overflow:hidden;background:radial-gradient(1200px 900px at 50% -40%,rgba(255,255,255,.05),transparent 55%);
     min-height:calc(100dvh - var(--tabsH)); padding:14px 14px calc(14px + var(--tabsH)); border-radius:22px; box-shadow:0 40px 120px rgba(0,0,0,.45)}
@@ -147,84 +171,61 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
 .viewer{position:fixed;inset:0;z-index:200;background:#000}
 .viewer iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
 
-  /* === Trinity / Botões unificados === */
-  /* Base button styles applied across Trinity and other areas */
-  .btn, .hbtn, .btn-pill, .btn-ghost {
-    appearance: none;
-    cursor: pointer;
-    user-select: none;
-    border: 1px solid rgba(255,255,255,.10);
-    background: linear-gradient(180deg,#0f1428,#0b1122);
-    color: var(--fg);
-    font-weight: 800;
-    letter-spacing: .02em;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    transition: .18s transform ease, .18s filter ease, .18s opacity ease;
+/* Viewer that respects tabs in Apps: mount inside apps and leave nav visible */
+#view-apps .viewer.keep-tabs {
+  position:absolute;
+  inset:8px 8px calc(var(--tabsH) + 10px) 8px;
+  z-index:40;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  background:rgba(0,0,0,.85);
+  backdrop-filter:blur(8px) saturate(130%);
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+}
+#view-apps .viewer.keep-tabs .viewer-footer {
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  display:flex;
+  gap:8px;
+}
+
+  /* ==== Chat bubble actions (harmonized) === */
+  #view-chat .bubble{
+    contain: layout paint;
+    min-height:52px;
   }
-  .btn:active, .hbtn:active, .btn-pill:active, .btn-ghost:active {
-    transform: translateY(1px);
-  }
-  /* Size modifiers */
-  .btn--sm { padding: .4rem .7rem; font-size: 12px; border-radius: 10px; }
-  .btn--md { padding: .55rem .9rem; font-size: 13px; border-radius: 12px; }
-  .btn--lg { padding: .7rem 1.0rem; font-size: 14px; border-radius: 14px; }
-  /* Color modifiers */
-  .btn--prime {
-    background: linear-gradient(90deg, var(--acc), var(--acc-2));
-    color: #0b0b14;
-    border-color: transparent;
-  }
-  .btn--accent { border-color: rgba(255,255,255,.16); }
-  .btn--ghost {
-    background: transparent;
-    border-color: rgba(255,255,255,.12);
-  }
-  /* Icon inside button */
-  .btn i {
-    display: inline-grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
-    margin-right: .45rem;
-  }
-  /* Trinity card row adjustments */
-  #view-trinity .card .row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-  }
-  /* Trinity icon aesthetics */
-  #view-trinity .ico {
-    width: 54px;
-    height: 54px;
-    border-radius: 18px;
-    display: grid;
-    place-items: center;
-    background: linear-gradient(180deg,#1b1f37,#0e1228);
-    border: 1px solid #ffffff10;
-    box-shadow: inset 0 1px 0 #ffffff20,0 6px 18px rgba(0,0,0,.4);
-  }
-  /* Viewer within Apps: leaves space for bottom tabs */
-  #view-apps .viewer.keep-tabs {
-    position: absolute;
-    inset: 8px 8px calc(var(--tabsH) + 10px) 8px;
-    z-index: 40;
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 18px;
-    background: rgba(0,0,0,.85);
-    backdrop-filter: blur(8px) saturate(130%);
-    box-shadow: 0 20px 60px rgba(0,0,0,.55);
-  }
-  #view-apps .viewer.keep-tabs .viewer-footer {
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    display: flex;
-    gap: 8px;
+  #view-chat .bubble .actions{
+    position: static;
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+    padding-top:6px;
+    border-top:1px dashed rgba(255,255,255,.08);
   }
 
+  /* Buttons inside chat bubbles adopt unified style */
+  #view-chat .bubble .actions .btn{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.10);
+    background:linear-gradient(180deg,#0f1428,#0b1122);
+    color:var(--fg);
+    font-weight:800;
+    border-radius:10px;
+    padding:.42rem .66rem;
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+  }
+  #view-chat .bubble .actions .btn i{
+    display:inline-grid;
+    place-items:center;
+    width:16px;
+    height:16px;
+    margin-right:.35rem;
+  }
 </style>
 </head>
 <body>
@@ -368,6 +369,21 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
             </div>
           </div>
         </div>
+        <!-- OpenRouter & Treinamento (Brain) -->
+        <div class="card" style="grid-column:1/-1">
+          <div class="label">OpenRouter &amp; Treinamento</div>
+          <div class="hr"></div>
+          <div style="display:grid;gap:8px">
+            <div style="display:flex;gap:8px">
+              <input id="brain-sk" class="input" placeholder="sk-or-v1-..." style="flex:1">
+              <button id="brain-saveSK" class="btn-pill">Salvar</button>
+            </div>
+            <textarea id="brain-training" class="input" rows="4" placeholder="Cole seu treinamento..."></textarea>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="brain-saveTraining" class="btn-pill">Salvar Treinamento</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="panel" id="brain-panel">
@@ -411,11 +427,35 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
         <div style="width:84px;height:84px;border-radius:50%;display:grid;place-items:center;margin:4px auto 8px;background:radial-gradient(120% 120% at 70% 0%,#231a52,#0d122a);border:1px solid #ffffff18;box-shadow:var(--shadow)">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.2" stroke="#cfd6ff" stroke-width="1.6"/><path d="M5 19c1.5-3.2 4.3-5 7-5s5.5 1.8 7 5" stroke="#5ed0ff" stroke-width="1.6" stroke-linecap="round"/></svg>
         </div>
-        <div class="card"><div style="font-size:11px;color:var(--muted)">Nome</div><div contenteditable="true">trinity</div></div>
+        <div class="card">
+          <div style="font-size:11px;color:var(--muted)">Nome</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <input id="profile-name" class="input" placeholder="Seu nome" style="flex:1">
+            <button id="profile-saveName" class="btn btn--md btn--prime">Salvar</button>
+          </div>
+        </div>
         <div class="card"><div style="font-size:11px;color:var(--muted)">Assinatura</div>
           <select style="width:100%;background:transparent;border:0;outline:0;color:var(--fg);font-size:14px;padding:6px 0 2px;">
             <option>Trinity</option><option>Uno</option><option>Dual</option>
           </select>
+          <div class="sublabel" style="font-size:11px;color:var(--muted);margin-top:6px">
+            UNO: mostra um módulo por vez. DUAL: Chat e Brain simultâneos. TRINITY: experiência integrada completa.
+          </div>
+        </div>
+        <!-- SK e Treinamento no Perfil -->
+        <div class="card">
+          <div class="label">OpenRouter & Treinamento</div>
+          <div class="hr"></div>
+          <div style="display:grid;gap:8px">
+            <div style="display:flex;gap:8px">
+              <input id="profile-sk" class="input" placeholder="sk-or-v1-..." style="flex:1">
+              <button id="profile-saveSK" class="btn btn--md btn--prime">Salvar</button>
+            </div>
+            <textarea id="profile-training" class="input" rows="5" placeholder="Cole seu treinamento..."></textarea>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="profile-saveTraining" class="btn btn--md btn--accent">Salvar Treinamento</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -436,8 +476,8 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Dual‑App acoplado</h3>
                 <p>Execução simbiótica dentro do Monólito</p>
                 <div class="row">
-                  <button class="btn btn--md btn--prime" id="trinity-open-dual"><i>◎</i>Abrir</button>
-                  <button class="btn btn--md btn--accent" id="trinity-ping-dual"><i>▶</i>Ping</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-dual"><span>◎</span>Abrir</button>
+                  <button class="btn btn--md btn--accent" id="trinity-ping-dual"><span>▶</span>Ping</button>
                 </div>
               </div>
             </div>
@@ -447,8 +487,8 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Arquétipos & Manifestos</h3>
                 <p>Hubs, temas, vozes e PWA por arquétipo</p>
                 <div class="row">
-                  <button class="btn btn--md btn--prime" id="trinity-open-hubs"><i>◐</i>Abrir Hubs</button>
-                  <button class="btn btn--md btn--accent" id="trinity-sync-theme"><i>↻</i>Sync Tema/TTS</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-hubs"><span>◐</span>Abrir Hubs</button>
+                  <button class="btn btn--md btn--accent" id="trinity-sync-theme"><span>↻</span>Sync Tema/TTS</button>
                 </div>
               </div>
             </div>
@@ -458,14 +498,14 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Dual Finder</h3>
                 <p>Cérebro local & memória</p>
                 <div class="row">
-                  <button class="btn btn--md btn--prime" id="trinity-open-finder"><i>⌕</i>Abrir</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-finder"><span>⌕</span>Abrir</button>
                 </div>
               </div>
             </div>
           </div>
           <div class="viewer" id="trinity-viewer" style="display:none">
             <iframe id="trinity-frame" allow="autoplay; clipboard-read; clipboard-write"></iframe>
-            <div class="viewer-footer"><button class="btn btn--sm btn--accent" id="trinity-back"><i>⬅</i>Voltar</button></div>
+            <div class="viewer-footer"><button class="btn" id="trinity-back">⬅ Voltar</button></div>
           </div>
         </div>
       </div>
@@ -658,6 +698,41 @@ menuSheet.addEventListener('click', (e)=>{
                     "Artemis":["Luciana","Helena","Beatriz"],"Serena":["Vitória","Camila","Maria"],"Vitalis":["Felipe","Eduardo","Bruno"],"Pulse":["Camila","Vitória","Felipe"],
                     "Aion":["João","Miguel","Gustavo"],"Rhea":["Maria","Ana","Marina"],"Genus":["André","Marcelo","Luiz"],"Lumine":["Luciana","Sofia","Carolina"]};
 
+  // Utility: scroll chat to the latest message
+  function scrollChatToEnd(){
+    try{ list.scrollTo({ top: list.scrollHeight }); }catch(_){ list.scrollTop = list.scrollHeight; }
+  }
+  // Archetype colors for header dot
+  const ARCH_COLORS = {
+    Atlas:'#29d3ff',
+    Nova:'#ffd86a',
+    Elysha:'#a77cff',
+    Kaion:'#5bffcf',
+    Artemis:'#ff5bd4',
+    Serena:'#7afcff',
+    Vitalis:'#9cff5b',
+    Pulse:'#ff7af2',
+    Aion:'#ffb86b',
+    Rhea:'#7fbdff',
+    Genus:'#8a5cff',
+    Lumine:'#00ffd0',
+    User:'#ff5bd4'
+  };
+  function applyDotByArchetype(name){
+    const dot = document.querySelector('header.top .title .dot');
+    if(!dot) return;
+    const key = String(name||'').trim();
+    const col = ARCH_COLORS[key] || '#ff5bd4';
+    dot.style.background = col;
+    dot.style.boxShadow = '0 0 18px ' + col;
+  }
+  function setActiveArchetype(name){
+    try{ localStorage.setItem('dual.theme.arch', name); }catch{}
+    applyDotByArchetype(name);
+  }
+  // Initialize dot based on saved archetype
+  applyDotByArchetype(localStorage.getItem('dual.theme.arch') || 'Atlas');
+
   function getLS(k, d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(_){ return d; } }
   function setLS(k, v){ try{ localStorage.setItem(k, v); }catch(_){} }
 
@@ -758,30 +833,45 @@ menuSheet.addEventListener('click', (e)=>{
     const arch = meta.arch || (who==='ai'? inferArchFromText(text) : 'User');
     const row=document.createElement('div'); row.className='row '+who; row.dataset.id=id;
     if(who==='ai'){ const av=document.createElement('div'); av.className='avatar'; av.innerHTML='🔮'; row.appendChild(av); }
-    const b=document.createElement('div'); b.className='bubble '+who; b.textContent=text;
+    const b=document.createElement('div');
+    b.className='bubble '+who;
+    b.textContent = text;
     // ascii strip
-    const ascii=document.createElement('pre'); ascii.className='ascii'; ascii.textContent=asciiWaveFrames()[0];
+    const ascii=document.createElement('pre');
+    ascii.className='ascii';
+    ascii.textContent=asciiWaveFrames()[0];
     b.appendChild(ascii);
     // pulse meta
-    const pulse=document.createElement('div'); pulse.className='pulse';
+    const pulse=document.createElement('div');
+    pulse.className='pulse';
     pulse.innerHTML = `Arqué: <b>${arch}</b> • ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} • ${text.length} chars`;
     b.appendChild(pulse);
-    // actions (inclui Refine)
-    const acts=document.createElement('div'); acts.className='actions';
-    acts.innerHTML = `<button class="act" data-act="expand">Expandir</button>
-                      <button class="act" data-act="copy">Copiar</button>
-                      <button class="act" data-act="pulse">Pulso</button>
-                      <button class="act" data-act="refine">Refinar</button>`;
-    row.appendChild(b); row.appendChild(acts);
-    if(who==='me'){ const av=document.createElement('div'); av.className='avatar'; av.innerHTML='⚡'; row.appendChild(av); }
+    // actions (inclui Refine) — harmonizados com btn classes
+    const acts=document.createElement('div');
+    acts.className='actions';
+    acts.innerHTML = `
+      <button class="act btn btn--sm btn--accent" data-act="expand">＋ Expandir</button>
+      <button class="act btn btn--sm btn--accent" data-act="copy">⎘ Copiar</button>
+      <button class="act btn btn--sm btn--accent" data-act="pulse">◉ Pulso</button>
+      <button class="act btn btn--sm btn--accent" data-act="refine">↻ Refinar</button>`;
+    b.appendChild(acts);
+    row.appendChild(b);
+    if(who==='me'){
+      const av=document.createElement('div');
+      av.className='avatar';
+      av.innerHTML='⚡';
+      row.appendChild(av);
+    }
     list.appendChild(row);
-    const ts=document.createElement('div'); ts.className='timestamp'; ts.textContent=new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const ts=document.createElement('div');
+    ts.className='timestamp';
+    ts.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     list.appendChild(ts);
     persist();
-    requestAnimationFrame(()=>{
-      try{ list.scrollTo({top:list.scrollHeight}); }catch(_){ list.scrollTop=list.scrollHeight; }
-    });
+    // scroll to bottom
+    scrollChatToEnd();
     if(TTS_ON && who==='ai') speak(text, arch);
+    if(who==='ai') setActiveArchetype(arch);
     // animate ascii subtly
     const frames = asciiWaveFrames(); let i=0; setInterval(()=>{ ascii.textContent = frames[i=(i+1)%frames.length]; }, 800);
   }
@@ -1566,67 +1656,60 @@ function renderMem(){
 /** ===== viewer ===== **/
 let VIEWER_OPEN=false;
 function openApp(app){
-  try{localStorage.setItem('infodose:lastView',JSON.stringify(app))}catch{}
+  try{ localStorage.setItem('infodose:lastView', JSON.stringify(app)); }catch{}
   addToMem(app);
+  // Open in new tab if sameTab is unchecked
   if(!$sameTab.checked){
-    // If "same tab" is disabled, open the app in a new window/tab and abort the embedded viewer
     const lref = getLocalByUrl(app.url);
     const targetUrl = lref ? blobUrlFromLocal(lref) : app.url;
     window.open(targetUrl, '_blank', 'noopener');
     return;
   }
-  // Prepare to open inside the monolith. Determine if we are in the Apps view.
+  // Otherwise mount viewer inside Apps (if present) or fallback to body
+  unlockAudioOnce();
+  speak('Abrindo ' + (app.title||'aplicativo'));
+  const lref2 = getLocalByUrl(app.url);
+  const targetUrl = lref2 ? blobUrlFromLocal(lref2) : app.url;
   const appsFrame = document.querySelector('#view-apps .app-frame');
   const mountInApps = !!appsFrame;
-  unlockAudioOnce();
-  speak('Abrindo ' + (app.title || 'aplicativo'));
-  // Create the viewer container, using "keep-tabs" when mounted in Apps to respect the bottom navigation.
   const v = document.createElement('div');
   v.className = 'viewer' + (mountInApps ? ' keep-tabs' : '');
-  // Build the iframe source: if the URL corresponds to a local file, convert to blob URL.
-  const lref2 = getLocalByUrl(app.url);
-  const src = lref2 ? blobUrlFromLocal(lref2) : app.url;
   v.innerHTML = `
-    <iframe src="${src}" allow="autoplay; encrypted-media; clipboard-read; clipboard-write; fullscreen; picture-in-picture"></iframe>
+    <iframe src="${targetUrl}" allow="autoplay; encrypted-media; clipboard-read; clipboard-write; fullscreen; picture-in-picture"></iframe>
     <div class="viewer-footer">
       <button class="btn btn--sm btn--ghost" id="backHub">⬅ Hub</button>
       <button class="btn btn--sm btn--accent" id="dlHtml">⤓ Sümbüs</button>
       <button class="btn btn--sm btn--accent" id="copyInj">⎘ Injection</button>
-    </div>`;
-  // Mount the viewer either within the Apps frame or on the body as a fullscreen overlay.
+    </div>
+  `;
   if(mountInApps){
     appsFrame.style.position = 'relative';
     appsFrame.appendChild(v);
   } else {
     document.body.appendChild(v);
   }
-  // Attempt handshake when iframe is loaded: send brain and audio messages to the embedded app.
   const _f = v.querySelector('iframe');
-  if (_f) {
-    _f.addEventListener('load', () => {
-      try {
-        _f.contentWindow.postMessage({ type: 'INFODOSE_UNBLUR_AUDIO' }, '*');
-        _f.contentWindow.postMessage({ type: 'INFODOSE_BRAIN', data: window.InfodoseBrain }, '*');
-      } catch {}
+  if(_f){
+    _f.addEventListener('load', ()=>{
+      try{
+        _f.contentWindow.postMessage({type:'INFODOSE_UNBLUR_AUDIO'}, '*');
+        _f.contentWindow.postMessage({type:'INFODOSE_BRAIN', data: window.InfodoseBrain}, '*');
+      }catch{}
     });
   }
-  // Manage overflow only if we mounted on the body (full overlay) to prevent background scrolling.
-  let prevOverflow = null;
-  if(!mountInApps){
-    prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-  }
-  // Callback to close the viewer and restore state.
-  function back() {
+  function back(){
     v.remove();
-    if(!mountInApps && prevOverflow != null){
-      document.body.style.overflow = prevOverflow;
+    if(!mountInApps){
+      document.body.style.overflow = '';
     }
   }
-  // Hook buttons in the viewer footer.
-  v.querySelector('#backHub')?.addEventListener('click', back);
-  v.querySelector('#dlHtml')?.addEventListener('click', () => downloadInjected(app));
-  v.querySelector('#copyInj')?.addEventListener('click', () => copyInjection());
+  v.querySelector('#backHub').addEventListener('click', back);
+  v.querySelector('#dlHtml').addEventListener('click', ()=> downloadInjected(app));
+  v.querySelector('#copyInj').addEventListener('click', ()=> copyInjection());
+  if(!mountInApps){
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 /** ===== eventos UI ===== **/
@@ -1971,6 +2054,71 @@ $('#fileImport')?.addEventListener('change', (e)=>{
       }catch(e){}
     }
   });
+})();
+</script>
+<!-- Perfil & Brain sync: nome, chave e treinamento -->
+<script>
+// Sincroniza campos do Perfil e Brain (Nome, OpenRouter SK e Treinamento) via localStorage
+(function(){
+  const KEY_BRAIN='infodose:brain';
+  const KEY_NAME='infodose:userName';
+  const KEY_SK='infodose:userSK';
+  function readBrain(){
+    try{ return JSON.parse(localStorage.getItem(KEY_BRAIN)||'{}')||{}; }catch(e){ return {}; }
+  }
+  function writeBrain(obj){
+    try{ localStorage.setItem(KEY_BRAIN, JSON.stringify(obj)); }catch(e){}
+  }
+  function syncFields(){
+    const brain=readBrain();
+    const nmVal=localStorage.getItem(KEY_NAME) || brain.userName || '';
+    const nameField=document.getElementById('profile-name');
+    if(nameField && nameField.value !== nmVal) nameField.value=nmVal;
+    const skVal=brain.userSK || localStorage.getItem(KEY_SK) || '';
+    ['brain-sk','profile-sk'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && el.value !== skVal) el.value=skVal;
+    });
+    const trVal=brain.training || '';
+    ['brain-training','profile-training'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && el.value !== trVal) el.value=trVal;
+    });
+  }
+  const saveNameBtn=document.getElementById('profile-saveName');
+  if(saveNameBtn) saveNameBtn.addEventListener('click', ()=>{
+    const val=(document.getElementById('profile-name')?.value||'').trim();
+    if(!val) return;
+    localStorage.setItem(KEY_NAME,val);
+    const b=readBrain(); b.userName=val; writeBrain(b);
+    syncFields();
+  });
+  function bindSaveSK(btnId, fieldId){
+    const btn=document.getElementById(btnId);
+    if(btn) btn.addEventListener('click', ()=>{
+      const val=(document.getElementById(fieldId)?.value||'').trim();
+      const b=readBrain(); b.userSK=val; writeBrain(b);
+      localStorage.setItem(KEY_SK,val);
+      syncFields();
+    });
+  }
+  bindSaveSK('brain-saveSK','brain-sk');
+  bindSaveSK('profile-saveSK','profile-sk');
+  function bindSaveTraining(btnId, fieldId){
+    const btn=document.getElementById(btnId);
+    if(btn) btn.addEventListener('click', ()=>{
+      const val=(document.getElementById(fieldId)?.value||'');
+      const b=readBrain(); b.training=val; writeBrain(b);
+      syncFields();
+    });
+  }
+  bindSaveTraining('brain-saveTraining','brain-training');
+  bindSaveTraining('profile-saveTraining','profile-training');
+  window.addEventListener('storage', (e)=>{
+    if([KEY_BRAIN,KEY_NAME,KEY_SK].includes(e.key)) syncFields();
+  });
+  document.addEventListener('DOMContentLoaded', syncFields);
+  if(document.readyState !== 'loading') syncFields();
 })();
 </script>
 </body>
