@@ -147,6 +147,84 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
 .viewer{position:fixed;inset:0;z-index:200;background:#000}
 .viewer iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
 
+  /* === Trinity / Botões unificados === */
+  /* Base button styles applied across Trinity and other areas */
+  .btn, .hbtn, .btn-pill, .btn-ghost {
+    appearance: none;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(180deg,#0f1428,#0b1122);
+    color: var(--fg);
+    font-weight: 800;
+    letter-spacing: .02em;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: .18s transform ease, .18s filter ease, .18s opacity ease;
+  }
+  .btn:active, .hbtn:active, .btn-pill:active, .btn-ghost:active {
+    transform: translateY(1px);
+  }
+  /* Size modifiers */
+  .btn--sm { padding: .4rem .7rem; font-size: 12px; border-radius: 10px; }
+  .btn--md { padding: .55rem .9rem; font-size: 13px; border-radius: 12px; }
+  .btn--lg { padding: .7rem 1.0rem; font-size: 14px; border-radius: 14px; }
+  /* Color modifiers */
+  .btn--prime {
+    background: linear-gradient(90deg, var(--acc), var(--acc-2));
+    color: #0b0b14;
+    border-color: transparent;
+  }
+  .btn--accent { border-color: rgba(255,255,255,.16); }
+  .btn--ghost {
+    background: transparent;
+    border-color: rgba(255,255,255,.12);
+  }
+  /* Icon inside button */
+  .btn i {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    margin-right: .45rem;
+  }
+  /* Trinity card row adjustments */
+  #view-trinity .card .row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  /* Trinity icon aesthetics */
+  #view-trinity .ico {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg,#1b1f37,#0e1228);
+    border: 1px solid #ffffff10;
+    box-shadow: inset 0 1px 0 #ffffff20,0 6px 18px rgba(0,0,0,.4);
+  }
+  /* Viewer within Apps: leaves space for bottom tabs */
+  #view-apps .viewer.keep-tabs {
+    position: absolute;
+    inset: 8px 8px calc(var(--tabsH) + 10px) 8px;
+    z-index: 40;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 18px;
+    background: rgba(0,0,0,.85);
+    backdrop-filter: blur(8px) saturate(130%);
+    box-shadow: 0 20px 60px rgba(0,0,0,.55);
+  }
+  #view-apps .viewer.keep-tabs .viewer-footer {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
 </style>
 </head>
 <body>
@@ -347,7 +425,7 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
         <div class="header">
           <div class="title">DUAL <span>• TRINITY</span></div>
           <div style="flex:1"></div>
-          <button class="hbtn" id="trinity-btnOpenHubs" title="Abrir Hub de Arquétipos">◎</button>
+          <button class="hbtn btn btn--sm btn--ghost" id="trinity-btnOpenHubs" title="Abrir Hub de Arquétipos">◐</button>
         </div>
         <div class="page" style="padding:8px">
           <div class="section">Fusão Trinity</div>
@@ -358,8 +436,8 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Dual‑App acoplado</h3>
                 <p>Execução simbiótica dentro do Monólito</p>
                 <div class="row">
-                  <button class="btn" id="trinity-open-dual">Abrir</button>
-                  <button class="btn" id="trinity-ping-dual">Ping</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-dual"><i>◎</i>Abrir</button>
+                  <button class="btn btn--md btn--accent" id="trinity-ping-dual"><i>▶</i>Ping</button>
                 </div>
               </div>
             </div>
@@ -369,8 +447,8 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Arquétipos & Manifestos</h3>
                 <p>Hubs, temas, vozes e PWA por arquétipo</p>
                 <div class="row">
-                  <button class="btn" id="trinity-open-hubs">Abrir Hubs</button>
-                  <button class="btn" id="trinity-sync-theme">Sync Tema/TTS</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-hubs"><i>◐</i>Abrir Hubs</button>
+                  <button class="btn btn--md btn--accent" id="trinity-sync-theme"><i>↻</i>Sync Tema/TTS</button>
                 </div>
               </div>
             </div>
@@ -380,14 +458,14 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
                 <h3>Dual Finder</h3>
                 <p>Cérebro local & memória</p>
                 <div class="row">
-                  <button class="btn" id="trinity-open-finder">Abrir</button>
+                  <button class="btn btn--md btn--prime" id="trinity-open-finder"><i>⌕</i>Abrir</button>
                 </div>
               </div>
             </div>
           </div>
           <div class="viewer" id="trinity-viewer" style="display:none">
             <iframe id="trinity-frame" allow="autoplay; clipboard-read; clipboard-write"></iframe>
-            <div class="viewer-footer"><button class="btn" id="trinity-back">⬅ Voltar</button></div>
+            <div class="viewer-footer"><button class="btn btn--sm btn--accent" id="trinity-back"><i>⬅</i>Voltar</button></div>
           </div>
         </div>
       </div>
@@ -1491,33 +1569,64 @@ function openApp(app){
   try{localStorage.setItem('infodose:lastView',JSON.stringify(app))}catch{}
   addToMem(app);
   if(!$sameTab.checked){
+    // If "same tab" is disabled, open the app in a new window/tab and abort the embedded viewer
     const lref = getLocalByUrl(app.url);
     const targetUrl = lref ? blobUrlFromLocal(lref) : app.url;
-    window.open(targetUrl, '_blank', 'noopener'); return; }
-  const v = document.createElement('div'); unlockAudioOnce(); speak('Abrindo ' + (app.title||'aplicativo'));
-  v.className = 'viewer';
+    window.open(targetUrl, '_blank', 'noopener');
+    return;
+  }
+  // Prepare to open inside the monolith. Determine if we are in the Apps view.
+  const appsFrame = document.querySelector('#view-apps .app-frame');
+  const mountInApps = !!appsFrame;
+  unlockAudioOnce();
+  speak('Abrindo ' + (app.title || 'aplicativo'));
+  // Create the viewer container, using "keep-tabs" when mounted in Apps to respect the bottom navigation.
+  const v = document.createElement('div');
+  v.className = 'viewer' + (mountInApps ? ' keep-tabs' : '');
+  // Build the iframe source: if the URL corresponds to a local file, convert to blob URL.
+  const lref2 = getLocalByUrl(app.url);
+  const src = lref2 ? blobUrlFromLocal(lref2) : app.url;
   v.innerHTML = `
-    <div class="swipe-hint" id="swipeHint">⬇️ Arraste para fechar</div>
-    <iframe src="${(getLocalByUrl(app.url)?blobUrlFromLocal(getLocalByUrl(app.url)):app.url)}" allow="autoplay; encrypted-media; clipboard-read; clipboard-write; fullscreen; picture-in-picture"></iframe>
+    <iframe src="${src}" allow="autoplay; encrypted-media; clipboard-read; clipboard-write; fullscreen; picture-in-picture"></iframe>
     <div class="viewer-footer">
-      <button class="btn" id="backHub">⬅ Hub</button>
-      <button class="btn" id="dlHtml">⤓ Sümbüs)</button>
-      <button class="btn" id="copyInj">⎘ Unjekt</button>
+      <button class="btn btn--sm btn--ghost" id="backHub">⬅ Hub</button>
+      <button class="btn btn--sm btn--accent" id="dlHtml">⤓ Sümbüs</button>
+      <button class="btn btn--sm btn--accent" id="copyInj">⎘ Injection</button>
     </div>`;
-  document.body.appendChild(v);
+  // Mount the viewer either within the Apps frame or on the body as a fullscreen overlay.
+  if(mountInApps){
+    appsFrame.style.position = 'relative';
+    appsFrame.appendChild(v);
+  } else {
+    document.body.appendChild(v);
+  }
+  // Attempt handshake when iframe is loaded: send brain and audio messages to the embedded app.
   const _f = v.querySelector('iframe');
-  if(_f){ _f.addEventListener('load', ()=>{ try{ _f.contentWindow.postMessage({type:'INFODOSE_UNBLUR_AUDIO'}, '*');
-        _f.contentWindow.postMessage({type:'INFODOSE_BRAIN', data: window.InfodoseBrain}, '*'); }catch{} }); }
-  setTimeout(()=>$('#swipeHint')?.classList.add('hide'),2000);
-  const prev=document.body.style.overflow; document.body.style.overflow='hidden'; VIEWER_OPEN=true;
-  let sy=null,ly=null; const th=48;
-  v.addEventListener('touchstart',e=>{const t=e.touches?.[0]; sy=t?t.clientY:e.clientY; ly=sy},{passive:true});
-  v.addEventListener('touchmove',e=>{const t=e.touches?.[0]; ly=t?t.clientY:e.clientY},{passive:true});
-  v.addEventListener('touchend',()=>{ if(sy!=null&&ly!=null&&(ly-sy)>th) back(); sy=null; ly=null},{passive:true});
-  function back(){v.remove();document.body.style.overflow=prev;VIEWER_OPEN=false}
-  v.querySelector('#backHub').addEventListener('click',back);
-  v.querySelector('#dlHtml').addEventListener('click',()=>downloadInjected(app));
-  v.querySelector('#copyInj').addEventListener('click',()=>copyInjection());
+  if (_f) {
+    _f.addEventListener('load', () => {
+      try {
+        _f.contentWindow.postMessage({ type: 'INFODOSE_UNBLUR_AUDIO' }, '*');
+        _f.contentWindow.postMessage({ type: 'INFODOSE_BRAIN', data: window.InfodoseBrain }, '*');
+      } catch {}
+    });
+  }
+  // Manage overflow only if we mounted on the body (full overlay) to prevent background scrolling.
+  let prevOverflow = null;
+  if(!mountInApps){
+    prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+  }
+  // Callback to close the viewer and restore state.
+  function back() {
+    v.remove();
+    if(!mountInApps && prevOverflow != null){
+      document.body.style.overflow = prevOverflow;
+    }
+  }
+  // Hook buttons in the viewer footer.
+  v.querySelector('#backHub')?.addEventListener('click', back);
+  v.querySelector('#dlHtml')?.addEventListener('click', () => downloadInjected(app));
+  v.querySelector('#copyInj')?.addEventListener('click', () => copyInjection());
 }
 
 /** ===== eventos UI ===== **/
