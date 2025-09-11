@@ -130,7 +130,7 @@
   #mapper select,#mapper button{height:36px;border-radius:10px;border:1px solid #ffffff18;background:#0f1326;color:#e9ecff}
 
   @media (max-width:480px){
-    #view-chat .app-frame{ width:100%;border-radius:0; box-shadow:none; padding-left:8px; padding-right:8px; max-width:100%}
+    #view-chat .app-frame{ width:100%;border-radius:0; box-shadow:none; padding-left:3px; padding-right:3px; max-width:100%}
     #view-chat .composer{left:8px; right:8px; max-width:100%}
   }
 
@@ -168,14 +168,14 @@ body.theme-elysha .title .dot{ background:#29d3ff; box-shadow:0 0 18px #29d3ff;}
 #view-apps .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 #view-apps .btn{appearance:none;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:.5rem .8rem;background:#0f1326;color:#e9ecff;font-weight:800;font-size:12px;cursor:pointer}
 #view-apps .btn.star.active{background:rgba(231,198,90,.18);border-color:rgba(231,198,90,.5);color:#ffd86a}
-.viewer{position:fixed;inset:0;z-index:200;background:#000}
+.viewer{position:fixed;inset:0;z-index:10;background:#000}
 .viewer iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
 
 /* Viewer that respects tabs in Apps: mount inside apps and leave nav visible */
 #view-apps .viewer.keep-tabs {
   position:absolute;
   inset:8px 8px calc(var(--tabsH) + 10px) 8px;
-  z-index:40;
+  z-index:10;
   border:1px solid rgba(255,255,255,.10);
   border-radius:18px;
   background:rgba(0,0,0,.85);
