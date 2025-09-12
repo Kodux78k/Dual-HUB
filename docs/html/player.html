@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Player</title>
+<style>
+  :root{
+    --font: 'Inter', 'JetBrains Mono', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --bg-a:#ff52e5; --bg-b:#00c5e5;
+    --ink:#eef3ff; --ink-weak:#a9b3c9;
+    --panel:#0d0f15cc; --panel-strong:#0d0f15f2;
+    --accent:#9d7aff; --accent-2:#39ffb6;
+    --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{
+    font:500 16px/1.4 var(--font);
+    color:var(--ink);
+    background: radial-gradient(120% 120% at 0% 0%, var(--bg-a), transparent 50%),
+                radial-gradient(120% 120% at 100% 0%, var(--bg-b), #0b0e14 60%);
+    display:flex;
+    flex-direction:column;
+  }
+  .header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; margin:12px; border-radius:22px; background:var(--panel-strong); box-shadow:var(--shadow); }
+  .hrow{ display:flex; align-items:center; gap:10px; }
+  .title{ font-weight:800; font-size:20px; }
+  .icon{ display:inline-flex; width:22px; height:22px; }
+  .icon>img{ width:100%; height:100%; filter:invert(99%) sepia(2%) saturate(232%) hue-rotate(180deg) brightness(105%) contrast(98%); }
+  .btn{ appearance:none; border:none; color:var(--ink); background:#ffffff10; padding:10px 14px; border-radius:14px; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn:hover{ background:#ffffff20; }
+  .panel{ flex:1; display:flex; flex-direction:column; gap:12px; padding:14px; margin:0 12px 12px; border-radius:22px; background:var(--panel); box-shadow:var(--shadow); backdrop-filter:blur(8px); }
+  audio{ width:100%; margin-bottom:10px; }
+  canvas{ width:100%; height:200px; background:#0b0e14; border-radius:22px; box-shadow:var(--shadow); }
+</style>
+<body>
+  <div class="header">
+    <div class="hrow">
+      <span class="icon"><img src="../icons/others/play.svg" alt="Player"></span>
+      <div class="title">Player</div>
+    </div>
+    <div class="hrow">
+      <button id="fileBtn" class="btn"><span class="icon"><img src="../icons/others/upload.svg" alt="Carregar"></span>Carregar</button>
+      <!-- Select archetype -->
+      <select id="archSel" class="btn" style="padding-right:20px;background:#ffffff10">
+        <option>Atlas</option>
+        <option>Nova</option>
+        <option>Elysha</option>
+        <option selected>Kaion</option>
+        <option>Serena</option>
+        <option>Artemis</option>
+        <option>Vitalis</option>
+        <option>Genus</option>
+        <option>Aion</option>
+        <option>Rhea</option>
+        <option>Horus</option>
+        <option>Lumine</option>
+      </select>
+      <button id="btnInject" class="btn"><span class="icon"><img src="../icons/others/bolt.svg" alt="Injection"></span>Injection</button>
+    </div>
+  </div>
+  <div class="panel">
+    <audio id="audio" controls></audio>
+    <canvas id="visual"></canvas>
+  </div>
+  <input type="file" id="fileInput" accept="audio/*" style="display:none"/>
+
+<script>
+  // Minimal LS helper for session data
+  const LS = {
+    get:(k, def=null)=>{ const v=localStorage.getItem(k); try{ return v?JSON.parse(v):def; }catch(e){ return def; } },
+    set:(k,v)=>{ localStorage.setItem(k, JSON.stringify(v)); }
+  };
+
+  // Archetype definitions (12 archetypes)
+  const ARCH = {
+    Atlas:   { color:'#29d3ff', rate:1.00, pitch:1.00, fx:'clean' },
+    Nova:    { color:'#ffd166', rate:1.05, pitch:1.00, fx:'bright' },
+    Elysha:  { color:'#b17aff', rate:0.98, pitch:1.05, fx:'airy' },
+    Kaion:   { color:'#39ffb6', rate:1.00, pitch:0.95, fx:'warm' },
+    Serena:  { color:'#8a5cff', rate:0.96, pitch:1.08, fx:'shimmer' },
+    Artemis: { color:'#ff52e5', rate:1.08, pitch:1.08, fx:'sharp' },
+    Vitalis: { color:'#00c5e5', rate:0.94, pitch:0.98, fx:'fat' },
+    Genus:   { color:'#f2c75c', rate:1.02, pitch:1.02, fx:'focus' },
+    Aion:    { color:'#0fffff', rate:0.97, pitch:1.03, fx:'wide' },
+    Rhea:    { color:'#ff00ff', rate:1.03, pitch:0.97, fx:'chorus' },
+    Horus:   { color:'#ffffff', rate:1.00, pitch:1.00, fx:'oracular' },
+    Lumine:  { color:'#7fffd4', rate:1.01, pitch:1.06, fx:'crystal' }
+  };
+  let currentArch = 'Kaion';
+  const fileBtn = document.getElementById('fileBtn');
+  const fileInput = document.getElementById('fileInput');
+  const audio = document.getElementById('audio');
+  const canvas = document.getElementById('visual');
+  const ctx = canvas.getContext('2d');
+  const archSel = document.getElementById('archSel');
+  const injBtn = document.getElementById('btnInject');
+  let biquad;
+  let audioContext, source, analyser, dataArray;
+
+  function resizeCanvas(){
+    canvas.width = canvas.clientWidth * window.devicePixelRatio;
+    canvas.height = canvas.clientHeight * window.devicePixelRatio;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  fileBtn.onclick = () => fileInput.click();
+  fileInput.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    audio.src = url;
+    audio.load();
+    setupAudio();
+  };
+
+  function setupAudio(){
+    if(audioContext){ audioContext.close(); }
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    source = audioContext.createMediaElementSource(audio);
+    // Biquad filter for archetype FX
+    biquad = audioContext.createBiquadFilter();
+    biquad.type = 'peaking';
+    biquad.frequency.value = 2000;
+    biquad.gain.value = 0;
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    // Connect chain: source -> biquad -> analyser -> destination
+    source.connect(biquad);
+    biquad.connect(analyser);
+    analyser.connect(audioContext.destination);
+    applyArchFX(currentArch);
+    draw();
+  }
+
+  function draw(){
+    requestAnimationFrame(draw);
+    if(!analyser) return;
+    analyser.getByteFrequencyData(dataArray);
+    const width = canvas.width;
+    const height = canvas.height;
+    const barWidth = width / dataArray.length;
+    ctx.clearRect(0,0,width,height);
+    for(let i=0; i<dataArray.length; i++){
+      const v = dataArray[i] / 255;
+      const h = v * height;
+      const x = i * barWidth;
+      // Colour bars based on archetype colour
+      const col = ARCH[currentArch].color;
+      // Convert hex to rgb for dynamic brightness
+      const r = parseInt(col.substr(1,2),16);
+      const g = parseInt(col.substr(3,2),16);
+      const b = parseInt(col.substr(5,2),16);
+      // Adjust brightness by v
+      const rr = Math.min(255, Math.round(r * (0.4 + v * 0.6)));
+      const gg = Math.min(255, Math.round(g * (0.4 + v * 0.6)));
+      const bb = Math.min(255, Math.round(b * (0.4 + v * 0.6)));
+      ctx.fillStyle = `rgb(${rr},${gg},${bb})`;
+      ctx.fillRect(x, height - h, barWidth - 1, h);
+    }
+  }
+
+  // Apply the FX and UI for a given archetype
+  function applyArchFX(name){
+    const a = ARCH[name];
+    if(!a) return;
+    // Adjust filter frequency and gain based on archetype
+    if(biquad){
+      biquad.frequency.value = 2200 + (Object.keys(ARCH).indexOf(name) * 30);
+      const fxMap = { clean:0, bright:3, airy:2, warm:-1, shimmer:4, sharp:3, fat:2, focus:1, wide:1, chorus:2, oracular:0, crystal:3 };
+      biquad.gain.value = fxMap[a.fx] || 0;
+    }
+    // Change canvas shadow colour to match archetype
+    canvas.style.boxShadow = `0 0 30px ${a.color}66`;
+  }
+
+  // Archetype selector change
+  archSel.onchange = () => {
+    currentArch = archSel.value;
+    applyArchFX(currentArch);
+  };
+  // Injection button handler: store injection metadata
+  injBtn.onclick = () => {
+    const session = LS.get('koblox.session', { tracks:[] });
+    session.lastInjection = { arch: currentArch, t: Date.now() };
+    LS.set('koblox.session', session);
+    alert('Injection aplicado: ' + currentArch);
+  };
+</script>
+</body>
+</html>
