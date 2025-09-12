@@ -1,313 +1,570 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>DUAL • HUB — Nebula Pro (Z-Index Online)</title>
-<meta name="theme-color" content="#0b0b14">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>HUB DUAL — UNO Dual Trinity</title>
+<link rel="icon" href="icons/others/favicon.svg" type="image/svg+xml"/>
+<meta name="theme-color" content="#0ff"/>
 <style>
   :root{
-    --bg:#0a0b13; --bg-2:#0b0d1a; --fg:#e9ecff; --muted:#9aa4c7; --soft:#c6c9ff33;
-    --acc:#a77cff; --acc-2:#29d3ff; --mag:#ff5bd4; --ok:#5bffcf;
-    --ring:rgba(167,124,255,.35); --tabsH:72px; --radius:18px;
+    --bg1:#ff00ff; --bg2:#00ffff;
+    --ink:#eaf6ff; --ink-dim:#cfe3ff; --ink-muted:#9bb3d1;
+    --card:#130a22cc; --card-strong:#0d0818ee; --edge:#ffffff10;
+    --glow: 0 10px 40px rgba(255,255,255,.15), 0 6px 22px rgba(0,255,255,.18);
+    --radius:22px; --radius-sm:16px; --radius-xs:12px;
+    --pad:14px; --pad-lg:18px; --pad-sm:10px;
+    --h:56px; --f:64px;
+    --accent:#7ee8ff; --accent2:#e49bff; --ok:#9affc6; --warn:#ffd36e; --bad:#ff7e9e;
+    --blur: 14px;
+    --shadow: 0 8px 22px rgba(0,0,0,.35);
+    --ring: 0 0 0 1px var(--edge) inset, 0 0 22px rgba(0,0,0,.2) inset;
+    --xs:12px; --sm:13px; --md:14.5px; --lg:16px; --xl:18px; --xxl:22px;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:
-    radial-gradient(1200px 900px at 50% -160px,#2a1e60 0%,#1c1540 45%,#0b0d1a 80%,#070812 100%),#05060c;
-    color:var(--fg); font:14px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  .app{min-height:100dvh;display:flex;flex-direction:column}
-  header.top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #ffffff14;backdrop-filter:saturate(130%) blur(6px)}
-  .title{font-weight:900;letter-spacing:.16em;display:flex;gap:.5ch;align-items:center}
-  .dot{width:6px;height:6px;border-radius:50%;background:var(--acc-2);box-shadow:0 0 18px var(--acc-2)}
-  .icon-btn{width:36px;height:36px;border:1px solid #ffffff18;border-radius:12px;background:#0e1326;display:grid;place-items:center;cursor:pointer}
-  main{flex:1;position:relative}
-  section.view{position:absolute;inset:0;display:none;padding:12px;padding-bottom:calc(var(--tabsH) + 16px);overflow:auto}
-  section.view.active{display:block}
-  nav.tabs{position:fixed;left:0;right:0;bottom:0;height:var(--tabsH);display:flex;gap:10px;justify-content:space-around;align-items:center;background:linear-gradient(180deg,#0b0e1a,#070a14);border-top:1px solid #ffffff14;z-index:90;backdrop-filter:blur(8px)}
-  .tab-btn{width:46px;height:46px;border-radius:14px;border:1px solid #ffffff18;background:#10142a;display:grid;place-items:center}
-  .tab-btn.active{outline:1px solid var(--ring)}
-  /* Cards */
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid #ffffff14;border-radius:16px;padding:12px;box-shadow:0 12px 36px rgba(0,0,0,.35)}
-  .grid{display:grid;gap:12px}
-  @media(min-width:720px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  /* CHAT */
-  #view-chat .wrap{max-width:1100px;margin:0 auto}
-  #view-chat .header{position:sticky;top:0;z-index:2;display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:8px;border-radius:12px;background:linear-gradient(180deg,rgba(18,20,42,.92),rgba(18,20,42,.65))}
-  #view-chat .scroll{min-height:60dvh;max-height:calc(100dvh - 260px);overflow:auto;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
-  .row{display:flex;gap:8px;margin:10px}
-  .row .avatar{width:34px;height:34px;border-radius:10px;background:#12162a;border:1px solid #ffffff14;display:grid;place-items:center}
-  .bubble{max-width:100%;padding:12px 14px;border:1px solid #ffffff14;border-radius:16px;box-shadow:0 12px 24px rgba(0,0,0,.28)}
-  .ai{background:linear-gradient(180deg,rgba(90,60,180,.32),rgba(60,40,120,.32))}
-  .me{background:linear-gradient(180deg,rgba(41,211,255,.28),rgba(154,124,255,.28))}
-  .ascii{font:12px/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas;white-space:pre;opacity:.7;margin-top:6px}
-  .composer{position:fixed;left:12px;right:12px;bottom:calc(var(--tabsH) + 8px);z-index:80;display:flex;gap:8px;align-items:center;padding:10px;border-radius:14px;background:#101427;border:1px solid #ffffff18}
-  .composer input{flex:1;border:1px solid #ffffff18;border-radius:12px;padding:12px;background:#0e1428;color:var(--fg)}
-  .cbtn{width:38px;height:38px;border-radius:10px;border:1px solid #ffffff18;background:#0f1428;display:grid;place-items:center}
-  /* APPS viewer com keep-tabs */
-  .viewer{position:fixed;inset:0;background:#000;z-index:70}
-  .viewer.keep-tabs{position:absolute;inset:8px 8px calc(var(--tabsH) + 10px) 8px;background:rgba(0,0,0,.85);border:1px solid #ffffff18;border-radius:18px}
-  .viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .viewer-footer{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
-  /* Loader overlay */
-  .infodose-loader{position:fixed;inset:0;z-index:99998;display:none;place-items:center;background:rgba(0,0,0,.38);backdrop-filter:blur(8px) saturate(130%)}
-  .infodose-loader .dot{width:16px;height:16px;border-radius:50%;background:#29d3ff;box-shadow:0 0 24px #29d3ff;animation:neb 0.9s infinite alternate}
-  @keyframes neb{to{transform:scale(1.35);opacity:.75}}
+  html,body{height:100%}
+  body{
+    margin:0; font:400 var(--md)/1.45 ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 1200px at 20% -10%, #ff62ff22, transparent 60%),
+      radial-gradient(1000px 900px at 120% 110%, #3df6ff22, transparent 60%),
+      linear-gradient(42deg,var(--bg1),var(--bg2));
+    background-attachment: fixed;
+  }
+  .glass{background:var(--card); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); border:1px solid var(--edge)}
+  header, footer{
+    position:fixed; left:0; right:0; z-index:20;
+    display:flex; align-items:center; gap:12px; padding:0 var(--pad);
+    height:var(--h);
+  }
+  header{top:0; border-bottom:1px solid var(--edge); box-shadow: var(--glow)}
+  footer{bottom:0; border-top:1px solid var(--edge); box-shadow: var(--glow)}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px}
+  .brand .spark{display:inline-flex; width:22px; height:22px; place-content:center; border-radius:50%;
+    background:linear-gradient(42deg,var(--accent),var(--accent2)); box-shadow:0 0 24px rgba(127,255,255,.45)}
+  .title{font-size:var(--xl)}
+  .sub{font-size:var(--sm); color:var(--ink-muted); margin-top:-4px}
+  .spacer{flex:1}
+  .iconbtn{display:inline-grid; place-content:center; width:36px; height:36px; border-radius:12px; border:1px solid var(--edge);
+    background:#0c0616a6; cursor:pointer; transition:transform .15s ease, background .2s}
+  .iconbtn:active{transform:scale(.96)}
+  .badge{min-width:18px; height:18px; border-radius:9px; padding:0 6px; display:inline-grid; place-content:center;
+    background:linear-gradient(42deg,#6ff,#c9f); color:#002; font-weight:700; font-size:11px; margin-left:6px}
+  main{padding: calc(var(--h) + 12px) var(--pad) calc(var(--f) + 12px)}
+  .section{margin:14px 0}
+  .row{display:flex; gap:12px; align-items:center}
+  .grid{display:grid; gap:12px}
+  @media (min-width:800px){ .grid.cols-2{grid-template-columns:1fr 1fr} .grid.cols-3{grid-template-columns:repeat(3,1fr)}}
+  .card{border-radius:var(--radius); padding:var(--pad); box-shadow: var(--shadow); position:relative}
+  .cardTitle{font-weight:700; font-size:var(--lg)}
+  .muted{color:var(--ink-muted); font-size:var(--sm)}
+  .chip{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; border:1px solid var(--edge);
+    background:#0f0a1bba; font-size:var(--sm)}
+  .appsList{display:grid; gap:10px}
+  .appItem{display:flex; align-items:center; gap:12px; padding:10px; border-radius:15px; border:1px solid var(--edge); background:#0c0717b8}
+  .appItem img,.appItem .ico{width:32px; height:32px; border-radius:8px; border:1px solid var(--edge); background:#090512}
+  .appMeta{flex:1; min-width:0}
+  .appMeta .t{font-weight:700; font-size:var(--md)}
+  .appMeta .d{font-size:var(--sm); color:var(--ink-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .appActions{display:flex; gap:8px}
+  .btn{padding:8px 12px; border-radius:12px; border:1px solid var(--edge); background:#0a0614a6; color:var(--ink); font-size:var(--sm); cursor:pointer}
+  .btn.pri{background:linear-gradient(42deg,#46ecffcc,#c796ffcc)}
+  .btn.ghost{background:#090513; color:var(--ink-dim)}
+  .btn.star[data-on="true"]{background:linear-gradient(42deg,#ffd36ecc,#ff8f6ecc); color:#320}
+  /* Session blocks (opened apps) */
+  .session{border-radius:22px; overflow:hidden; border:1px solid var(--edge); margin:16px 0; box-shadow:var(--shadow)}
+  .sessionHeader{display:flex; align-items:center; gap:10px; padding:10px var(--pad); background:var(--card-strong)}
+  .sessionTitle{font-weight:700}
+  .sessionBar{display:flex; gap:8px; margin-left:auto}
+  .sessionBtn{width:34px; height:34px; border-radius:10px; border:1px solid var(--edge); background:#0c0717b8; display:grid; place-content:center; cursor:pointer}
+  .sessionBody{height:420px; background:#080512; border-top:1px solid var(--edge)}
+  .sessionBody iframe{width:100%; height:100%; border:0}
+  /* Footer */
+  .dock{display:flex; align-items:center; gap:12px; width:100%}
+  .dock .slot{display:flex; gap:8px; align-items:center}
+  .dock .quick{flex:1; display:flex; gap:8px; overflow:auto; scrollbar-width:none}
+  .dock .quick::-webkit-scrollbar{display:none}
+  .mini{display:inline-flex; gap:8px; align-items:center; background:#0e0a18cc; border:1px solid var(--edge); border-radius:999px; padding:6px 10px}
+  .mini .dot{width:9px; height:9px; border-radius:50%; background:linear-gradient(42deg,#7ff,#f9f); box-shadow:0 0 12px #7ff}
+  .tooltip{position:absolute; inset:auto 12px 72px auto; min-width:240px}
+  /* Brain menu (popover) */
+  .popover{position:absolute; top:calc(var(--h) + 8px); right:12px; width:min(86vw,360px); border-radius:18px; padding:10px; z-index:40}
+  .menuItem{display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px; border:1px solid var(--edge); background:#0b0616cc; cursor:pointer}
+  .menuItem + .menuItem{margin-top:8px}
+  .menuItem small{color:var(--ink-muted); font-size:var(--sm)}
+  .input{display:flex; gap:8px; align-items:center; background:#090513; border:1px solid var(--edge); border-radius:12px; padding:8px 10px}
+  .input input,.input select{flex:1; background:transparent; border:0; outline:0; color:var(--ink); font-size:var(--sm)}
+  .notice{font-size:var(--xs); color:var(--ink-muted); margin-top:6px}
+  .ok{color:var(--ok)}
+  .warn{color:var(--warn)}
+  .divider{height:1px; background:var(--edge); margin:10px 0}
+  /* Density switch (Perf) */
+  [data-perf="low"] .sessionBody{height:360px}
+  [data-perf="high"] .sessionBody{height:520px}
+  /* Hide helpers */
+  .hide{display:none !important}
+  .fadeIn{animation:fade .25s ease}
+  @keyframes fade{from{opacity:.0; transform:translateY(4px)} to{opacity:1; transform:none}}
+  /* pixel-ish outline */
+  .outline{box-shadow:var(--ring)}
+  /* small helpers for inline SVGs */
+  svg{display:block}
+  .ico24{width:24px;height:24px}
+  .ico18{width:18px;height:18px}
+  .ico16{width:16px;height:16px}
 </style>
 </head>
 <body>
-<div class="app">
-  <header class="top">
-    <div class="title">DUAL <span class="dot"></span> HUB</div>
-    <div style="display:flex;gap:8px">
-      <button class="icon-btn" id="btnMenu" title="Opções">⋯</button>
+
+<header class="glass">
+  <div class="brand">
+    <span class="spark"></span>
+    <div>
+      <div class="title">HUB DUAL</div>
+      <div class="sub">UNO • Dual • Trinity</div>
     </div>
-  </header>
+  </div>
+  <div class="spacer"></div>
 
-  <main>
-    <!-- HOME -->
-    <section id="view-home" class="view active">
-      <div class="grid">
-        <div class="card" style="display:flex;gap:10px;align-items:center">
-          <img src="./icons/others/hub_lan_scanner.svg" width="42" height="42" alt="">
-          <div><b>LAN Scanner</b><div style="color:#9aa4c7">Descobrir dispositivos</div></div>
+  <!-- Download current HTML -->
+  <button class="iconbtn" id="btnDownload" title="Baixar HTML">
+    <img alt="" width="20" height="20" src="icons/others/hub_download.svg" onerror="this.replaceWith(svgDL())"/>
+  </button>
+
+  <!-- Brain (perfil/keys/perf/tts/log) -->
+  <button class="iconbtn" id="btnBrain" title="Brain & Perfil">
+    <img alt="" width="20" height="20" src="icons/others/hub_config.svg" onerror="this.replaceWith(svgCog())"/>
+  </button>
+</header>
+
+<main id="main" class="fadeIn">
+
+  <!-- SESSÕES ATIVAS surgem aqui (prepend) -->
+  <section id="sessionsAnchor"></section>
+
+  <!-- HOME -->
+  <section class="section">
+    <div class="card glass outline">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="cardTitle">Home</div>
+          <div class="muted">Abra apps empilhados, minimize e reabra pelo dock.</div>
         </div>
-        <div class="card" style="display:flex;gap:10px;align-items:center">
-          <img src="./icons/others/hub_bind.svg" width="42" height="42" alt="">
-          <div><b>Bind</b><div style="color:#9aa4c7">Conectar & parear</div></div>
-        </div>
-        <div class="card" style="display:flex;gap:10px;align-items:center">
-          <img src="./icons/others/hub_relatorio.svg" width="42" height="42" alt="">
-          <div><b>Relatório</b><div style="color:#9aa4c7">Métricas e logs</div></div>
-        </div>
-        <div class="card" style="display:flex;gap:10px;align-items:center">
-          <img src="./icons/others/hub_memoria.svg" width="42" height="42" alt="">
-          <div><b>Memória</b><div style="color:#9aa4c7">Docs & sessões</div></div>
+        <div class="chip">
+          <img class="ico18" src="icons/others/hub_lightning.svg" onerror="this.replaceWith(svgBolt(18))" alt=""/>
+          Nebula Pro
         </div>
       </div>
-    </section>
 
-    <!-- CHAT -->
-    <section id="view-chat" class="view">
-      <div class="wrap">
-        <div class="header card">
-          <img src="./icons/others/hub_chat.svg" width="22" height="22" alt="">
-          <b>DUAL • CHAT</b>
-          <div style="flex:1"></div>
-          <small id="chatStatus" style="opacity:.7">modo: auto</small>
+      <div id="favoritesWrap" class="section hide">
+        <div class="row" style="margin-bottom:8px">
+          <div class="cardTitle">Favoritos</div>
+          <span class="muted">seus apps fixados</span>
         </div>
-        <div class="scroll" id="chat-list"></div>
+        <div id="favoritesList" class="appsList"></div>
       </div>
 
-      <div class="composer">
-        <button class="cbtn" id="chat-btnMic" title="Ditado">🎙️</button>
-        <input id="chat-input" placeholder="Digite uma mensagem…">
-        <button class="cbtn" id="chat-btnSend" title="Enviar">➤</button>
-      </div>
-    </section>
+      <div class="divider"></div>
 
-    <!-- BRAIN (SK/Treinamento) -->
-    <section id="view-brain" class="view">
-      <div class="grid" style="max-width:980px;margin:0 auto">
-        <div class="card">
-          <div style="color:#9aa4c7;font-size:12px">Nome</div>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <input id="profile-name" placeholder="Seu nome" style="flex:1;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff">
-            <button class="cbtn" id="profile-saveName">Salvar</button>
-          </div>
-        </div>
-        <div class="card">
-          <div style="color:#9aa4c7;font-size:12px">OpenRouter & Treinamento</div>
-          <div style="display:flex;gap:8px;margin-top:6px">
-            <input id="profile-sk" placeholder="sk-or-v1-..." style="flex:1;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff">
-            <button class="cbtn" id="profile-saveSK">Salvar</button>
-          </div>
-          <textarea id="profile-training" rows="5" placeholder="Cole seu treinamento..." style="width:100%;margin-top:8px;border:1px solid #ffffff18;border-radius:10px;padding:10px;background:#101427;color:#e9ecff"></textarea>
-          <div style="text-align:right;margin-top:6px">
-            <button class="cbtn" id="profile-saveTraining">Salvar Treinamento</button>
-          </div>
-        </div>
-      </div>
-    </section>
+      <div id="groupsWrap" class="grid cols-2"></div>
+    </div>
+  </section>
 
-    <!-- APPS -->
-    <section id="view-apps" class="view">
-      <div class="card" style="max-width:1180px;margin:0 auto;padding:14px">
-        <div style="display:flex;gap:8px;align-items:center">
-          <img src="./icons/others/hub_apps.svg" width="22" height="22">
-          <b>DUAL • APPS</b>
-          <div style="flex:1"></div>
-          <label style="font-size:12px;color:#9aa4c7"><input id="sameTab" type="checkbox" checked> abrir dentro do hub</label>
-        </div>
-        <div id="apps-body" style="margin-top:12px">Coloque seu <code>apps.json</code> em <code>./</code> ou <code>./apps/</code>.</div>
+  <!-- MINIMIZADOS -->
+  <section class="section">
+    <div class="card glass outline">
+      <div class="row" style="justify-content:space-between">
+        <div class="cardTitle">Minimizados</div>
+        <span class="muted" id="miniCount">0</span>
       </div>
-    </section>
+      <div id="miniWrap" class="row" style="flex-wrap:wrap; gap:8px"></div>
+    </div>
+  </section>
 
-    <!-- PERFIL (atalho) -->
-    <section id="view-profile" class="view">
-      <div class="card" style="max-width:980px;margin:0 auto">
-        <img src="./icons/others/hub_perfil.svg" width="28" height="28" style="vertical-align:-6px">
-        <b> Perfil & Preferências</b>
-        <div style="margin-top:10px;color:#9aa4c7">Use a aba <b>Brain</b> para salvar sua SK e o Treinamento.</div>
-      </div>
-    </section>
-  </main>
+</main>
 
-  <nav class="tabs">
-    <button class="tab-btn active" data-nav="home" title="Início"><img src="./icons/others/favicon.svg" width="22" height="22"></button>
-    <button class="tab-btn" data-nav="chat"  title="Chat"><img src="./icons/others/hub_chat.svg" width="22" height="22"></button>
-    <button class="tab-btn" data-nav="brain" title="Brain"><img src="./icons/others/hub_cloud.svg" width="22" height="22"></button>
-    <button class="tab-btn" data-nav="apps"  title="Apps"><img src="./icons/others/hub_apps.svg" width="22" height="22"></button>
-    <button class="tab-btn" data-nav="profile" title="Perfil"><img src="./icons/others/hub_perfil.svg" width="22" height="22"></button>
+<footer class="glass">
+  <nav class="dock">
+    <div class="slot">
+      <button class="iconbtn" id="btnHome" title="Home">
+        <img alt="" width="20" height="20" src="icons/others/hub_home.svg" onerror="this.replaceWith(svgHome())"/>
+      </button>
+      <button class="iconbtn" id="btnApps" title="Apps">
+        <img alt="" width="20" height="20" src="icons/others/hub_apps.svg" onerror="this.replaceWith(svgApps())"/>
+      </button>
+    </div>
+    <!-- Badges de reabrir sessões -->
+    <div class="quick" id="quickBadges"></div>
+    <div class="slot">
+      <button class="iconbtn" id="btnLogs" title="Logs">
+        <img alt="" width="20" height="20" src="icons/others/hub_relatorio.svg" onerror="this.replaceWith(svgList())"/>
+      </button>
+    </div>
   </nav>
+</footer>
+
+<!-- Brain Popover -->
+<div id="brain" class="popover glass outline hide fadeIn" role="dialog" aria-label="Dual Brain">
+  <div class="menuItem" style="cursor:default">
+    <img class="ico24" src="icons/others/hub_perfil.svg" onerror="this.replaceWith(svgUser())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Perfil</div>
+      <div class="notice">Nome e rótulo do seu Dual</div>
+    </div>
+  </div>
+  <div class="input" style="margin:8px 0">
+    <input id="inpName" placeholder="Seu nome" autocomplete="name"/>
+  </div>
+  <div class="input">
+    <input id="inpDual" placeholder="Nome do seu Dual Infodose"/>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="menuItem" style="cursor:default">
+    <img class="ico24" src="icons/others/hub_cloud.svg" onerror="this.replaceWith(svgKey())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Chave SK (OpenRouter)</div>
+      <div class="notice">Guardada localmente (localStorage)</div>
+    </div>
+  </div>
+  <div class="input">
+    <input id="inpSK" placeholder="sk-..." autocomplete="off" />
+    <button class="btn ghost" id="btnSaveSK">Salvar</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="menuItem" style="cursor:default">
+    <img class="ico24" src="icons/others/hub_health.svg" onerror="this.replaceWith(svgPerf())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Performance</div>
+      <small id="perfLabel">Low / Med / High</small>
+    </div>
+  </div>
+  <div class="input">
+    <select id="selPerf">
+      <option value="low">Low</option>
+      <option value="med">Med</option>
+      <option value="high">High</option>
+    </select>
+    <button class="btn ghost" id="btnPerf">Aplicar</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="menuItem" style="cursor:default">
+    <img class="ico24" src="icons/others/hub_bind.svg" onerror="this.replaceWith(svgVoice())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Vozes / TTS</div>
+      <small>menu de vozes por arquétipo (placeholder)</small>
+    </div>
+  </div>
+  <div class="input">
+    <select id="selVoice">
+      <option>Nova</option><option>Elysha</option><option>Kaion</option><option>Serena</option>
+    </select>
+    <button class="btn ghost" id="btnVoice">Salvar</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="menuItem" id="btnClear">
+    <img class="ico24" src="icons/others/hub_memoria.svg" onerror="this.replaceWith(svgTrash())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Limpar Memória</div>
+      <small>apaga preferências e favoritos</small>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="menuItem" style="cursor:default">
+    <img class="ico24" src="icons/others/hub_relatorio.svg" onerror="this.replaceWith(svgList())" alt=""/>
+    <div style="flex:1">
+      <div style="font-weight:700">Logs</div>
+      <small>eventos recentes</small>
+    </div>
+  </div>
+  <div class="card glass" style="max-height:120px; overflow:auto; margin-top:8px">
+    <pre id="logs" style="white-space:pre-wrap; font-size:12px; margin:0; color:var(--ink-dim)"></pre>
+  </div>
 </div>
 
-<!-- Loader -->
-<div class="infodose-loader" id="infodoseLoader"><div class="dot"></div></div>
-
 <script>
-/* ===== Helpers ===== */
-const $=(s,root=document)=>root.querySelector(s);
-const $$=(s,root=document)=>Array.from(root.querySelectorAll(s));
-function showLoader(){ $('#infodoseLoader').style.display='grid'; }
-function hideLoader(){ $('#infodoseLoader').style.display='none'; }
-
-/* ===== Router ===== */
-const views={home:$('#view-home'), chat:$('#view-chat'), brain:$('#view-brain'), apps:$('#view-apps'), profile:$('#view-profile')};
-function navTo(k){ for(const v in views) views[v].classList.remove('active'); (views[k]||views.home).classList.add('active');
-  $$('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.nav===k)); history.replaceState({},'', '#/'+k); }
-const initHash=location.hash.replace('#/',''); if(views[initHash]) navTo(initHash);
-$$('.tab-btn').forEach(b=>b.addEventListener('click',()=>navTo(b.dataset.nav)));
-
-/* ===== Chat ===== */
-const list=$("#chat-list"), input=$("#chat-input"), btnSend=$("#chat-btnSend");
-let msgCounter=0;
-function asciiFrames(){return[
-"▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
-"  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
-"    ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁",
-"  ▁ ▂ ▃ ▄ ▅ ▆ ▇ █ ▇ ▆ ▅ ▄ ▃ ▂ ▁"];}
-function chatBubble(text,who='ai'){
-  const row=document.createElement('div'); row.className='row';
-  if(who==='ai'){const av=document.createElement('div'); av.className='avatar'; av.textContent='🔮'; row.appendChild(av);}
-  const b=document.createElement('div'); b.className='bubble '+who; b.textContent=text;
-  const pre=document.createElement('pre'); pre.className='ascii'; pre.textContent=asciiFrames()[0]; b.appendChild(pre);
-  row.appendChild(b);
-  if(who==='me'){const av=document.createElement('div'); av.className='avatar'; av.textContent='⚡'; row.appendChild(av);}
-  list.appendChild(row); list.scrollTop=list.scrollHeight;
+/* ---------- Inline SVG fallbacks (se faltar icons/others/*.svg) ---------- */
+function svgWrap(svg){ const span=document.createElement('span'); span.innerHTML=svg.trim(); return span.firstChild }
+function svgDL(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><rect x="4" y="19" width="16" height="2" rx="1" fill="currentColor"/></svg>`)}
+function svgCog(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1-1.5 2.6-1.2-.5a8.1 8.1 0 0 1-1 .6l-.2 1.3H8.2l-.2-1.3a8.1 8.1 0 0 1-1-.6l-1.2.5-1.5-2.6.1-.1A1 1 0 0 0 4.6 15a8.8 8.8 0 0 1 0-2 1 1 0 0 0-.2-1.1l-.1-.1L5.8 9l1.2.5c.3-.2.6-.4 1-.6l.2-1.3h7.2l.2 1.3c.4.2.7.4 1 .6l1.2-.5 1.5 2.6-.1.1a1 1 0 0 0-.2 1.1 8.8 8.8 0 0 1 0 2z"/></svg>`)}
+function svgHome(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11L12 3l9 8"/><path d="M5 10v10h14V10"/></svg>`)}
+function svgApps(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`)}
+function svgList(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/></svg>`)}
+function svgUser(s=24){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>`)}
+function svgKey(s=24){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="15" r="4"/><path d="M12 15h10l-2 2 2 2-2 2"/></svg>`)}
+function svgPerf(s=24){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19a8 8 0 1 1 16 0"/><path d="M12 12v4"/><path d="M7 12v2"/><path d="M17 12v3"/></svg>`)}
+function svgVoice(s=24){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>`)}
+function svgTrash(s=24){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><rect x="6" y="6" width="12" height="14" rx="2"/></svg>`)}
+function svgBolt(s=18){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="currentColor"><path d="M13 3L4 14h6l-1 7 9-11h-6l1-7z"/></svg>`)}
+/* ---------- State ---------- */
+const $ = sel => document.querySelector(sel);
+const appState = {
+  sessions: [], // {id,key,title,url,icon,minimized:false}
+  minimized: [],
+  favorites: new Set(JSON.parse(localStorage.getItem('hub.favs')||'[]')),
+  profile: JSON.parse(localStorage.getItem('hub.profile')||'{}'),
+  perf: localStorage.getItem('hub.perf') || 'med',
+  voice: localStorage.getItem('hub.voice') || 'Nova',
+  sk: localStorage.getItem('hub.sk') || '',
+  logs: []
+};
+document.documentElement.setAttribute('data-perf', appState.perf);
+/* ---------- Log helper ---------- */
+function log(msg){
+  const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  appState.logs.unshift(line);
+  $('#logs').textContent = appState.logs.slice(0,50).join('\n');
 }
-function persist(){ try{
-  const msgs=[...list.querySelectorAll('.row')].map(r=>({who:r.querySelector('.bubble.me')?'me':'ai',text:r.querySelector('.bubble').childNodes[0].textContent}));
-  localStorage.setItem('dual.chat.history', JSON.stringify(msgs));
-} catch{} }
-function restore(){ list.innerHTML=''; const raw=localStorage.getItem('dual.chat.history');
-  if(raw){ try{ JSON.parse(raw).forEach(m=>chatBubble(m.text,m.who)); }catch{ chatBubble('Contexto limpo.','ai'); } }
-  else { chatBubble('Olá! Salve sua SK em Brain para usar a IA online.','ai'); }
+/* ---------- Brain UI ---------- */
+const brain = $('#brain');
+$('#btnBrain').addEventListener('click', ()=>brain.classList.toggle('hide'));
+document.addEventListener('click', (e)=>{
+  if(!brain.contains(e.target) && !$('#btnBrain').contains(e.target)) brain.classList.add('hide');
+});
+function loadProfileUI(){
+  $('#inpName').value = appState.profile.name || '';
+  $('#inpDual').value = appState.profile.dual || '';
+  $('#inpSK').value = appState.sk || '';
+  $('#selPerf').value = appState.perf;
+  $('#perfLabel').textContent = appState.perf.toUpperCase();
+  $('#selVoice').value = appState.voice;
 }
-restore();
-
-/* ===== OpenRouter (online) ===== */
-function getSK(){
-  try{
-    const brain=JSON.parse(localStorage.getItem('infodose:brain')||'{}');
-    return localStorage.getItem('infodose:userSK') || brain.userSK || '';
-  }catch{return localStorage.getItem('infodose:userSK')||''}
-}
-function getModel(){
-  return localStorage.getItem('infodose:model') || 'openrouter/auto';
-}
-async function sendToOpenRouter(prompt, ctx=[]){
-  const SK=getSK(); if(!SK) throw new Error('SK ausente. Salve em Brain.');
-  const model=getModel();
-  const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'Authorization':'Bearer '+SK,
-      'HTTP-Referer': location.origin,
-      'X-Title':'Dual Hub Nebula'
-    },
-    body: JSON.stringify({ model, messages:[...ctx,{role:'user',content:prompt}], temperature:0.7 })
+['inpName','inpDual'].forEach(id=>{
+  $('#'+id).addEventListener('change', ()=>{
+    appState.profile.name = $('#inpName').value.trim();
+    appState.profile.dual = $('#inpDual').value.trim();
+    localStorage.setItem('hub.profile', JSON.stringify(appState.profile));
+    log('Perfil atualizado');
   });
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const data=await r.json();
-  return data?.choices?.[0]?.message?.content || '(sem conteúdo)';
-}
-async function reply(prompt){
-  const p=prompt.trim(); if(!p) return;
-  // Regras locais rápidas
-  if(/(lan|scan)/i.test(p)) { chatBubble('🔎 Varredura LAN (mock): 192.168.0.10, .21, .45','ai'); return; }
-  // Online se SK existir
-  const hasSK=!!getSK();
-  try{
-    if(hasSK){
-      showLoader();
-      const raw=localStorage.getItem('dual.chat.history'); const ctx=[];
-      if(raw){ try{ JSON.parse(raw).slice(-6).forEach(m=>ctx.push({role:(m.who==='me'?'user':'assistant'),content:m.text})) }catch{} }
-      const out=await sendToOpenRouter(p, ctx);
-      chatBubble(out,'ai');
-    } else {
-      chatBubble('💡 Salve sua SK em Brain para usar a IA online.\nEnquanto isso, respondo local: '+p,'ai');
-    }
-  }catch(e){
-    chatBubble('Falha ao consultar a IA: '+(e?.message||e),'ai');
-  } finally{ hideLoader(); persist(); }
-}
-function send(){ const t=input.value.trim(); if(!t) return; chatBubble(t,'me'); input.value=''; persist(); reply(t); }
-btnSend.addEventListener('click',send);
-input.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+});
+$('#btnSaveSK').addEventListener('click', ()=>{
+  appState.sk = $('#inpSK').value.trim();
+  localStorage.setItem('hub.sk', appState.sk);
+  log('SK salva (local)');
+});
+$('#btnPerf').addEventListener('click', ()=>{
+  appState.perf = $('#selPerf').value;
+  localStorage.setItem('hub.perf', appState.perf);
+  document.documentElement.setAttribute('data-perf', appState.perf);
+  $('#perfLabel').textContent = appState.perf.toUpperCase();
+  log('Performance: '+appState.perf);
+});
+$('#btnVoice').addEventListener('click', ()=>{
+  appState.voice = $('#selVoice').value;
+  localStorage.setItem('hub.voice', appState.voice);
+  log('Voz padrão: '+appState.voice);
+});
+$('#btnClear').addEventListener('click', ()=>{
+  localStorage.removeItem('hub.favs');
+  localStorage.removeItem('hub.profile');
+  localStorage.removeItem('hub.perf');
+  localStorage.removeItem('hub.voice');
+  localStorage.removeItem('hub.sk');
+  appState.favorites = new Set();
+  loadProfileUI();
+  renderFavorites();
+  log('Memória limpa');
+});
+/* ---------- Download self ---------- */
+$('#btnDownload').addEventListener('click', ()=>{
+  fetch(location.href).then(r=>r.text()).then(txt=>{
+    const blob = new Blob([txt], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'HUB_DUAL_UNO_Trinity.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    log('Download do HTML gerado');
+  }).catch(()=>{
+    // fallback: serializar DOM atual
+    const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'HUB_DUAL_UNO_Trinity_runtime.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    log('Download (fallback) do HTML em runtime');
+  });
+});
+/* ---------- Render groups/apps from apps.json ---------- */
+const groupsWrap = $('#groupsWrap');
+const favoritesWrap = $('#favoritesWrap');
+const favoritesList = $('#favoritesList');
 
-/* ===== Brain/Profile sync ===== */
-function readBrain(){ try{return JSON.parse(localStorage.getItem('infodose:brain')||'{}')||{}}catch{return{}} }
-function writeBrain(o){ try{localStorage.setItem('infodose:brain', JSON.stringify(o))}catch{} }
-$('#profile-saveName').addEventListener('click',()=>{ const v=$('#profile-name').value.trim(); if(!v) return; showLoader(); try{
-  localStorage.setItem('infodose:userName',v); const b=readBrain(); b.userName=v; writeBrain(b);
-} finally{ hideLoader(); }});
-$('#profile-saveSK').addEventListener('click',()=>{ const v=$('#profile-sk').value.trim(); showLoader(); try{
-  localStorage.setItem('infodose:userSK',v); const b=readBrain(); b.userSK=v; writeBrain(b);
-} finally{ hideLoader(); }});
-$('#profile-saveTraining').addEventListener('click',()=>{ const v=$('#profile-training').value; showLoader(); try{
-  const b=readBrain(); b.training=v; writeBrain(b);
-} finally{ hideLoader(); }});
-
-/* ===== Apps (viewer embutido com Minimizar) ===== */
-async function tryFetch(u){ try{const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw 0; return await r.json(); }catch{return null} }
 async function loadApps(){
-  const cands=['./apps.json','./apps/apps.json']; let RAW=null;
-  for(const u of cands){ RAW=await tryFetch(u); if(RAW) break; }
-  const host=$('#apps-body'); if(!RAW){ host.innerHTML='<div class="card">apps.json não encontrado.</div>'; return; }
-  const list=Array.isArray(RAW.apps)?RAW.apps:(RAW.groups?Object.values(RAW.groups).flat():[]);
-  host.innerHTML=''; list.forEach(a=>{
-    const el=document.createElement('div'); el.className='card'; el.style.marginBottom='8px';
-    el.innerHTML=`<div style="display:flex;gap:10px;align-items:center">
-      <img src="${a.icon||'./icons/others/hub_apps.svg'}" width="40"><div style="flex:1">
-      <div style="font-weight:900">${a.title||a.key||'App'}</div><div style="color:#9aa4c7">${a.desc||''}</div></div>
-      <button class="cbtn open">Abrir</button><button class="cbtn inj">Injection</button></div>`;
-    el.querySelector('.open').addEventListener('click',()=>openApp(a));
-    el.querySelector('.inj').addEventListener('click',()=>navigator.clipboard.writeText('<!-- INFODOSE footer -->\\n<div class="infodose-footer">⬅ Voltar ao Hub</div>'));
-    host.appendChild(el);
+  try{
+    const res = await fetch('./apps/apps.json', {cache:'no-store'});
+    const data = await res.json();
+    const groups = data.groups || {};
+    groupsWrap.innerHTML = '';
+    for(const [gname, items] of Object.entries(groups)){
+      const groupCard = document.createElement('div');
+      groupCard.className = 'card glass outline';
+      groupCard.innerHTML = `
+        <div class="row" style="justify-content:space-between; margin-bottom:6px">
+          <div class="cardTitle">${labelize(gname)}</div>
+          <span class="muted">${items.length} apps</span>
+        </div>
+        <div class="appsList"></div>`;
+      const listEl = groupCard.querySelector('.appsList');
+      items.forEach(app=>{
+        const row = document.createElement('div');
+        row.className = 'appItem';
+        const iconSrc = app.icon || 'icons/others/hub_apps.svg';
+        row.innerHTML = `
+          <img alt="" onerror="this.replaceWith(svgApps(32))" src="${iconSrc}">
+          <div class="appMeta">
+            <div class="t">${app.title||app.key}</div>
+            <div class="d" title="${app.desc||''}">${app.desc||''}</div>
+          </div>
+          <div class="appActions">
+            <button class="btn star" title="Favoritar" data-key="${app.key}" data-on="${appState.favorites.has(app.key)}">★</button>
+            <button class="btn ghost" title="Preview" onclick="openSession('${app.key}', '${escapeHtml(app.title||app.key)}', '${app.url||''}', '${iconSrc}')">Abrir</button>
+          </div>`;
+        listEl.appendChild(row);
+      });
+      groupsWrap.appendChild(groupCard);
+    }
+    renderFavorites();
+    log('apps.json carregado');
+  }catch(e){
+    console.error(e);
+    groupsWrap.innerHTML = `<div class="muted">Não foi possível carregar apps/apps.json</div>`;
+    log('Falha ao carregar apps.json');
+  }
+}
+function labelize(k){ return k.replaceAll('_',' ').replace(/\b\w/g, m=>m.toUpperCase()) }
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#039;' }[m]))}
+document.addEventListener('click', (e)=>{
+  const starBtn = e.target.closest('.btn.star');
+  if(!starBtn) return;
+  const key = starBtn.dataset.key;
+  const on = starBtn.getAttribute('data-on') === 'true';
+  if(on){ appState.favorites.delete(key) } else { appState.favorites.add(key) }
+  starBtn.setAttribute('data-on', String(!on));
+  localStorage.setItem('hub.favs', JSON.stringify([...appState.favorites]));
+  renderFavorites();
+});
+function renderFavorites(){
+  favoritesList.innerHTML = '';
+  const favs = [...appState.favorites];
+  favoritesWrap.classList.toggle('hide', favs.length===0);
+  if(!favs.length) return;
+  // procure nos cards renderizados
+  const all = groupsWrap.querySelectorAll('.appItem');
+  favs.forEach(k=>{
+    const row = [...all].find(r => r.querySelector('.btn.star')?.dataset.key === k);
+    if(row){
+      const clone = row.cloneNode(true);
+      clone.querySelector('.btn.star').remove(); // não duplicar toggle aqui
+      favoritesList.appendChild(clone);
+    }
   });
 }
-function openApp(app){
-  const appsFrame=$('#view-apps .card'); const mountInApps=!!appsFrame;
-  const v=document.createElement('div'); v.className='viewer'+(mountInApps?' keep-tabs':'');
-  v.innerHTML=`<iframe src="${app.url}" allow="autoplay; clipboard-read; clipboard-write; fullscreen"></iframe>
-    <div class="viewer-footer">
-      <button class="cbtn" id="backHub">⬅ Hub</button>
-      <button class="cbtn" id="minimize">—</button>
-      <button class="cbtn" id="copyInj">⎘</button>
-    </div>`;
-  (mountInApps?appsFrame:document.body).appendChild(v);
-  const f=v.querySelector('iframe');
-  const badge=document.createElement('button');
-  badge.textContent='◐ Reabrir App'; badge.className='cbtn';
-  Object.assign(badge.style,{position:'fixed',right:'12px',bottom:'calc(var(--tabsH) + 12px)',zIndex:'80',display:'none'});
-  document.body.appendChild(badge);
-  v.querySelector('#backHub').addEventListener('click',()=>{ v.remove(); badge.remove(); });
-  v.querySelector('#minimize').addEventListener('click',()=>{ f.style.display='none'; badge.style.display='inline-flex'; });
-  v.querySelector('#copyInj').addEventListener('click',()=>navigator.clipboard.writeText('<!-- INFODOSE footer -->\\n<div class="infodose-footer">⬅ Voltar ao Hub</div>'));
-  badge.addEventListener('click',()=>{ f.style.display=''; badge.style.display='none'; });
+/* ---------- Sessions (stacked) ---------- */
+const sessionsAnchor = $('#sessionsAnchor');
+const miniWrap = $('#miniWrap');
+const miniCount = $('#miniCount');
+const quickBadges = $('#quickBadges');
+
+function openSession(key,title,url,icon){
+  const id = 'S'+Date.now()+Math.random().toString(36).slice(2,6);
+  const sess = {id,key,title,url,icon,minimized:false};
+  appState.sessions.unshift(sess);
+  const el = document.createElement('section');
+  el.className = 'session glass fadeIn';
+  el.id = id;
+  el.innerHTML = `
+    <div class="sessionHeader">
+      <img class="ico16" src="${icon}" onerror="this.replaceWith(svgApps(16))" alt=""/>
+      <div class="sessionTitle">${escapeHtml(title)}</div>
+      <div class="sessionBar">
+        <button class="sessionBtn" title="Minimizar" onclick="minimizeSession('${id}')">${icoMinus()}</button>
+        <button class="sessionBtn" title="Fechar" onclick="closeSession('${id}')">${icoClose()}</button>
+      </div>
+    </div>
+    <div class="sessionBody"><iframe src="${url}"></iframe></div>`;
+  sessionsAnchor.prepend(el);
+  addBadge(sess);
+  log('Sessão aberta: '+title);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+function minimizeSession(id){
+  const sEl = document.getElementById(id);
+  if(!sEl) return;
+  sEl.classList.add('hide');
+  const s = appState.sessions.find(x=>x.id===id);
+  if(s){ s.minimized = true; addBadge(s) }
+  renderMinimized();
+  log('Sessão minimizada');
+}
+function closeSession(id){
+  const sEl = document.getElementById(id);
+  if(sEl) sEl.remove();
+  appState.sessions = appState.sessions.filter(x=>x.id!==id);
+  removeBadge(id);
+  renderMinimized();
+  log('Sessão fechada');
+}
+function addBadge(sess){
+  if(quickBadges.querySelector(`[data-id="${sess.id}"]`)) return;
+  const badge = document.createElement('button');
+  badge.className = 'mini';
+  badge.setAttribute('data-id', sess.id);
+  badge.innerHTML = `<span class="dot"></span> <span class="muted" style="color:var(--ink)">${sess.title}</span>`;
+  badge.addEventListener('click', ()=>restoreSession(sess.id));
+  quickBadges.prepend(badge);
+}
+function removeBadge(id){
+  quickBadges.querySelector(`[data-id="${id}"]`)?.remove();
+}
+function renderMinimized(){
+  miniWrap.innerHTML='';
+  const minimized = appState.sessions.filter(s=>s.minimized);
+  minimized.forEach(s=>{
+    const chip = document.createElement('button');
+    chip.className='mini'; chip.innerHTML=`<span class="dot"></span> ${s.title}`;
+    chip.addEventListener('click',()=>restoreSession(s.id));
+    miniWrap.appendChild(chip);
+  });
+  miniCount.textContent = minimized.length;
+}
+function restoreSession(id){
+  const sEl = document.getElementById(id);
+  if(!sEl) return;
+  sEl.classList.remove('hide');
+  const s = appState.sessions.find(x=>x.id===id);
+  if(s){ s.minimized=false }
+  renderMinimized();
+  log('Sessão reaberta');
+}
+/* ---------- Simple icons for session buttons ---------- */
+function icoMinus(){return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14"/></svg>`}
+function icoClose(){return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M18 6L6 18"/></svg>`}
+/* ---------- Footer buttons ---------- */
+$('#btnHome').addEventListener('click', ()=>window.scrollTo({top: sessionsAnchor.offsetTop + 1, behavior:'smooth'}));
+$('#btnApps').addEventListener('click', ()=>{
+  const y = groupsWrap.getBoundingClientRect().top + window.scrollY - 88;
+  window.scrollTo({top:y,behavior:'smooth'});
+});
+$('#btnLogs').addEventListener('click', ()=>{
+  brain.classList.remove('hide');
+  brain.scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+/* ---------- Init ---------- */
+loadProfileUI();
 loadApps();
+log('Hub iniciado');
 </script>
 </body>
 </html>
