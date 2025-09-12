@@ -1,690 +1,1671 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Smigdricks Dual Infodose — PWA</title>
-<!-- Meta para PWA e tema -->
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#1e2235" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DUAL·HUB — Variante B (Fusão UNO)</title>
 <style>
-  /*
-    Smigdricks Dual Infodose
-    -----------------------
-    Esta página é uma variação do Dual Hub otimizada para mobile.
-    Ela traz um rodapé com dock de entrada refinado, um painel
-    para Arte ASCII, integração com presets de Arte ASCII e um
-    carregador de apps que consome apps.json. A prioridade é
-    mobile-first e safe‑area para iOS, com degrade suave no fundo.
-  */
-
-  :root {
-    /* Gradiente de fundo inspirado em nebulosas */
-    --grad-a: #ff52e5;
-    --grad-b: #00c5e5;
-    /* Cores base */
-    --text: #f5f7ff;
-    --muted: rgba(245, 247, 255, .65);
-    --surface: rgba(15, 17, 32, .45);
-    --surface-strong: rgba(15, 17, 32, .85);
-    --border: rgba(255, 255, 255, .12);
-    /* Raio e sombra para elementos flutuantes */
-    --radius: 24px;
-    --radius-lg: 28px;
-    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-    /* Alturas padrão de header e safe-area */
-    --header-h: 78px;
-  }
-  @supports not (padding: env(safe-area-inset-bottom)) {
-    :root { --safe: 0px; }
-  }
-  @supports (padding: env(safe-area-inset-bottom)) {
-    :root { --safe: env(safe-area-inset-bottom); }
+  :root{ --bg:#07070f; --text:#eef2ff; --muted:#a6adcb; --a:#ff00ff; --b:#00ffff; }
+  *{box-sizing:border-box}
+  body{ margin:0; background:radial-gradient(600px 600px at 10% -10%, #280a4550, transparent 70%), #07070f; color:var(--text); font: 14px/1.4 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif; overflow:hidden; }
+  header{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #ffffff14; }
+  .logo{ font-weight:900; letter-spacing:.5px; }
+  .tabs{ margin-left:auto; display:flex; gap:8px; }
+  .tab{ border:1px solid #ffffff22; background:#0f0f1d; color:#e8eaff; border-radius:10px; padding:6px 10px; cursor:pointer; }
+  .tab.active{ outline:2px solid #ffffff44; }
+  main{ display:grid; grid-template-columns: 320px 1fr; height: calc(100% - 50px); }
+  aside{ border-right:1px solid #ffffff12; overflow:auto; padding:10px; }
+  section#host{ position:relative; overflow:hidden; }
+  iframe#vf{ position:absolute; inset:46px 0 0; border:none; width:100%; height: calc(100% - 46px); }
+  .viewerHead{ position:absolute; left:0; right:0; top:0; height:46px; display:flex; align-items:center; gap:8px; padding:8px 10px; border-bottom:1px solid #ffffff12; background:#0f0f1d; }
+  .btn{ border:1px solid #ffffff22; background:#13132a; color:#e7eaff; border-radius:10px; padding:6px 8px; font-size:12px; cursor:pointer; }
+  .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  .card{ border:1px solid #ffffff16; background:#0c0c18; border-radius:12px; padding:10px; display:grid; grid-template-columns:36px 1fr auto; gap:10px; align-items:center; }
+  .ico{ width:36px; height:36px; border-radius:10px; border:1px solid #ffffff22; background: conic-gradient(from 0deg, var(--b), var(--a)); display:grid; place-items:center; }
+  .fallback{ width:18px; height:18px; }
+  .secTitle{ margin:10px; font-weight:800; color:#cbb2ff; }
+  .badge{ position:fixed; right:14px; bottom:14px; display:none; }
+  .badge button{ background:linear-gradient(45deg, var(--a), var(--b)); color:#07070f; border:none; border-radius:999px; padding:10px 14px; font-weight:800; cursor:pointer; box-shadow:0 10px 24px #00000099; }
+  .chip{border:1px solid #ffffff22;background:#101025;color:#e7eaff;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.chip.active{outline:2px solid #ffffff44}
+.badge-novo{font-size:10px;padding:2px 6px;border-radius:999px;background:linear-gradient(45deg, var(--a), var(--b));color:#07070f;font-weight:800;margin-left:6px}
+@media (max-width: 980px){
+    main{ grid-template-columns: 1fr; }
+    aside{ height:40%; }
+    section#host{ height:60%; }
   }
 
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-  }
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-  body {
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: linear-gradient(42deg, var(--grad-a), var(--grad-b)) fixed;
-    color: var(--text);
-    overflow-x: hidden;
-    overscroll-behavior-y: contain;
-    min-height: 100dvh;
-  }
-
-  /* ---------- Header ---------- */
-  header {
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: var(--header-h);
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    backdrop-filter: blur(16px) saturate(120%);
-    z-index: 100;
-  }
-  .icon-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    color: var(--text);
-  }
-  .icon-btn:active { transform: scale(.96); }
-  .title {
-    flex: 1;
-    text-align: center;
-    line-height: 1.1;
-  }
-  .title h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: .05em;
-  }
-  .title small {
-    display: block;
-    font-size: 12px;
-    letter-spacing: .08em;
-    color: var(--muted);
-  }
-
-  /* ---------- Main ---------- */
-  main {
-    padding-top: calc(var(--header-h) + 12px);
-    /* Espaço reservado para tabbar + dock + safe‑area */
-    padding-bottom: calc(118px + var(--safe));
-    width: 100%;
-    max-width: 520px;
-    margin: 0 auto;
-    position: relative;
-  }
-  section { display: none; }
-  section.active { display: block; }
-
-  /* ---------- Grid de Apps ---------- */
-  .apps-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 14px;
-    padding: 0 16px;
-  }
-  .app-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    height: 84px;
-    cursor: pointer;
-  }
-  .app-icon span {
-    margin-top: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    text-align: center;
-  }
-  .app-icon img {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    object-fit: contain;
-  }
-
-  /* ---------- Tabbar & Dock ---------- */
-  footer.tabbar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 120;
-    padding: 6px 14px calc(6px + var(--safe));
-  }
-  .tabbar .container {
-    width: 100%;
-    max-width: 520px;
-    margin: 0 auto;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    display: grid;
-    gap: 10px;
-    padding: 10px 12px calc(10px + var(--safe));
-  }
-  /* Linha de tabs */
-  .tabs {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    gap: 6px;
-  }
-  .tab {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 0;
-    border-radius: 16px;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .tab.active {
-    color: var(--text);
-    background: rgba(255, 255, 255, .10);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
-  }
-  .tab svg { width: 22px; height: 22px; }
-
-  /* Dock refinado */
-  .dock {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto auto auto;
-    gap: 8px;
-    align-items: center;
-    background: rgba(255, 255, 255, .06);
-    border: 1px solid rgba(255, 255, 255, .14);
-    border-radius: 16px;
-    padding: 8px;
-  }
-  .dock.hidden-icons .dock-btn { display: none; }
-  .dock.hidden-icons .dock-input { grid-column: 1 / -1; }
-  .dock-input {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, .22);
-    border: 1px solid rgba(255, 255, 255, .14);
-    border-radius: 12px;
-    padding: 6px 10px;
-  }
-  .dock-input input {
-    appearance: none;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--text);
-    width: 100%;
-    font-size: 14px;
-  }
-  .dock-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    background: rgba(255, 255, 255, .08);
-    border: 1px solid rgba(255, 255, 255, .14);
-  }
-  .dock-btn:active { transform: scale(.96); }
-  .dock-btn img,
-  .dock-btn svg {
-    width: 22px;
-    height: 22px;
-    display: block;
-  }
-
-  /* Botão frase (toggle) */
-  .mantra {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 14px;
-    padding: 10px 12px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .06));
-    border: 1px solid rgba(255, 255, 255, .14);
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-  }
-  .mantra strong { font-weight: 800; }
-
-  /* Painel de ações & ASCII */
-  .actions {
-    display: none;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .actions.open { display: grid; }
-  .pill {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, .08);
-    border: 1px solid rgba(255, 255, 255, .14);
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .ascii-panel {
-    display: none;
-    grid-template-columns: 1fr;
-    gap: 8px;
-    background: rgba(0, 0, 0, .18);
-    border: 1px solid rgba(255, 255, 255, .14);
-    border-radius: 14px;
-    padding: 10px;
-  }
-  .ascii-panel.open { display: grid; }
-  .ascii-row { display: flex; gap: 8px; }
-  .ascii-row .pill { flex: 1; }
-  .ascii-box {
-    width: 100%;
-    min-height: 120px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, .18);
-    background: rgba(0, 0, 0, .25);
-    color: #fff;
-    padding: 10px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 12.5px;
-  }
-
-  /* Esconde chat-cards globais quando toggled */
-  .hide-cards .chat-card {
-    display: none !important;
-  }
-  /* Estiliza lista do menu brain */
-  .brain-list li {
-    padding: 10px 12px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, .05);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-  }
-  .brain-list li:hover { background: rgba(255, 255, 255, .08); }
-
+  /* UNO area when active */
+  #unoHost{ position:absolute; inset:0; background:#05050a; overflow:auto; display:none; }
 </style>
 </head>
 <body>
-
-<!-- ======= Header ======= -->
-<header>
-  <button class="icon-btn" id="backBtn" aria-label="Voltar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-  </button>
-  <div class="title">
-    <!-- Título e subtítulo customizados para Smigdricks -->
-    <h1>Smigdricks Dual</h1>
-    <small>Seu Espelho Vivo</small>
-  </div>
-  <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Infodose Brain">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 1 0-16 0" /><circle cx="12" cy="7" r="4" /></svg>
-  </button>
-
-  <!-- Brain menu -->
-  <div class="brain-menu" id="brainMenu" style="display:none; position:absolute; top:calc(100% + 6px); right:16px; width:min(92vw, 340px); padding:12px; background:var(--surface-strong); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); z-index:150;">
-    <h3 style="margin:4px 0 10px; font-size:16px; font-weight:800; letter-spacing:.05em;">Infodose Brain</h3>
-    <ul class="brain-list" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
-      <li onclick="exportBackup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg><span>Exportar</span></li>
-      <li onclick="promptKey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2" /><path d="M7.5 13.5L2 19v3h3l5.5-5.5" /><circle cx="16" cy="8" r="5" /></svg><span>SK Key</span></li>
-      <li onclick="toast('Testar TTS')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg><span>TTS</span></li>
-      <li onclick="clearLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18" /><path d="M3 8h18" /><path d="M3 13h18" /><path d="M3 18h18" /></svg><span>Logs</span></li>
-    </ul>
-  </div>
-</header>
-
-<!-- ======= Main ======= -->
-<main>
-  <section id="page-home" class="active">
-    <div style="padding:20px; text-align:center;">
-      <p>Bem-vindo ao Smigdricks Dual Infodose! Toque em <strong>Apps</strong> para explorar.</p>
-    </div>
-  </section>
-  <section id="page-apps">
-    <div class="apps-grid" id="appsGrid"></div>
-  </section>
-  <section id="page-stack">
-    <div style="padding:20px; text-align:center;"><p>Nenhum app aberto no momento.</p></div>
-  </section>
-</main>
-
-<!-- ======= Tabbar & Dock ======= -->
-<footer class="tabbar">
-  <div class="container" id="tabbarContainer">
-    <!-- Tabs -->
+  <header>
+    <div class="logo">DUAL·HUB</div>
+    <span style="opacity:.7">Variante B · Fusão UNO</span>
     <div class="tabs">
-      <div class="tab active" id="tab-home" onclick="navigate('home')">
-        <svg><use href="#hub_home"></use></svg><span>Home</span>
-      </div>
-      <div class="tab" id="tab-apps" onclick="navigate('apps')">
-        <svg><use href="#hub_apps"></use></svg><span>Apps</span>
-      </div>
-      <div class="tab" id="tab-stack" onclick="navigate('stack')">
-        <svg><use href="#hub_stack"></use></svg><span>Stack</span>
-      </div>
+      <button class="tab active" id="tabHub">Hub</button>
+      <button class="tab" id="tabUNO">UNO</button>
     </div>
-
-    <!-- Dock -->
-    <div class="dock" id="dock">
-      <div class="dock-input">
-        <input id="promptInput" placeholder="Digite aqui sua intenção…" autocomplete="off" />
+  </header>
+  <main>
+    <aside>
+  <div id="groupFilters" style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 8px 2px"></div>
+      <div class="secTitle">⭐ Favoritos</div>
+      <div class="grid" id="fav"></div>
+      <div class="secTitle">🕓 Recentes</div>
+      <div class="grid" id="rec"></div>
+      <div class="secTitle">📚 Todos</div>
+      <div class="grid" id="all"></div>
+    </aside>
+    <section id="host">
+      <div class="viewerHead">
+        <div id="vhT" style="font-weight:800">Nenhum app</div>
+        <div id="vhU" style="opacity:.7"></div>
+        <div style="flex:1"></div>
+        <button class="btn" id="min">— Minimizar</button>
+        <button class="btn" id="cls">✕ Fechar</button>
       </div>
-      <button class="dock-btn" id="btn-ascii"   title="Arte ASCII"></button>
-      <button class="dock-btn" id="btn-arteask" title="Arteask"></button>
-      <button class="dock-btn" id="btn-voice"   title="Voz"></button>
-      <button class="dock-btn" id="btn-send"    title="Enviar"></button>
-      <button class="dock-btn" id="btn-cards"   title="Cards"></button>
-    </div>
+      <iframe id="vf" title="Viewer"></iframe>
+      <div id="unoHost"></div>
+    </section>
+  </main>
+  <div class="badge" id="reop"><button id="reBtn">◐ Reabrir</button></div>
 
-    <!-- Botão frase toggle -->
-    <button class="mantra" id="mantraBtn" onclick="toggleActions()">
-      do seu jeito.&nbsp;<strong>Sempre</strong>&nbsp;único,&nbsp;<strong>sempre</strong>&nbsp;seu.
-    </button>
-
-    <!-- Painel de ações -->
-    <div class="actions" id="actionsPanel">
-      <button class="pill" onclick="copyPrompt()">⎘ Copiar</button>
-      <button class="pill" onclick="pastePrompt()">📎 Colar</button>
-      <button class="pill" onclick="toggleIcons()">🙈 Ocultar</button>
-      <button class="pill" onclick="toggleActions()">✕ Fechar</button>
-    </div>
-
-    <!-- Painel Arte ASCII -->
-    <div class="ascii-panel" id="asciiPanel">
-      <div class="ascii-row">
-        <button class="pill" onclick="asciiGenerate('369')">Fractal 369</button>
-        <button class="pill" onclick="asciiGenerate('portal')">Portal</button>
-        <button class="pill" onclick="asciiGenerate('heptagrama')">Heptagrama</button>
-      </div>
-      <textarea class="ascii-box" id="asciiBox" placeholder="Sua Arte ASCII aparece aqui…"></textarea>
-      <div class="ascii-row">
-        <button class="pill" onclick="asciiToPrompt()">➕ Inserir no prompt</button>
-        <button class="pill" onclick="asciiCopy()">⎘ Copiar ASCII</button>
-        <button class="pill" onclick="toggleAscii()">✕ Fechar ASCII</button>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<!-- ======= SVG Sprite Fallback ======= -->
-<svg style="display:none" aria-hidden="true">
-  <defs id="icon-defs">
-    <symbol id="hub_home" viewBox="0 0 24 24">
-      <path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="2" fill="none" />
-      <path d="M9 21V9h6v12" stroke="currentColor" stroke-width="2" fill="none" />
-    </symbol>
-    <symbol id="hub_apps" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-      <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-      <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-      <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-    </symbol>
-    <symbol id="hub_stack" viewBox="0 0 24 24">
-      <path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" stroke="currentColor" stroke-width="2" fill="none" />
-      <path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="2" fill="none" />
-    </symbol>
-  </defs>
-</svg>
-
-<!-- ======= Scripts ======= -->
-<script>
-/* ===== Helpers ===== */
-const qs = (s) => document.querySelector(s);
-const toast = (...m) => console.log('[Smigdricks]', ...m);
-
-/* LocalStorage util para persistência */
-const ls = {
-  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-};
-const UI_STATE = 'smig.dricks.ui';
-
-/* ===== Navegação ===== */
-function navigate(target) {
-  ['home', 'apps', 'stack'].forEach(pg => {
-    qs('#page-' + pg).classList.toggle('active', pg === target);
-    qs('#tab-' + pg).classList.toggle('active', pg === target);
-  });
-  if (target === 'apps' && !navigate._loaded) {
-    loadApps();
-    navigate._loaded = true;
-  }
-}
-
-/* ===== Menu do Brain ===== */
-const brainBtn = qs('#brainBtn');
-const brainMenu = qs('#brainMenu');
-brainBtn.addEventListener('click', (e) => {
-  const opened = brainMenu.style.display === 'block';
-  brainMenu.style.display = opened ? 'none' : 'block';
-  e.stopPropagation();
-});
-document.addEventListener('click', (e) => {
-  if (!brainMenu.contains(e.target) && e.target !== brainBtn) {
-    brainMenu.style.display = 'none';
-  }
-});
-
-function exportBackup() {
-  const data = { when: Date.now(), storage: localStorage };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'smig.backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('Backup exportado');
-}
-function promptKey() {
-  const key = prompt('Cole sua SK (salva localmente)');
-  if (key) {
-    localStorage.setItem('smig.keys.openrouter', key);
-    toast('Chave armazenada');
-  }
-}
-function clearLogs() { console.clear(); toast('Logs limpos'); }
-
-/* ===== Carregamento de apps (apps.json) ===== */
-async function loadApps() {
-  const grid = qs('#appsGrid');
-  grid.innerHTML = '';
-  async function getJSON(p) {
-    try {
-      const r = await fetch(p);
-      if (r.ok) return r.json();
-    } catch (e) {}
-    return null;
-  }
-  let data = await getJSON('apps.json') || await getJSON('apps/apps.json');
-  if (data?.groups) {
-    Object.values(data.groups).forEach(group => {
-      group.forEach(app => {
-        const div = document.createElement('div');
-        div.className = 'app-icon';
-        div.onclick = () => window.open(app.url, '_blank');
-        const img = document.createElement('img');
-        img.src = app.icon || (data.defaultIcons?.base || '/icons/icon-192.png');
-        img.alt = '';
-        const span = document.createElement('span');
-        span.textContent = app.title;
-        div.appendChild(img);
-        div.appendChild(span);
-        grid.appendChild(div);
-      });
-    });
-  } else {
-    // fallback simples
-    const examples = ['Chat', 'Editor', 'Livros'];
-    examples.forEach(t => {
-      const el = document.createElement('div');
-      el.className = 'app-icon';
-      el.innerHTML = `<img src="/icons/icon-192.png" alt=""><span>${t}</span>`;
-      el.onclick = () => toast('Abrindo ' + t);
-      grid.appendChild(el);
-    });
-  }
-}
-
-/* ===== Ações da Dock ===== */
-function onSend() {
-  const v = qs('#promptInput').value.trim();
-  if (!v) return toast('Prompt vazio');
-  toast('Enviar:', v);
-  qs('#promptInput').value = '';
-}
-function onVoz() { toast('Gravando voz...'); }
-function onArteask() { toast('Abrir presets Arteask...'); }
-function toggleCards() {
-  document.body.classList.toggle('hide-cards');
-  saveUI();
-}
-
-/* ===== Painel de ações (frase) ===== */
-function toggleActions() {
-  qs('#actionsPanel').classList.toggle('open');
-  saveUI();
-}
-function copyPrompt() {
-  const v = qs('#promptInput').value || '';
-  navigator.clipboard?.writeText(v).then(() => toast('Copiado'));
-}
-async function pastePrompt() {
-  try {
-    const txt = await navigator.clipboard.readText();
-    if (txt) qs('#promptInput').value = txt;
-  } catch (e) {
-    toast('Permita acesso à área de transferência');
-  }
-}
-function toggleIcons() {
-  qs('#dock').classList.toggle('hidden-icons');
-  saveUI();
-}
-
-/* ===== Arte ASCII ===== */
-function toggleAscii() {
-  qs('#asciiPanel').classList.toggle('open');
-  saveUI();
-}
-function onAscii() { toggleAscii(); }
-function asciiToPrompt() {
-  const box = qs('#asciiBox');
-  const p = qs('#promptInput');
-  p.value = (p.value ? (p.value + '\n') : '') + box.value;
-  toast('ASCII inserido no prompt');
-}
-function asciiCopy() {
-  const v = qs('#asciiBox').value || '';
-  navigator.clipboard?.writeText(v);
-  toast('ASCII copiado');
-}
-function asciiGenerate(kind) {
-  let a = '';
-  if (kind === '369') {
-    a =
-`    3   6   9
-   ◐   ◐   ◐
-  ◐◐◐ ◐◐◐ ◐◐◐
-   ◐   ◐   ◐
-    3   6   9`;
-  } else if (kind === 'portal') {
-    a =
-`╔════🌌════╗
-║  ⭕ ⭕ ⭕  ║
-║   ◐ ◐    ║
-║    ●     ║
-╚════🌌════╝`;
-  } else {
-    a =
-`   /\\
-  /  \\
- / /\\ \\
- \\ \\/ /
-  \\  /
-   \\/   ★7`;
-  }
-  qs('#asciiBox').value = a;
-}
-
-/* ===== Persistência de UI ===== */
-function saveUI() {
-  ls.set(UI_STATE, {
-    actionsOpen: qs('#actionsPanel').classList.contains('open'),
-    asciiOpen: qs('#asciiPanel').classList.contains('open'),
-    iconsHidden: qs('#dock').classList.contains('hidden-icons'),
-    cardsHidden: document.body.classList.contains('hide-cards')
-  });
-}
-(function restoreUI() {
-  const st = ls.get(UI_STATE) || {};
-  if (st.actionsOpen) qs('#actionsPanel').classList.add('open');
-  if (st.asciiOpen) qs('#asciiPanel').classList.add('open');
-  if (st.iconsHidden) qs('#dock').classList.add('hidden-icons');
-  if (st.cardsHidden) document.body.classList.add('hide-cards');
-})();
-
-/* ===== Carregamento de ícones nos botões ===== */
-async function setBtnIcon(btnId, name, inlineFallback) {
-  const btn = qs(btnId);
-  const paths = [
-    `orders/${name}.svg`,
-    `docs/icons/others/${name}.svg`,
-    `/icons/others/${name}.svg`
-  ];
-  for (const p of paths) {
-    try {
-      const r = await fetch(p, { cache: 'no-store' });
-      if (r.ok) {
-        btn.innerHTML = await r.text();
-        return;
+  <!-- Fallback apps (embutido) -->
+  <script id="appsFallback" type="application/json">{
+  &quot;defaultIcons&quot;: {
+    &quot;base&quot;: &quot;/icons/icon-192.png&quot;,
+    &quot;chats&quot;: &quot;/icons/icon-192-chats.png&quot;,
+    &quot;editors&quot;: &quot;/icons/icon-192-editors.png&quot;,
+    &quot;indexrs&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+    &quot;jhb&quot;: &quot;/icons/icon-192-jhb.png&quot;
+  },
+  &quot;groups&quot;: {
+    &quot;index_hubs&quot;: [
+      {
+        &quot;key&quot;: &quot;index-finder&quot;,
+        &quot;title&quot;: &quot;Interface Inicial&quot;,
+        &quot;desc&quot;: &quot;Interface Nebula inicial.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-finder-pro+Image2CSS.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-FND.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;index-nebula-unified&quot;,
+        &quot;title&quot;: &quot;HUB NEBULA PRO &quot;,
+        &quot;desc&quot;: &quot;Interface Nebula unificada.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_HUB_NebulaPro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-HUB.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;nebula&quot;,
+          &quot;unified&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-nebulapro-v2&quot;,
+        &quot;title&quot;: &quot;Dual Chat NebulaPro v2&quot;,
+        &quot;desc&quot;: &quot;Interface de chat no tema NebulaPro v2.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Chat_NebulaPro-v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-81-onefile&quot;,
+        &quot;title&quot;: &quot;DUAL 81 OneFile&quot;,
+        &quot;desc&quot;: &quot;Versão unificada em um único arquivo (81 telas).&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_81_OneFile.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;dual&quot;,
+          &quot;onefile&quot;,
+          &quot;81&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-hub-nebulapro&quot;,
+        &quot;title&quot;: &quot;DUAL HUB NebulaPro&quot;,
+        &quot;desc&quot;: &quot;Hub principal no tema NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_HUB_NebulaPro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;apps-dualchat-nebulapro&quot;,
+        &quot;title&quot;: &quot;Apps DualChat NebulaPro&quot;,
+        &quot;desc&quot;: &quot;Atalho para apps.dualchat NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/apps.dualchat.nebulapro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;apps&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-hub-integrator&quot;,
+        &quot;title&quot;: &quot;Dual • Hub Finder (LAN/Cloud)&quot;,
+        &quot;desc&quot;: &quot;Scanner, backend, memória, relatórios&quot;,
+        &quot;url&quot;: &quot;./apps/dual-finder-pro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-LAN.png&quot;,
+        &quot;tags&quot;: [
+          &quot;setup&quot;,
+          &quot;lan&quot;,
+          &quot;tools&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;index-barrao&quot;,
+        &quot;title&quot;: &quot;ASSERT - JHB Eng.&quot;,
+        &quot;desc&quot;: &quot;Versão barrão.&quot;,
+        &quot;url&quot;: &quot;./apps/index-JHBarros.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-jhb.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;barrao&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;index-hub&quot;,
+        &quot;title&quot;: &quot;Hub&quot;,
+        &quot;desc&quot;: &quot;Hub principal.&quot;,
+        &quot;url&quot;: &quot;./apps/indexhub.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;principal&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;index-luxara&quot;,
+        &quot;title&quot;: &quot; MetaLux&quot;,
+        &quot;desc&quot;: &quot;Interface MetaLux.&quot;,
+        &quot;url&quot;: &quot;./apps/indexhub.SAFEv3.NebulaPro+Image2CSS.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-IDX.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;metalux&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;index-sumbus-3&quot;,
+        &quot;title&quot;: &quot;IMG PROMPT&quot;,
+        &quot;desc&quot;: &quot;IMG PROMPT Sümbüs.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Image2CSS_Studio.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-IMG.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;index&quot;,
+          &quot;sumbus&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-mobile&quot;,
+        &quot;title&quot;: &quot;DualPro Mobile&quot;,
+        &quot;desc&quot;: &quot;Versão NebulaPro otimizada para mobile.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_Mobile.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;mobile&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-min-mobile&quot;,
+        &quot;title&quot;: &quot;Dual Infodose Min Mobile&quot;,
+        &quot;desc&quot;: &quot;Versão minimalista Infodose para mobile.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;minimal&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-2e-clean-2&quot;,
+        &quot;title&quot;: &quot;Dual 2E Clean 2&quot;,
+        &quot;desc&quot;: &quot;Interface Dual limpa versão 2.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_2E-clean-2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;clean&quot;,
+          &quot;2e&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-flutter-archemap-presetstudio&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro Flutter ArcheMap PresetStudio&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com Flutter, ArcheMap e Preset Studio.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_Flutter_ArcheMap_PresetStudio.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;flutter&quot;,
+          &quot;archemap&quot;,
+          &quot;preset&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-moodspalettes-queue-asciistudio&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro MoodsPalettes Queue ASCIIStudio&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com moods, paletas, fila e ASCII Studio.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_MoodsPalettes_Queue_ASCIIStudio.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;moods&quot;,
+          &quot;palettes&quot;,
+          &quot;queue&quot;,
+          &quot;ascii&quot;,
+          &quot;studio&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-min-mobile-v2&quot;,
+        &quot;title&quot;: &quot;Dual Infodose Min Mobile v2&quot;,
+        &quot;desc&quot;: &quot;Versão minimalista Infodose para mobile v2.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;minimal&quot;,
+          &quot;v2&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-orbits-sound-palettes-asciidsl&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro Orbits Sound Palettes ASCII DSL&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com orbits, sound palettes e ASCII DSL.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_Orbits_Sound_Palettes_ASCIIDSL.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;sound&quot;,
+          &quot;palettes&quot;,
+          &quot;ascii&quot;,
+          &quot;dsl&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-reactiveface&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro ReactiveFace&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com ReactiveFace.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_ReactiveFace.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;reactiveface&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-cleanmobile-configpalettesmenu&quot;,
+        &quot;title&quot;: &quot;Dual Infodose CleanMobile Config Palettes Menu&quot;,
+        &quot;desc&quot;: &quot;Versão Clean Mobile com menu de paletas.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_CleanMobile_ConfigPalettesMenu.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;clean&quot;,
+          &quot;palettes&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-moodsync-tts-trilha&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro MoodSync TTS Trilha&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com sincronização de humor, TTS e trilha.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_MoodSync_TTS_Trilha.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;mood&quot;,
+          &quot;tts&quot;,
+          &quot;trilha&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-min-mobile-v2-tts-live&quot;,
+        &quot;title&quot;: &quot;Dual Infodose Min Mobile v2 TTS Live&quot;,
+        &quot;desc&quot;: &quot;Versão Min Mobile v2 com TTS Live.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;tts&quot;,
+          &quot;live&quot;,
+          &quot;v2&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-archemood-quickmodel-presets&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro ArcheMood QuickModel Presets&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com ArcheMood e QuickModel Presets.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_ArcheMood_QuickModel_Presets.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;archemood&quot;,
+          &quot;presets&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-min-mobile-v2-tts-booster&quot;,
+        &quot;title&quot;: &quot;Dual Infodose Min Mobile v2 TTS Booster&quot;,
+        &quot;desc&quot;: &quot;Versão Min Mobile v2 com TTS Booster.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Booster.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;tts&quot;,
+          &quot;booster&quot;,
+          &quot;v2&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-min-mobile-v2-tts-live-default&quot;,
+        &quot;title&quot;: &quot;Dual Infodose Min Mobile v2 TTS Live Default&quot;,
+        &quot;desc&quot;: &quot;Versão Min Mobile v2 TTS Live Default.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;mobile&quot;,
+          &quot;tts&quot;,
+          &quot;live&quot;,
+          &quot;default&quot;,
+          &quot;v2&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-infodose-nebulapro-streaming-ascii&quot;,
+        &quot;title&quot;: &quot;Dual Infodose NebulaPro Streaming ASCII&quot;,
+        &quot;desc&quot;: &quot;NebulaPro com streaming ASCII.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_NebulaPro_Streaming_ASCII.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;infodose&quot;,
+          &quot;nebula&quot;,
+          &quot;ascii&quot;,
+          &quot;streaming&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain-v3&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain v3&quot;,
+        &quot;desc&quot;: &quot;Versão monolítica v3 com Hub, Chat e Brain.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v3.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;monolith&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-procedural-pixel-film-nebulapro-luxara-v4&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro Luxara v4&quot;,
+        &quot;desc&quot;: &quot;Versão procedural v4 sob comando da Luxara.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Procedural_Pixel_Film_NebulaPro_LUXARA-v4.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;luxara&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-procedural-pixel-film-nebulapro-br-icons-fix&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro BR Icons Fix&quot;,
+        &quot;desc&quot;: &quot;Correção de ícones brasileiros para o Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Procedural_Pixel_Film_NebulaPro_BR_Icons_Fix.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;nebula&quot;,
+          &quot;icons&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain-v5&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain v5&quot;,
+        &quot;desc&quot;: &quot;Versão monolítica v5 com refine in-bubble e ASCII.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v5_refine_inbubble_ASCII.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;ascii&quot;,
+          &quot;monolith&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;procedural-pixel-film-nebulapro-final-one&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro FINAL ONE&quot;,
+        &quot;desc&quot;: &quot;Versão final ONE do Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/Procedural_Pixel_Film_NebulaPro_FINAL_ONE.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;nebula&quot;,
+          &quot;final&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain&quot;,
+        &quot;desc&quot;: &quot;Versão base HubChatBrain Monolith NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;monolith&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;procedural-pixel-film-nebulapro-final-pro&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro FINAL PRO&quot;,
+        &quot;desc&quot;: &quot;Versão FINAL PRO do Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/Procedural_Pixel_Film_NebulaPro_FINAL_PRO.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;nebula&quot;,
+          &quot;pro&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-nebulapro&quot;,
+        &quot;title&quot;: &quot;Dual Chat NebulaPro&quot;,
+        &quot;desc&quot;: &quot;Interface clássica do chat NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Chat_NebulaPro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-hub-nebulapro&quot;,
+        &quot;title&quot;: &quot;DUAL HUB NebulaPro&quot;,
+        &quot;desc&quot;: &quot;Hub principal no tema NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_HUB_NebulaPro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-pulsar&quot;,
+        &quot;title&quot;: &quot;Dual Chat Pulsar&quot;,
+        &quot;desc&quot;: &quot;Versão Pulsar do chat Dual.&quot;,
+        &quot;url&quot;: &quot;./apps/dual_chat_pulsar.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;dual&quot;,
+          &quot;pulsar&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-nebulapro-v2-luxara-neon-v2&quot;,
+        &quot;title&quot;: &quot;Dual Chat NebulaPro v2 Luxara Neon&quot;,
+        &quot;desc&quot;: &quot;Versão v2 com Luxara Neon aplicada.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Chat_NebulaPro-v2_luxara_neon_v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;nebula&quot;,
+          &quot;luxara&quot;,
+          &quot;neon&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-unificado-nebula-pro-radial-haptics-openrouter&quot;,
+        &quot;title&quot;: &quot;Dual Unificado Nebula Pro Radial Haptics&quot;,
+        &quot;desc&quot;: &quot;Versão unificada com radial, haptics e OpenRouter.&quot;,
+        &quot;url&quot;: &quot;./apps/dual_unificado_nebula_pro_radial_haptics_open_router.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;nebula&quot;,
+          &quot;radial&quot;,
+          &quot;haptics&quot;,
+          &quot;openrouter&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-procedural-pixel-film-v2&quot;,
+        &quot;title&quot;: &quot;Dual Procedural Pixel Film v2&quot;,
+        &quot;desc&quot;: &quot;Segunda versão do Procedural Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Procedural_Pixel_Film-v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;dual&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-nebulapro-v2&quot;,
+        &quot;title&quot;: &quot;Dual Chat NebulaPro v2&quot;,
+        &quot;desc&quot;: &quot;Segunda versão do chat NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Chat_NebulaPro-v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;,
+          &quot;v2&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;indexhub-safev3-1-nebulapro&quot;,
+        &quot;title&quot;: &quot;IndexHub Safe v3.1 NebulaPro&quot;,
+        &quot;desc&quot;: &quot;IndexHub versão Safe v3.1 NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/indexhub.SAFEv3.1.NebulaPro.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;index&quot;,
+          &quot;hub&quot;,
+          &quot;nebula&quot;,
+          &quot;safe&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;procedural-pixel-film-nebulapro0&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro 0&quot;,
+        &quot;desc&quot;: &quot;Versão inicial do Procedural Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/procedural_pixel_film_nebula_pro0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-procedural-pixel-film-nebulapro-br-ousado-fix&quot;,
+        &quot;title&quot;: &quot;Procedural Pixel Film NebulaPro BR Ousado Fix&quot;,
+        &quot;desc&quot;: &quot;Fix ousado BR para o Pixel Film.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Procedural_Pixel_Film_NebulaPro_BR_Ousado_Fix.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;film&quot;,
+          &quot;nebula&quot;,
+          &quot;br&quot;,
+          &quot;ousado&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-brain-aether&quot;,
+        &quot;title&quot;: &quot;Dual Brain Aether&quot;,
+        &quot;desc&quot;: &quot;Versão Aether do Dual Brain.&quot;,
+        &quot;url&quot;: &quot;./apps/dual_brain_aether.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-indexrs.png&quot;,
+        &quot;tags&quot;: [
+          &quot;brain&quot;,
+          &quot;dual&quot;,
+          &quot;aether&quot;
+        ]
       }
-    } catch (e) {}
+    ],
+    &quot;chats&quot;: [
+      {
+        &quot;key&quot;: &quot;dual-chat&quot;,
+        &quot;title&quot;: &quot;Dual Chat&quot;,
+        &quot;desc&quot;: &quot;Conversas e IA simbólica.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default-v3.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;ai&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-chat-trix&quot;,
+        &quot;title&quot;: &quot;Dual Chat 0.94.15 Fix&quot;,
+        &quot;desc&quot;: &quot;Versão rixtrix do Dual Chat.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live-v3.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;chat&quot;,
+          &quot;fix&quot;,
+          &quot;release&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;Chat-response-autoload&quot;,
+        &quot;title&quot;: &quot;Render Response Autoload&quot;,
+        &quot;desc&quot;: &quot;Carregamento automático de respostas.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live_Default-R0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;render&quot;,
+          &quot;response&quot;,
+          &quot;autoload&quot;,
+          &quot;chat&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;renderresponse-kobllux&quot;,
+        &quot;title&quot;: &quot;Chat- render Response Kobllux&quot;,
+        &quot;desc&quot;: &quot;Renderização Kobllux.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Infodose_Min_Mobile_v2_TTS_Live-R0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-chats.png&quot;,
+        &quot;tags&quot;: [
+          &quot;render&quot;,
+          &quot;kobllux&quot;,
+          &quot;chat&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain-v6-0&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain v6-0&quot;,
+        &quot;desc&quot;: &quot;Monólito v6-0 do Hub+Chat+Brain NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v6-0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-NEB.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;,
+          &quot;monolith&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-procedural-pixel-film-merged&quot;,
+        &quot;title&quot;: &quot;Dual Procedural Pixel Film Merged&quot;,
+        &quot;desc&quot;: &quot;Filme procedural pixelado versão mergeada.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Procedural_Pixel_Film_Merged.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-IMG.png&quot;,
+        &quot;tags&quot;: [
+          &quot;film&quot;,
+          &quot;procedural&quot;,
+          &quot;pixel&quot;,
+          &quot;dual&quot;,
+          &quot;nebula&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain-v6&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain v6&quot;,
+        &quot;desc&quot;: &quot;Monólito v6 do Hub+Chat+Brain NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain_v6.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-NEB.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;,
+          &quot;monolith&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-monolith-nebulapro-hubchatbrain&quot;,
+        &quot;title&quot;: &quot;DUAL Monolith NebulaPro HubChatBrain&quot;,
+        &quot;desc&quot;: &quot;Versão base do Monólito Hub+Chat+Brain NebulaPro.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_Monolith_NebulaPro_HubChatBrain.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-NEB.png&quot;,
+        &quot;tags&quot;: [
+          &quot;hub&quot;,
+          &quot;chat&quot;,
+          &quot;brain&quot;,
+          &quot;nebula&quot;,
+          &quot;dual&quot;,
+          &quot;monolith&quot;
+        ]
+      }
+    ],
+    &quot;editors_tools&quot;: [
+      {
+        &quot;key&quot;: &quot;dual-labs&quot;,
+        &quot;title&quot;: &quot;Dual Labs&quot;,
+        &quot;desc&quot;: &quot;Experimentos e patches.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-labs.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;labs&quot;,
+          &quot;tools&quot;,
+          &quot;experiments&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;sigma-trinity-editor-2&quot;,
+        &quot;title&quot;: &quot;Sigma Trinity Editor 2&quot;,
+        &quot;desc&quot;: &quot;Editor simbólico Trinity.&quot;,
+        &quot;url&quot;: &quot;./apps/sigma-trinity-editor-2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;editor&quot;,
+          &quot;sigma&quot;,
+          &quot;trinity&quot;,
+          &quot;tools&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;xml-app-conv-8&quot;,
+        &quot;title&quot;: &quot;XML App Conv 8 Online&quot;,
+        &quot;desc&quot;: &quot;Conversor app XML online.&quot;,
+        &quot;url&quot;: &quot;./apps/xml-app-conv-8-online.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;xml&quot;,
+          &quot;converter&quot;,
+          &quot;tools&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;apps-json&quot;,
+        &quot;title&quot;: &quot;Apps JSON&quot;,
+        &quot;desc&quot;: &quot;Definições de apps.&quot;,
+        &quot;url&quot;: &quot;./apps/apps.json&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;config&quot;,
+          &quot;json&quot;,
+          &quot;tools&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;kblx-html&quot;,
+        &quot;title&quot;: &quot;KBLX HTML v4.1&quot;,
+        &quot;desc&quot;: &quot;Versão fullscreen separador.&quot;,
+        &quot;url&quot;: &quot;./apps/KBLX-HTML-v4.1-FULLSCREEN-SEPARADOR.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;kblx&quot;,
+          &quot;html&quot;,
+          &quot;editor&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;kobllux-metalux&quot;,
+        &quot;title&quot;: &quot;KOBLLUX MetaLux&quot;,
+        &quot;desc&quot;: &quot;Expandido final ultrafoda.&quot;,
+        &quot;url&quot;: &quot;./apps/KOBLLUX_MetaLux_Expandido_Final_ultrafoda.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;kobllux&quot;,
+          &quot;metalux&quot;,
+          &quot;tools&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-html-editor-full-split-v1&quot;,
+        &quot;title&quot;: &quot;Dual HTML Editor Full Split v1&quot;,
+        &quot;desc&quot;: &quot;Editor HTML completo com split view v1.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_HTML_Editor_Full_Split_v1.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;editor&quot;,
+          &quot;html&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;kobllux-app-1&quot;,
+        &quot;title&quot;: &quot;KOBLLUX App 1&quot;,
+        &quot;desc&quot;: &quot;Primeira versão do app KOBLLUX.&quot;,
+        &quot;url&quot;: &quot;./apps/KOBLLUX_app_1.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;kobllux&quot;,
+          &quot;dual&quot;,
+          &quot;app&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-app-export-2&quot;,
+        &quot;title&quot;: &quot;Dual App Export 2&quot;,
+        &quot;desc&quot;: &quot;Exportação de app Dual v2.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-app-export-2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;export&quot;,
+          &quot;v2&quot;
+        ]
+      }
+    ],
+    &quot;menus&quot;: [
+      {
+        &quot;key&quot;: &quot;menu-x-1-e-12&quot;,
+        &quot;title&quot;: &quot;Menu X 1-E-12&quot;,
+        &quot;desc&quot;: &quot;Menu simbólico X.&quot;,
+        &quot;url&quot;: &quot;./apps/menu-x-1-E-12.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;menu&quot;,
+          &quot;ui&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;menu-x-1-e-19&quot;,
+        &quot;title&quot;: &quot;Menu X 1-E-19&quot;,
+        &quot;desc&quot;: &quot;Menu simbólico X v19.&quot;,
+        &quot;url&quot;: &quot;./apps/menu-x-1-E-19.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;menu&quot;,
+          &quot;ui&quot;,
+          &quot;v19&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;menu-merged-final&quot;,
+        &quot;title&quot;: &quot;Menu Merged Final Corrigido&quot;,
+        &quot;desc&quot;: &quot;Menu final corrigido.&quot;,
+        &quot;url&quot;: &quot;./apps/menu-merged-final-corrigido.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-editors.png&quot;,
+        &quot;tags&quot;: [
+          &quot;menu&quot;,
+          &quot;final&quot;,
+          &quot;ui&quot;
+        ]
+      }
+    ],
+    &quot;tutorials&quot;: [
+      {
+        &quot;key&quot;: &quot;dual-app-tutorial-v7&quot;,
+        &quot;title&quot;: &quot;Dual App Tutorial V7&quot;,
+        &quot;desc&quot;: &quot;Versão tutorial com ativações longas.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-3NU-2-3.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;tutorial&quot;,
+          &quot;ativacoes&quot;,
+          &quot;v7&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-app-tutorial-v7b&quot;,
+        &quot;title&quot;: &quot;Dual App Tutorial V7b&quot;,
+        &quot;desc&quot;: &quot;Outra variante do tutorial v7.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-3NU-0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;tutorial&quot;,
+          &quot;ativacoes&quot;,
+          &quot;v7&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-app-tutorial-v7c&quot;,
+        &quot;title&quot;: &quot;Dual App Tutorial V7c&quot;,
+        &quot;desc&quot;: &quot;Mais uma variante do tutorial v7.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-app-com-tutorial-ativacoes-10-4-2-3-0-v7-0-ONe7-0ee8-7-0eRE-ONRe-RRRe0ON-EA-eNB-ET-0Ar18eeR-Re-6R-4e-0r-1e35-5AV-0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;tutorial&quot;,
+          &quot;ativacoes&quot;,
+          &quot;v7&quot;
+        ]
+      }
+    ],
+    &quot;visual_splash&quot;: [
+      {
+        &quot;key&quot;: &quot;procedural-splash-v2&quot;,
+        &quot;title&quot;: &quot;Procedural Live Splash v2&quot;,
+        &quot;desc&quot;: &quot;Tela splash procedural Infodose.&quot;,
+        &quot;url&quot;: &quot;./apps/Infodose_ProceduralLive_Splash_v2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;splash&quot;,
+          &quot;visual&quot;,
+          &quot;live&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;splash-2&quot;,
+        &quot;title&quot;: &quot;Splash 2&quot;,
+        &quot;desc&quot;: &quot;Splash alternativa.&quot;,
+        &quot;url&quot;: &quot;./apps/Splash 2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;splash&quot;,
+          &quot;visual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;splash-mani&quot;,
+        &quot;title&quot;: &quot;Splash MANI&quot;,
+        &quot;desc&quot;: &quot;Splash simbólico MANI.&quot;,
+        &quot;url&quot;: &quot;./apps/Splash_MANI.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;splash&quot;,
+          &quot;visual&quot;,
+          &quot;mani&quot;
+        ]
+      }
+    ],
+    &quot;docs&quot;: [
+      {
+        &quot;key&quot;: &quot;oidual&quot;,
+        &quot;title&quot;: &quot;Oidual&quot;,
+        &quot;desc&quot;: &quot;Notas e fluxo textual.&quot;,
+        &quot;url&quot;: &quot;./apps/Oidual.txt&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;doc&quot;,
+          &quot;texto&quot;,
+          &quot;oidual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;smbs-book-2&quot;,
+        &quot;title&quot;: &quot;SmbS Book 2&quot;,
+        &quot;desc&quot;: &quot;Estrutura simbólica book.&quot;,
+        &quot;url&quot;: &quot;./apps/SmbS-book-2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;doc&quot;,
+          &quot;book&quot;,
+          &quot;smbs&quot;
+        ]
+      }
+    ],
+    &quot;players&quot;: [
+      {
+        &quot;key&quot;: &quot;dual-Tube&quot;,
+        &quot;title&quot;: &quot;Dual Player&quot;,
+        &quot;desc&quot;: &quot;Seu dual tube ensina , Toca faixas e TTS.&quot;,
+        &quot;url&quot;: &quot;./apps/dual-tube-25-0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-tube.png&quot;,
+        &quot;tags&quot;: [
+          &quot;player&quot;,
+          &quot;audio&quot;,
+          &quot;tts&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-playarq-0&quot;,
+        &quot;title&quot;: &quot;Dual PlayArq 0&quot;,
+        &quot;desc&quot;: &quot;Player arquetípico versão 0.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_PlayArq_0.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;player&quot;,
+          &quot;arquetipo&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-playarq-2&quot;,
+        &quot;title&quot;: &quot;Dual PlayArq 2&quot;,
+        &quot;desc&quot;: &quot;Player arquetípico versão 2.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_PlayArq_2.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;player&quot;,
+          &quot;arquetipo&quot;,
+          &quot;dual&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-daw-1&quot;,
+        &quot;title&quot;: &quot;Dual DAW&quot;,
+        &quot;desc&quot;: &quot;Primeira versão do DAW simbólico.&quot;,
+        &quot;url&quot;: &quot;./apps/DALL_DAW_v11_superlite.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-DAW.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;daw&quot;,
+          &quot;audio&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-daww2-1&quot;,
+        &quot;title&quot;: &quot;Dual DAW0&quot;,
+        &quot;desc&quot;: &quot; versão do DAW simbólico.&quot;,
+        &quot;url&quot;: &quot;./apps/DUAL_PULSE_v14_superlight.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192-DAW.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;daw&quot;,
+          &quot;audio&quot;
+        ]
+      },
+      {
+        &quot;key&quot;: &quot;dual-surgeon-mobile-single&quot;,
+        &quot;title&quot;: &quot;Dual Surgeon Mobile Single&quot;,
+        &quot;desc&quot;: &quot;Interface cirúrgica simplificada mobile.&quot;,
+        &quot;url&quot;: &quot;./apps/Dual_Surgeon_Mobile_Single.html&quot;,
+        &quot;icon&quot;: &quot;/icons/icon-192.png&quot;,
+        &quot;tags&quot;: [
+          &quot;dual&quot;,
+          &quot;surgeon&quot;,
+          &quot;mobile&quot;
+        ]
+      }
+    ]
   }
-  // fallback inline
-  btn.innerHTML = inlineFallback;
-}
-const inline = {
-  ascii:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>',
-  arteask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 3"/></svg>',
-  voice:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 19v2"/></svg>',
-  send:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
-  cards:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>',
-};
-setBtnIcon('#btn-ascii',  'ascii',  inline.ascii);
-setBtnIcon('#btn-arteask','arteask', inline.arteask);
-setBtnIcon('#btn-voice',  'mic',   inline.voice);
-setBtnIcon('#btn-send',   'send',  inline.send);
-setBtnIcon('#btn-cards',  'cards', inline.cards);
+}</script>
 
-/* ===== Liga botões ===== */
-qs('#btn-send').onclick   = onSend;
-qs('#btn-voice').onclick  = onVoz;
-qs('#btn-arteask').onclick= onArteask;
-qs('#btn-cards').onclick  = toggleCards;
-qs('#btn-ascii').onclick  = onAscii;
+  <!-- UNO template embutido -->
+  <template id="unoTpl">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;/&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, viewport-fit=cover&quot;/&gt;
+&lt;title&gt;HUB DUAL — Pixel Perfect (Minimize &amp; Footer Toggle)&lt;/title&gt;
+&lt;link rel=&quot;icon&quot; href=&quot;icons/others/favicon.svg&quot; type=&quot;image/svg+xml&quot;/&gt;
+&lt;meta name=&quot;theme-color&quot; content=&quot;#00ffff&quot;/&gt;
 
-/* ===== Service Worker (opcional) ===== */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js');
-  });
+&lt;style&gt;
+:root{
+  --nebula-1: #b63cff;
+  --nebula-2: #00d3ff;
+  --ink: #F3F5FF;
+  --ink-dim: #CDD6F2;
+  --ink-muted: #97A5C6;
+  --edge: rgba(255,255,255,0.12);
+  --edge-strong: rgba(255,255,255,0.22);
+  --glass-bg: rgba(11,11,18,0.88);
+  --panel-bg: rgba(10,10,18,0.92);
+  --card-bg: rgba(11,11,18,0.94);
+  --frame-radius: 26px;
+  --card-radius: 22px;
+  --btn-radius: 14px;
+  --header-height: 68px;
+  --footer-height: 76px;
+  --padding-x: 16px;
+  --padding: 14px;
+  --gap: 12px;
+  --title-weight: 800;
+  --fs-title: 26px;
+  --fs-md: 15px;
+  --fs-sm: 13px;
+  --blur: 16px;
+  --shadow: 0 14px 38px rgba(0,0,0,0.45);
 }
-</script>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  color:var(--ink);
+  font:400 var(--fs-md)/1.45 var(--font, ui-sans-serif), system-ui, &quot;Inter&quot;, &quot;Segoe UI&quot;, Roboto, Arial;
+  background:
+    radial-gradient(1000px 900px at 15% -10%, rgba(255,100,255,0.35), transparent 60%),
+    radial-gradient(1000px 900px at 110% 120%, rgba(100,255,255,0.35), transparent 60%),
+    linear-gradient(45deg, var(--nebula-1), var(--nebula-2));
+  background-attachment: fixed;
+}
+.frame{
+  max-width: 420px;
+  margin: 20px auto;
+  border-radius: var(--frame-radius);
+  border: 1px solid var(--edge);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  background: rgba(255,255,255,0.02);
+}
+.frame::before{
+  content:&quot;&quot;;
+  position:absolute;
+  inset:0;
+  border-radius: var(--frame-radius);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 60px rgba(255,255,255,0.08);
+  pointer-events:none;
+}
+.glass{
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur));
+  backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--edge);
+}
+header{
+  height: var(--header-height);
+  padding: 0 var(--padding-x);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom: 1px solid var(--edge);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.h-left, .h-right{display:flex;align-items:center;gap:12px}
+.h-title{font-weight: var(--title-weight); font-size: var(--fs-title); letter-spacing: 0.6px; white-space:nowrap}
+.iconbtn{
+  width:40px; height:40px;
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--edge);
+  display:grid;
+  place-content:center;
+  background: rgba(12,12,18,0.7);
+  cursor:pointer;
+}
+.iconbtn:active{transform:scale(0.96)}
+.avatar{
+  width:38px; height:38px;
+  border-radius:50%;
+  border: 1px solid var(--edge);
+  display:grid;
+  place-content:center;
+  background: linear-gradient(180deg, #2a2a40, #141420);
+  cursor:pointer;
+}
+#brain{
+  position:absolute;
+  right:18px;
+  top: calc(var(--header-height) + 8px);
+  width: 320px;
+  z-index: 40;
+}
+.pop{
+  background: var(--panel-bg);
+  border:1px solid var(--edge);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.popHead{
+  font-weight: 800;
+  padding: 14px 16px;
+  font-size: var(--fs-md);
+  border-bottom:1px solid rgba(255,255,255,0.15);
+}
+.item{
+  padding: 14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.item:last-child{border-bottom:0}
+.item .label{font-weight:600; font-size:var(--fs-md);}
+.item .meta{margin-left:auto; font-size:var(--fs-md); color:var(--ink-muted);}
+.item .right{margin-left:auto; font-size:var(--fs-md); opacity:0.9;}
+.item.disabled{opacity:0.4}
+main{
+  padding: var(--padding);
+}
+.card{
+  border: 1px solid var(--edge);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  padding: var(--padding);
+}
+.cardRow{
+  display:flex;
+  align-items:center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--edge);
+  background: rgba(15,15,25,0.82);
+}
+.cardRow + .cardRow{margin-top:10px}
+.cardIcon{
+  width:30px;
+  height:30px;
+  border-radius: 10px;
+  border: 1px solid var(--edge);
+  display:grid; place-content:center;
+  background: rgba(11,11,18,0.9);
+}
+.t{font-weight:700; font-size: var(--fs-md);}
+.sub{font-size: var(--fs-sm); color: var(--ink-muted); line-height:1.2}
+.chev{
+  margin-left:auto;
+  opacity:0.8;
+}
+.pill{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 0 8px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 999px;
+  font-weight:700;
+  font-size:12px;
+  color:#001;
+  background: linear-gradient(45deg, #7effff, #eab3ff);
+  border:1px solid var(--edge);
+}
+footer{
+  height: var(--footer-height);
+  padding: 10px var(--padding-x);
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border-top: 1px solid var(--edge);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.3);
+}
+.dock{display:flex; align-items:center; gap:14px; width:100%}
+.dockL, .dockR{display:flex; align-items:center; gap:12px;}
+.quick{
+  flex:1;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  overflow:auto;
+  scrollbar-width:none;
+}
+.quick::-webkit-scrollbar{display:none}
+.hide{display:none !important}
+svg{display:block}
+
+/* Hub-window minimize styles */
+#frame[data-min=&quot;1&quot;] header,
+#frame[data-min=&quot;1&quot;] main,
+#frame[data-min=&quot;1&quot;] footer,
+#frame[data-min=&quot;1&quot;] #brain { display:none !important; }
+.hubBadge {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+  background: #0e0e19cc; color: var(--ink); border: 1px solid var(--edge);
+  border-radius: 999px; padding: 10px 14px; z-index: 60; display: none;
+  box-shadow: var(--shadow); backdrop-filter: blur(var(--blur));
+}
+#frame[data-min=&quot;1&quot;] ~ .hubBadge { display: inline-flex; align-items:center; gap:10px; }
+.hubBadge .dot { width:10px; height:10px; border-radius:50%;
+  background: linear-gradient(42deg,#7ff,#c9f); box-shadow:0 0 12px #7ff; }
+/* Footer collapse styles */
+footer .centerbtn {
+  width:44px; height:44px; border-radius:16px; border:1px solid var(--edge);
+  display:grid; place-content:center; background:#0e0e19cc; cursor:pointer;
+}
+footer[data-collapsed=&quot;1&quot;] { height: 42px; padding: 4px var(--padding-x); }
+footer[data-collapsed=&quot;1&quot;] .iconbtn,
+footer[data-collapsed=&quot;1&quot;] .quick,
+footer[data-collapsed=&quot;1&quot;] .dockL,
+footer[data-collapsed=&quot;1&quot;] .dockR { display:none; }
+footer[data-collapsed=&quot;1&quot;] .centerbtn { margin: 0 auto; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;frame glass&quot; id=&quot;frame&quot;&gt;
+  &lt;header&gt;
+    &lt;div class=&quot;h-left&quot;&gt;
+      &lt;button class=&quot;iconbtn&quot; id=&quot;btnBack&quot; title=&quot;Voltar&quot; aria-label=&quot;Voltar&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_back.svg&quot; width=&quot;20&quot; height=&quot;20&quot; onerror=&quot;this.replaceWith(svgBack())&quot; alt=&quot;&quot;&gt;
+      &lt;/button&gt;
+      &lt;div class=&quot;h-title&quot;&gt;HUB DUAL&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;h-right&quot; style=&quot;margin-left:auto&quot;&gt;
+      &lt;button class=&quot;avatar&quot; id=&quot;btnBrain&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_perfil.svg&quot; width=&quot;20&quot; height=&quot;20&quot; onerror=&quot;this.replaceWith(svgUser())&quot; alt=&quot;&quot;&gt;
+      &lt;/button&gt;
+      &lt;button class=&quot;iconbtn&quot; id=&quot;btnMinHub&quot; title=&quot;Minimizar Hub&quot; aria-label=&quot;Minimizar&quot;&gt;
+        &lt;svg width=&quot;20&quot; height=&quot;20&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M5 12h14&quot;/&gt;&lt;/svg&gt;
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;div id=&quot;brain&quot; class=&quot;hide&quot;&gt;
+    &lt;div class=&quot;pop&quot;&gt;
+      &lt;div class=&quot;popHead&quot;&gt;Brain&lt;/div&gt;
+      &lt;div class=&quot;item&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_memoria.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgBar())&quot; alt=&quot;&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;Dual Infodose&lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;▌▌▌&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;item&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_health.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgPerf())&quot; alt=&quot;&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;Performance&lt;/div&gt;
+        &lt;div class=&quot;meta&quot;&gt;Low&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;item&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_bind.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgTTS())&quot; alt=&quot;&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;TTS Voices&lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;💬&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;item&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_relatorio.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgList())&quot; alt=&quot;&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;Logs&lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;≡&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;item disabled&quot;&gt;
+        &lt;img src=&quot;icons/others/hub_cloud.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgRight())&quot; alt=&quot;&quot;&gt;
+        &lt;div class=&quot;label&quot;&gt;Localhost&lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;›&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;main&gt;
+    &lt;section class=&quot;card&quot;&gt;
+      &lt;div class=&quot;cardRow&quot;&gt;
+        &lt;div class=&quot;cardIcon&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_home.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgHome())&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;t&quot;&gt;Home&lt;/div&gt;
+          &lt;div class=&quot;sub&quot;&gt;Abra apps empilhados; minimize e reabra pelo dock.&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;chev&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_right.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgRight())&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;cardRow&quot; id=&quot;rowApps&quot;&gt;
+        &lt;div class=&quot;cardIcon&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_apps.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgApps())&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;t&quot;&gt;Apps&lt;/div&gt;
+          &lt;div class=&quot;sub&quot;&gt;Catálogo (apps/apps.json)&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;chev&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_right.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgRight())&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;cardRow&quot;&gt;
+        &lt;div class=&quot;cardIcon&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_minimized.svg&quot; width=&quot;18&quot; height=&quot;18&quot; onerror=&quot;this.replaceWith(svgList())&quot; alt=&quot;&quot;&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;div class=&quot;t&quot;&gt;Minimized&lt;/div&gt;
+          &lt;div class=&quot;sub&quot;&gt;Sessões recolhidas&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;span class=&quot;pill&quot;&gt;1&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;nav class=&quot;dock&quot;&gt;
+      &lt;div class=&quot;dockL&quot;&gt;
+        &lt;button class=&quot;iconbtn&quot; id=&quot;btnHome&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_home.svg&quot; width=&quot;20&quot; height=&quot;20&quot; onerror=&quot;this.replaceWith(svgHome())&quot; alt=&quot;&quot;&gt;
+        &lt;/button&gt;
+        &lt;button class=&quot;iconbtn&quot; id=&quot;btnApps&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_apps.svg&quot; width=&quot;20&quot; height=&quot;20&quot; onerror=&quot;this.replaceWith(svgApps())&quot; alt=&quot;&quot;&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;quick&quot; id=&quot;badges&quot;&gt;&lt;/div&gt;
+      &lt;button class=&quot;centerbtn&quot; id=&quot;btnFooterToggle&quot; title=&quot;Colapsar/Expandir rodapé&quot; aria-label=&quot;Toggle Footer&quot;&gt;◑&lt;/button&gt;
+      &lt;div class=&quot;dockR&quot;&gt;
+        &lt;button class=&quot;iconbtn&quot; id=&quot;btnPulse&quot;&gt;
+          &lt;img src=&quot;icons/others/hub_lightning.svg&quot; width=&quot;20&quot; height=&quot;20&quot; onerror=&quot;this.replaceWith(svgBolt())&quot; alt=&quot;&quot;&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/nav&gt;
+  &lt;/footer&gt;
+
+&lt;/div&gt;
+&lt;!-- floating badge for hub restoration --&gt;
+&lt;button class=&quot;hubBadge&quot; id=&quot;btnRestoreHub&quot;&gt;
+  &lt;span class=&quot;dot&quot;&gt;&lt;/span&gt; &lt;strong&gt;Reabrir Hub&lt;/strong&gt;
+&lt;/button&gt;
+
+&lt;script&gt;
+function _svg(markup){const span=document.createElement(&#x27;span&#x27;); span.innerHTML = markup.trim(); return span.firstChild;}
+function svgBack(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;20&quot; height=&quot;20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M15 5l-7 7 7 7&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgRight(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M9 5l7 7-7 7&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgUser(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;20&quot; height=&quot;20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;circle cx=&quot;12&quot; cy=&quot;8&quot; r=&quot;4&quot;/&gt;&lt;path d=&quot;M4 20a8 8 0 0 1 16 0&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgHome(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M3 11l9-8 9 8&quot;/&gt;&lt;path d=&quot;M5 10v10h14V10&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgApps(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;2&quot;/&gt;&lt;rect x=&quot;14&quot; y=&quot;3&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;2&quot;/&gt;&lt;rect x=&quot;3&quot; y=&quot;14&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;2&quot;/&gt;&lt;rect x=&quot;14&quot; y=&quot;14&quot; width=&quot;7&quot; height=&quot;7&quot; rx=&quot;2&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgList(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M9 6h12M9 12h12M9 18h12&quot;/&gt;&lt;circle cx=&quot;4&quot; cy=&quot;6&quot; r=&quot;1.6&quot;/&gt;&lt;circle cx=&quot;4&quot; cy=&quot;12&quot; r=&quot;1.6&quot;/&gt;&lt;circle cx=&quot;4&quot; cy=&quot;18&quot; r=&quot;1.6&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgBar(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;currentColor&quot;&gt;&lt;rect x=&quot;4&quot; y=&quot;14&quot; width=&quot;2&quot; height=&quot;6&quot;/&gt;&lt;rect x=&quot;9&quot; y=&quot;10&quot; width=&quot;2&quot; height=&quot;10&quot;/&gt;&lt;rect x=&quot;14&quot; y=&quot;6&quot; width=&quot;2&quot; height=&quot;14&quot;/&gt;&lt;rect x=&quot;19&quot; y=&quot;2&quot; width=&quot;2&quot; height=&quot;18&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgPerf(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;path d=&quot;M4 19a8 8 0 1 1 16 0&quot;/&gt;&lt;path d=&quot;M12 12v4&quot;/&gt;&lt;path d=&quot;M7 12v2&quot;/&gt;&lt;path d=&quot;M17 12v3&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgTTS(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot;&gt;&lt;rect x=&quot;9&quot; y=&quot;3&quot; width=&quot;6&quot; height=&quot;12&quot; rx=&quot;3&quot;/&gt;&lt;path d=&quot;M5 10a7 7 0 0 0 14 0&quot;/&gt;&lt;path d=&quot;M12 17v4&quot;/&gt;&lt;/svg&gt;&#x27;); }
+function svgBolt(){ return _svg(&#x27;&lt;svg viewBox=&quot;0 0 24 24&quot; width=&quot;20&quot; height=&quot;20&quot; fill=&quot;currentColor&quot;&gt;&lt;path d=&quot;M13 3L4 14h6l-1 7 9-11h-6l1-7z&quot;/&gt;&lt;/svg&gt;&#x27;); }
+
+/* Toggle brain popover */
+const brainEl = document.getElementById(&#x27;brain&#x27;);
+const btnBrain = document.getElementById(&#x27;btnBrain&#x27;);
+btnBrain.addEventListener(&#x27;click&#x27;, (e)=&gt;{
+  e.stopPropagation();
+  brainEl.classList.toggle(&#x27;hide&#x27;);
+});
+document.addEventListener(&#x27;click&#x27;,(e)=&gt;{
+  if(!brainEl.classList.contains(&#x27;hide&#x27;)){
+    const within = brainEl.contains(e.target) || btnBrain.contains(e.target);
+    if(!within) brainEl.classList.add(&#x27;hide&#x27;);
+  }
+});
+
+/* Scroll to Apps row when bottom nav apps clicked */
+document.getElementById(&#x27;btnApps&#x27;).addEventListener(&#x27;click&#x27;, ()=&gt;{
+  const row = document.getElementById(&#x27;rowApps&#x27;);
+  const y = row.getBoundingClientRect().top + window.scrollY - 80;
+  window.scrollTo({top:y, behavior:&#x27;smooth&#x27;});
+});
+
+/* Demo: adding a badge to quick area */
+const badgesContainer = document.getElementById(&#x27;badges&#x27;);
+function addBadge(text){
+  const b = document.createElement(&#x27;button&#x27;);
+  b.className = &#x27;iconbtn&#x27;; b.style.minWidth = &#x27;auto&#x27;; b.textContent = &#x27;◐&#x27;;
+  badgesContainer.appendChild(b);
+}
+addBadge(&#x27;App1&#x27;);
+
+/* Persistent states: minimize and footer collapse */
+const frameEl = document.getElementById(&#x27;frame&#x27;);
+const footerEl = document.querySelector(&#x27;footer&#x27;);
+const MIN_KEY = &#x27;hub.min&#x27;;
+const FOOTER_KEY = &#x27;hub.footer&#x27;;
+function applyMinState(fromStorage=true){
+  const m = fromStorage ? (localStorage.getItem(MIN_KEY)===&#x27;1&#x27;) : (frameEl.getAttribute(&#x27;data-min&#x27;)===&#x27;1&#x27;);
+  frameEl.setAttribute(&#x27;data-min&#x27;, m ? &#x27;1&#x27; : &#x27;0&#x27;);
+}
+function applyFooterState(fromStorage=true){
+  const c = fromStorage ? (localStorage.getItem(FOOTER_KEY)===&#x27;1&#x27;) : (footerEl.getAttribute(&#x27;data-collapsed&#x27;)===&#x27;1&#x27;);
+  footerEl.setAttribute(&#x27;data-collapsed&#x27;, c ? &#x27;1&#x27; : &#x27;0&#x27;);
+}
+applyMinState(true);
+applyFooterState(true);
+// Minimizar Hub
+const btnMin = document.getElementById(&#x27;btnMinHub&#x27;);
+if(btnMin){ btnMin.addEventListener(&#x27;click&#x27;, ()=&gt;{
+  frameEl.setAttribute(&#x27;data-min&#x27;,&#x27;1&#x27;);
+  localStorage.setItem(MIN_KEY,&#x27;1&#x27;);
+}); }
+// Restaurar Hub
+const btnRestore = document.getElementById(&#x27;btnRestoreHub&#x27;);
+if(btnRestore){ btnRestore.addEventListener(&#x27;click&#x27;, ()=&gt;{
+  frameEl.setAttribute(&#x27;data-min&#x27;,&#x27;0&#x27;);
+  localStorage.setItem(MIN_KEY,&#x27;0&#x27;);
+}); }
+// Toggle footer collapse
+const btnFoot = document.getElementById(&#x27;btnFooterToggle&#x27;);
+if(btnFoot){ btnFoot.addEventListener(&#x27;click&#x27;, ()=&gt;{
+  const collapsed = footerEl.getAttribute(&#x27;data-collapsed&#x27;)===&#x27;1&#x27; ? &#x27;0&#x27; : &#x27;1&#x27;;
+  footerEl.setAttribute(&#x27;data-collapsed&#x27;, collapsed);
+  localStorage.setItem(FOOTER_KEY, collapsed);
+}); }
+&lt;/script&gt;
+
+&lt;!-- CSS Injection from user --&gt;
+&lt;style&gt;
+:root{ --font: &#x27;Inter&#x27;, system-ui, -apple-system, Segoe UI, Roboto; }
+body{ background:transparent; color:#EEEFF7; font-family: var(--font); }
+h1,h2,h3,strong{ color:#B17AFF; }
+a{ color:#39FFB6; }
+/* IGNYRA A.Infodose — Tríade: ⚡︎△🌹 • ⚡︎✹. 🌹 Paixão aplicada com estética. */
+&lt;/style&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</template>
+
+  <script>
+    const LS_FAVS="dualhub.favorites", LS_REC="dualhub.recents";
+    let APPS=[], filtered=[], favs=new Set(JSON.parse(localStorage.getItem(LS_FAVS) || "[]")), rec=JSON.parse(localStorage.getItem(LS_REC) || "[]");
+
+    function fav(id){ return favs.has(id); }
+    function toggleFav(id){ favs.has(id)?favs.delete(id):favs.add(id); localStorage.setItem(LS_FAVS, JSON.stringify([...favs])); render(); }
+    function addRec(id){ rec=[id, ...rec.filter(x=>x!==id)].slice(0,12); localStorage.setItem(LS_REC, JSON.stringify(rec)); }
+    function ico(){
+      return `<svg class="fallback" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor"/></svg>`;
+    }
+    function card(a){
+      const star=fav(a.id||a.url)?"★":"☆";
+const created=a.createdAt?new Date(a.createdAt):null; const isNovo=created?((Date.now()-created.getTime())/(1000*60*60*24)<=14):false; const novo=isNovo?`<span class="badge-novo">Novo</span>`:``;
+      const icon=a.icon?`<img src="${a.icon}" style="width:18px;height:18px;object-fit:contain">`:ico();
+      return `<div class="card" data-id="${a.id||a.url}" data-group="${(a.group||"").toLowerCase()}">
+        <div class="ico">${icon}</div>
+        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${a.name||a.title||a.url}">${a.name||a.title||a.url} ${novo}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" data-act="open">Abrir</button><button class="btn" data-act="uno">UNO</button>
+          <button class="btn" data-act="inject">Injection</button>
+          <button class="btn" data-act="fav">${star}</button>
+        </div>
+      </div>`;
+    }
+    function bind(root){
+      root.querySelectorAll(".card .btn").forEach(b=>b.addEventListener("click",e=>{
+        const id=e.currentTarget.closest(".card").dataset.id;
+        const app=APPS.find(a=>(a.id||a.url)===id);
+        const act=e.currentTarget.dataset.act;
+        if(!app) return;
+        if(act==="open") openApp(app);
+        if(act==="inject") injectApp(app);
+        if(act==="uno") openInUNO(app);
+        if(act==="fav") toggleFav(id);
+      }));
+    }
+    function render(){
+      const q=""; // simples por enquanto (pode plugar search depois)
+      let list=APPS; if(activeGroup!=="all"){ list=list.filter(a=>(a.group||"").toLowerCase()===activeGroup); }
+      const favL=list.filter(a=>fav(a.id||a.url));
+      const recL=rec.map(id=>list.find(a=>(a.id||a.url)===id)).filter(Boolean);
+      document.getElementById("fav").innerHTML=favL.map(card).join("");
+      document.getElementById("rec").innerHTML=recL.map(card).join("");
+      document.getElementById("all").innerHTML=list.map(card).join("");
+      bind(document.getElementById("fav"));
+      bind(document.getElementById("rec"));
+      bind(document.getElementById("all"));
+    }
+    function setVH(t,u){ document.getElementById("vhT").textContent=t||"App"; document.getElementById("vhU").textContent=u||""; }
+    function openApp(a){ const vf=document.getElementById("vf"); vf.src=a.url; setVH(a.name||a.title,a.url); addRec(a.id||a.url); render(); }
+    async function injectApp(a){
+      const host=document.getElementById("unoHost");
+      host.style.display="block";
+      try{ const res=await fetch(a.url,{cache:"no-store"}); host.innerHTML=await res.text(); setVH((a.name||"")+" (Injection)", a.url); }
+      catch(err){ host.innerHTML=`<pre style="color:#ff9db0;white-space:pre-wrap">Falha no Injection: ${err}</pre>`; }
+    }
+    function minimize(){ document.querySelector("section#host").style.display="none"; document.getElementById("reop").style.display="block"; }
+    function reopen(){ document.querySelector("section#host").style.display="block"; document.getElementById("reop").style.display="none"; }
+    function clearV(){
+      document.getElementById("vf").src=""; setVH("Nenhum app","");
+      const uh=document.getElementById("unoHost"); uh.innerHTML=""; uh.style.display="none";
+    }
+
+    async function loadApps(){
+      // tenta fetch oficial; senão usa fallback
+      try{ const r=await fetch("apps/apps.json?cb="+Date.now(),{cache:"no-store"}); const j=await r.json(); APPS=(j.apps||j||[]); }
+      catch(_){
+        try{ APPS=(JSON.parse(document.getElementById("appsFallback").textContent).apps)||[]; }
+        catch(__){ APPS=[]; }
+      }
+      APPS=APPS.map((a,i)=>({ id:a.id||a.url||("app-"+i), ...a }));
+      render();
+    }
+
+    
+    // group filters
+    let activeGroup='all';
+    function renderGroupChips(){
+      const groups=[...new Set(APPS.map(a=>(a.group||'').trim()).filter(Boolean))].sort();
+      const gf=document.getElementById('groupFilters');
+      const chips=['all',...groups];
+      gf.innerHTML=chips.map(g=>`<button class="chip ${g.toLowerCase()===activeGroup?'active':''}" data-group="${g.toLowerCase()}">${g==='all'?'Todos':g}</button>`).join('');
+      gf.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',e=>{ activeGroup=e.currentTarget.dataset.group; render(); renderGroupChips(); }));
+    }
+
+    // UNO toggle
+    const tabHub=document.getElementById("tabHub"), tabUNO=document.getElementById("tabUNO");
+    tabUNO.addEventListener("click", ()=>{
+      tabUNO.classList.add("active"); tabHub.classList.remove("active");
+      // carrega UNO dentro do unoHost
+      const t=document.getElementById("unoTpl").innerHTML;
+      const host=document.getElementById("unoHost");
+      host.innerHTML=t; host.style.display="block";
+      document.getElementById("vf").style.display="none";
+      setVH("UNO — Fusão Ativa","");
+    });
+    tabHub.addEventListener("click", ()=>{
+      tabHub.classList.add("active"); tabUNO.classList.remove("active");
+      document.getElementById("unoHost").style.display="none";
+      document.getElementById("vf").style.display="block";
+      setVH("Hub","");
+    });
+
+    function openInUNO(a){ tabUNO.click(); const host=document.getElementById('unoHost'); host.style.display='block'; fetch(a.url,{cache:'no-store'}).then(r=>r.text()).then(t=>{ host.innerHTML=t; setVH((a.name||'')+' (UNO)', a.url); addRec(a.id||a.url); render(); }).catch(err=>{ host.innerHTML=`<pre style='color:#ff9db0;white-space:pre-wrap'>Falha no UNO: ${err}</pre>`; }); }
+
+    // header buttons
+    document.getElementById("min").addEventListener("click", minimize);
+    document.getElementById("reBtn").addEventListener("click", reopen);
+    document.getElementById("cls").addEventListener("click", clearV);
+
+    loadApps(); renderGroupChips();
+  </script>
 </body>
 </html>
