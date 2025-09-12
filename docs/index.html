@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<link rel="manifest" href="./manifest.json"/>
+<link rel="manifest" href="./manifest-ultra.json"/>
 <title>Hub Dual — Nebula Pro (PERFECT)</title>
 <style>
   /* ================= Nebula Pro — PERFECT ================= */
@@ -167,6 +167,16 @@
   .quick-actions .small-btn{ width:36px; height:36px; border-radius:12px }
 </style>
 
+
+  <!-- iOS PWA / Splash & Capabilities -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="./icons/pwa/icon-192.png">
+  <!-- iOS startup images -->
+  <link rel="apple-touch-startup-image" href="./icons/splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="./icons/splash/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="./icons/splash/splash-1280x720.png" media="(device-width: 360px) and (device-height: 640px) and (-webkit-device-pixel-ratio: 4) and (orientation: landscape)">
+
 </head>
 <body>
 <header class="masthead">
@@ -201,6 +211,34 @@
       <li class="brain-item" id="brainLogs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18"/><path d="M3 8h18"/><path d="M3 13h18"/><path d="M3 18h18"/></svg>
         <span>Limpar logs</span>
+      </li>
+    
+      <li class="brain-item" id="brainUpload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3v14"/><polyline points="7 8 12 3 17 8"/><rect x="4" y="17" width="16" height="4" rx="2"/>
+        </svg>
+        <span>Upload Local (.html / .json)</span>
+        <input id="filePicker" type="file" accept=".html,.htm,.json" multiple style="display:none"/>
+      </li>
+      <li class="brain-item" id="brainClearOverride">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/>
+        </svg>
+        <span>Limpar override do apps.json</span><small>se ativo</small>
+      </li>
+    
+      <li class="brain-item" id="brainLocalMgr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10"/>
+        </svg>
+        <span>Gerenciar Apps Locais</span>
+      </li>
+          <li class="brain-item" id="brainLocalManager">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="14" rx="3"/>
+          <path d="M7 8h10M7 12h10M7 16h6"/>
+        </svg>
+        <span>Gerenciar Apps Locais</span>
       </li>
     </ul>
   </div>
@@ -565,8 +603,131 @@ viewerMinBtn.addEventListener('click', ()=>{ viewer.classList.remove('open'); if
 viewerReloadBtn.addEventListener('click', ()=>{ try{ viewerFrame.contentWindow.location.reload() }catch(e){ viewerFrame.src = viewerFrame.src } });
 viewerCloseBtn.addEventListener('click', ()=>{ viewer.classList.remove('open'); viewerFrame.src='about:blank'; if(currentAppId){ removeFromStack(currentAppId); currentAppId=null } });
 
+
+/* ================= Local Uploads & Apps Override ================= */
+function lsListLocalApps(){ return LS.get('dual.localapps', []) }
+function lsSaveLocalApps(list){ LS.set('dual.localapps', list) }
+function addLocalAppEntry(id, name){
+  const list = lsListLocalApps();
+  const i = list.findIndex(a=>a.id===id);
+  const entry = { id, name: name || id, url: 'local:'+id, iconKey: 'hub_apps', defaultOpenMode: 'embed' };
+  if(i>=0){ list[i] = entry } else { list.unshift(entry) }
+  lsSaveLocalApps(list);
+}
+function getLocalAppContent(id){ return LS.raw('dual.localapp.'+id) || '' }
+function setLocalAppContent(id, html){ try{ localStorage.setItem('dual.localapp.'+id, html) }catch(e){} }
+
+async function handleLocalUpload(files){
+  if(!files || !files.length) return;
+  dualShowLoaderAfter(600); // feedback rápido
+  try{
+    const tasks = Array.from(files).map(async f=>{
+      const name = f.name || 'upload';
+      if(/\.json$/i.test(name)){
+        const txt = await f.text();
+        try{
+          const parsed = JSON.parse(txt);
+          if(Array.isArray(parsed) || (parsed && typeof parsed==='object' && parsed.groups)){
+            localStorage.setItem('dual.apps.override', txt);
+            toast('Override de apps.json ativado ('+ name +')');
+          }else{
+            toast('JSON não reconhecido como apps.json válido: '+name);
+          }
+        }catch(e){ toast('Falha ao ler JSON: '+name) }
+      } else if(/\.(html|htm)$/i.test(name)){
+        const id = (name.toLowerCase().replace(/[^a-z0-9_-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')) || ('local_'+Date.now());
+        const txt = await f.text();
+        setLocalAppContent(id, txt);
+        addLocalAppEntry(id, name.replace(/\.(html|htm)$/i,''));
+        toast('App local adicionado: '+name);
+      } else {
+        toast('Tipo não suportado: '+name);
+      }
+    });
+    await Promise.all(tasks);
+  } finally {
+    dualHideLoader();
+    renderApps(); // atualiza grid
+  }
+}
+
+function clearAppsOverride(){
+  localStorage.removeItem('dual.apps.override');
+  toast('Override removido');
+}
+
+/* Override-aware readApps */
+const __readApps_fetch = readApps;
+readApps = async function(){
+  // 1) local override (apps.json via upload) tem prioridade
+  const override = LS.raw('dual.apps.override');
+  if(override){
+    try{
+      const data = JSON.parse(override);
+      const norm = Array.isArray(data) ? data.map(x => ({
+        id: x.id || x.key || normKey(x.title||x.name),
+        name: x.name || x.title || x.key,
+        url: x.url, iconKey: x.iconKey, icon: x.icon, defaultOpenMode: x.defaultOpenMode || 'embed'
+      })) : (data && data.groups ? Object.keys(data.groups).flatMap(g => (data.groups[g]||[]).map(app => ({
+        id: app.key || app.id || normKey(app.title||app.name),
+        name: app.title || app.name || app.key,
+        url: app.url, iconKey: app.iconKey || app.key, icon: app.icon, defaultOpenMode: app.defaultOpenMode || 'embed'
+      }))) : []);
+      // + local uploads
+      const locals = lsListLocalApps();
+      return [...locals, ...norm];
+    }catch(e){ /* cai para fetch */ }
+  }
+  // 2) fetch padrão + append dos locais
+  const list = await __readApps_fetch();
+  const locals = lsListLocalApps();
+  return [...locals, ...list];
+};
+
+/* Open local:* apps */
+const __openApp_base = openApp;
+openApp = function(app){
+  if(app && typeof app.url==='string' && app.url.startsWith('local:')){
+    const id = app.url.slice(6);
+    const html = getLocalAppContent(id);
+    const blob = new Blob([html || '<!doctype html><title>Local App</title><meta charset=\"utf-8\"><style>body{background:#0b0f1a;color:#fff;font-family:Inter,sans-serif;padding:20px}</style><h1>Local App vazio</h1>'], {type:'text/html'});
+    const u = URL.createObjectURL(blob);
+    const mode = getOpenMode(app.id||id, app.defaultOpenMode||'embed');
+    if(mode==='tab'){ window.open(u, '_blank', 'noopener,noreferrer'); }
+    else {
+      viewerTitle.textContent = app.name || id;
+      viewer.classList.add('open');
+      dualShowLoaderAfter(500);
+      viewerFrame.src = u;
+    }
+    addToStack({ id: app.id||id, name: app.name||id, url: app.url, iconKey: app.iconKey, defaultOpenMode: app.defaultOpenMode }, { minimized:false, mode: (mode==='tab'?'tab':'embed') });
+    return;
+  }
+  return __openApp_base(app);
+};
+
 /* ================= Boot ================= */
 function boot(){
+  // Local Apps Manager wiring
+  const lam = document.getElementById('localAppsModal');
+  const lamClose = document.getElementById('localAppsClose');
+  const lamExport = document.getElementById('localAppsExport');
+  const lamClear = document.getElementById('localAppsClear');
+  const lamOpen = document.getElementById('brainLocalManager');
+  if(lamOpen){ lamOpen.onclick = showLocalAppsManager }
+  if(lamClose){ lamClose.onclick = hideLocalAppsManager }
+  if(lamExport){ lamExport.onclick = exportAllLocalApps }
+  if(lamClear){ lamClear.onclick = clearAllLocalApps }
+
+  const uploadLi = document.getElementById('brainUpload');
+  const filePicker = document.getElementById('filePicker');
+  if(uploadLi && filePicker){
+    uploadLi.onclick = ()=> filePicker.click();
+    filePicker.onchange = (e)=> handleLocalUpload(e.target.files);
+  }
+  const clearOv = document.getElementById('brainClearOverride');
+  if(clearOv){ clearOv.onclick = clearAppsOverride }
+
   document.getElementById('skHint').textContent = LS.raw('dual.keys.openrouter') ? '• OK' : '';
   document.getElementById('brainDownload').onclick = exportBackup;
   document.getElementById('brainSK').onclick = promptKey;
@@ -578,5 +739,285 @@ function boot(){
 }
 boot();
 </script>
+
+<style>
+/* === Dual Loader Overlay === */
+#dualLoader{ position:fixed; inset:0; display:none; place-items:center; z-index:9999;
+  background:rgba(10,13,31,.66); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px) }
+#dualLoader.show{ display:grid }
+#dualLoader .di-loader{ --di-size:54px; --di-gold:#F2C75C; --di-stroke:2px; position:relative; width:var(--di-size); height:var(--di-size) }
+#dualLoader .di-ring{ position:absolute; inset:0; border:var(--di-stroke) solid var(--di-gold); border-radius:50%; animation:di-spin 6s linear infinite }
+#dualLoader .di-stroke{ position:absolute; left:50%; top:50%; width:62%; height:var(--di-stroke); background:var(--di-gold);
+  transform:translate(-50%,-50%); border-radius:999px; animation:di-breathe 2.4s ease-in-out infinite }
+#dualLoader .di-dots{ position:absolute; inset:0; transform:rotate(-90deg); animation:di-orbit 4.2s linear infinite }
+#dualLoader .di-dots i{ --i:0; position:absolute; left:50%; top:50%; width:4px; height:4px; border-radius:50%; background:var(--di-gold); opacity:.55;
+  transform: rotate(calc(var(--i)*51deg)) translate(calc(7px + var(--i)*2.2px)) rotate(calc(var(--i)*-51deg));
+  animation:di-pulse 4.2s linear infinite; animation-delay:calc(var(--i) * .6s) }
+@keyframes di-orbit{ to{ transform:rotate(270deg) } }@keyframes di-spin{ to{ transform:rotate(360deg) } }
+@keyframes di-breathe{ 0%,100%{ opacity:.9 } 50%{ opacity:1 } }
+@keyframes di-pulse{ 0%,70%{ opacity:.45; transform:scale(.92) } 76%,84%{ opacity:1; transform:scale(1.18) } 100%{ opacity:.6; transform:scale(.96) } }
+@media (prefers-reduced-motion:reduce){ #dualLoader .di-ring,#dualLoader .di-stroke,#dualLoader .di-dots,#dualLoader .di-dots i{ animation:none } }
+</style>
+<div id="dualLoader" aria-hidden="true">
+  <span class="di-loader">
+    <span class="di-ring"></span>
+    <span class="di-stroke"></span>
+    <span class="di-dots">
+      <i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i>
+      <i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i>
+    </span>
+  </span>
+</div>
+
+
+<script>
+// === Dual Loader control (show after 3s threshold) ===
+const __dualLoader = document.getElementById('dualLoader');
+let __dualTimer = null, __dualVisible = false;
+function dualShowLoaderAfter(thresholdMs){
+  dualHideLoader();
+  __dualTimer = setTimeout(()=>{ __dualVisible = true; __dualLoader.classList.add('show') }, thresholdMs);
+}
+function dualHideLoader(){
+  if(__dualTimer){ clearTimeout(__dualTimer); __dualTimer=null }
+  if(__dualVisible){ __dualLoader.classList.remove('show'); __dualVisible=false }
+}
+
+// Patch readApps fetch to use loader
+const __readApps_orig = readApps;
+readApps = async function(){
+  dualShowLoaderAfter(3000);
+  try{
+    const out = await __readApps_orig();
+    return out;
+  } finally { dualHideLoader() }
+}
+
+// Hook viewer iframe loads
+if (typeof viewerFrame !== 'undefined'){
+  viewerFrame.addEventListener('load', ()=> dualHideLoader());
+}
+
+// When opening embedded app, show loader if slow
+const __openApp_orig = openApp;
+openApp = function(app){
+  const mode = getOpenMode(app.id, app.defaultOpenMode||'embed');
+  if (mode !== 'tab'){
+    dualShowLoaderAfter(3000);
+  }
+  return __openApp_orig(app);
+}
+</script>
+
+
+<script>
+// === Global fetch loader hook (slow fetches) ===
+(function(){
+  const EXCEPTIONS = [
+    /\.(png|jpg|jpeg|gif|webp|svg|ico|mp3|mp4|webm|woff2?|ttf|otf|css)$/i,
+    /service-worker\.js$/i,
+    /manifest\.json$/i
+  ];
+  const OPT_OUT_HEADER = 'x-dual-loader';
+  const SLOW_MS = 3000;
+
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    try {
+      const req = new Request(input, init);
+      const method = (req.method || 'GET').toUpperCase();
+      if (req.headers && req.headers.get(OPT_OUT_HEADER) === 'off') {
+        return _origFetch(input, init);
+      }
+      if (!['GET','POST','PUT','PATCH'].includes(method)) {
+        return _origFetch(input, init);
+      }
+      const url = req.url || String(input||'');
+      if (EXCEPTIONS.some(rx => rx.test(url))) {
+        return _origFetch(input, init);
+      }
+      dualShowLoaderAfter(SLOW_MS);
+      return _origFetch(input, init)
+        .finally(() => { try{ dualHideLoader() }catch(e){} });
+    } catch (e){
+      return _origFetch(input, init);
+    }
+  };
+})();
+</script>
+
+
+<div id="localMgrModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+  <div style="background:#111a28;border:1px solid rgba(255,255,255,.1);border-radius:16px;max-width:420px;width:92%;margin:10vh auto;padding:16px;color:#f5f7ff;font-family:Inter,system-ui;">
+    <h2 style="margin-top:0;font-size:18px;">Apps Locais</h2>
+    <ul id="localAppsList" style="list-style:none;margin:0;padding:0;max-height:50vh;overflow:auto;display:flex;flex-direction:column;gap:8px;"></ul>
+    <div style="margin-top:12px;text-align:right;">
+      <button onclick="closeLocalMgr()" style="padding:6px 14px;border-radius:8px;border:none;background:#444;color:#fff;font-weight:700;">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openLocalMgr(){
+  renderLocalAppsList();
+  document.getElementById('localMgrModal').style.display='block';
+}
+function closeLocalMgr(){
+  document.getElementById('localMgrModal').style.display='none';
+}
+function renderLocalAppsList(){
+  const listEl = document.getElementById('localAppsList');
+  listEl.innerHTML = '';
+  const apps = lsListLocalApps();
+  if(!apps.length){
+    listEl.innerHTML = '<li style="opacity:.6;font-size:13px;">Nenhum app local salvo.</li>';
+    return;
+  }
+  apps.forEach(app=>{
+    const li = document.createElement('li');
+    li.style.display='flex'; li.style.alignItems='center'; li.style.justifyContent='space-between';
+    li.style.gap='8px'; li.style.padding='6px 10px'; li.style.background='rgba(255,255,255,.05)'; li.style.borderRadius='10px';
+    const span = document.createElement('span');
+    span.textContent = app.name || app.id;
+    span.style.flex='1'; span.style.fontSize='14px'; span.style.fontWeight='700';
+    span.contentEditable = true;
+    span.onblur = ()=>{
+      const newName = span.textContent.trim();
+      if(newName && newName!==app.name){
+        app.name = newName;
+        const all = lsListLocalApps().map(a=>a.id===app.id?app:a);
+        lsSaveLocalApps(all);
+        toast('Renomeado: '+newName);
+      }
+    };
+    const btnDel = document.createElement('button');
+    btnDel.textContent = '✕';
+    btnDel.style.cssText='background:#c33;border:none;color:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;';
+    btnDel.onclick = ()=>{
+      const all = lsListLocalApps().filter(a=>a.id!==app.id);
+      lsSaveLocalApps(all);
+      localStorage.removeItem('dual.localapp.'+app.id);
+      renderLocalAppsList();
+      renderApps();
+      toast('Removido: '+app.name);
+    };
+    li.appendChild(span); li.appendChild(btnDel);
+    listEl.appendChild(li);
+  });
+}
+
+// Wire Brain menu item
+document.addEventListener('DOMContentLoaded', ()=>{
+  const mgrBtn = document.getElementById('brainLocalMgr');
+  if(mgrBtn){ mgrBtn.onclick = openLocalMgr }
+});
+</script>
+
+
+<style>
+/* === Local Apps Manager (modal) === */
+#localAppsModal{ position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center;
+  background:rgba(10,13,31,.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px) }
+#localAppsModal.show{ display:flex }
+#localAppsModal .panel{ width:min(96vw,560px); max-height:78vh; overflow:auto;
+  background:var(--surface-strong); border:var(--border); border-radius:24px; box-shadow:var(--shadow); padding:16px }
+#localAppsModal h3{ margin:0 0 8px; font-size:18px; font-weight:900; letter-spacing:.04em }
+#localAppsModal .hint{ font-size:12px; color:var(--muted); margin-bottom:12px }
+#localAppsList{ display:flex; flex-direction:column; gap:10px }
+.lapp{ display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; padding:10px 12px; border:var(--border); border-radius:16px; background:rgba(255,255,255,.05) }
+.lapp .name{ font-weight:800; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.lapp .id{ font-size:11px; color:var(--muted) }
+.lapp .btns{ display:flex; gap:8px }
+.btn-mini{ padding:8px 10px; border-radius:12px; border:var(--border); background:rgba(255,255,255,.06); color:var(--text); font-weight:800; font-size:12px; cursor:pointer }
+.btn-mini:active{ transform:scale(.98) }
+#localAppsModal .footer{ display:flex; justify-content:space-between; align-items:center; margin-top:14px }
+</style>
+<div id="localAppsModal" role="dialog" aria-modal="true" aria-labelledby="localAppsTitle">
+  <div class="panel">
+    <h3 id="localAppsTitle">Apps Locais</h3>
+    <div class="hint">Uploads salvos no navegador. Você pode abrir, renomear ou remover.</div>
+    <div id="localAppsList"></div>
+    <div class="footer">
+      <button class="btn-mini" id="localAppsClose">Fechar</button>
+      <div style="display:flex; gap:8px">
+        <button class="btn-mini" id="localAppsExport">Exportar todos (JSON)</button>
+        <button class="btn-mini" id="localAppsClear">Remover todos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* === Local Apps Manager logic === */
+function renderLocalAppsManager(){
+  const cont = document.getElementById('localAppsList');
+  const list = lsListLocalApps();
+  cont.innerHTML = '';
+  if(!list.length){
+    cont.innerHTML = '<div class="lapp"><div><div class="name">Sem apps locais</div><div class="id">Use Upload Local para adicionar</div></div></div>';
+    return;
+  }
+  list.forEach(app => {
+    const row = document.createElement('div'); row.className = 'lapp';
+    const left = document.createElement('div');
+    const nm = document.createElement('div'); nm.className = 'name'; nm.textContent = app.name || app.id;
+    const id = document.createElement('div'); id.className = 'id'; id.textContent = app.id;
+    left.appendChild(nm); left.appendChild(id);
+    const btns = document.createElement('div'); btns.className = 'btns';
+
+    const bOpen = document.createElement('button'); bOpen.className = 'btn-mini'; bOpen.textContent = 'Abrir';
+    bOpen.onclick = () => openApp(app);
+
+    const bRen = document.createElement('button'); bRen.className = 'btn-mini'; bRen.textContent = 'Renomear';
+    bRen.onclick = () => {
+      const novo = prompt('Novo nome para o app:', app.name || app.id);
+      if(novo && novo.trim()){
+        const list = lsListLocalApps();
+        const i = list.findIndex(x=>x.id===app.id);
+        if(i>=0){ list[i].name = novo.trim(); lsSaveLocalApps(list); renderLocalAppsManager(); renderApps(); }
+      }
+    };
+
+    const bDel = document.createElement('button'); bDel.className = 'btn-mini'; bDel.textContent = 'Remover';
+    bDel.onclick = () => {
+      if(confirm('Remover app local "'+(app.name||app.id)+'"?')){
+        // remove content and entry
+        try{ localStorage.removeItem('dual.localapp.'+app.id) }catch(e){}
+        const list = lsListLocalApps().filter(x=>x.id!==app.id);
+        lsSaveLocalApps(list);
+        renderLocalAppsManager();
+        renderApps();
+      }
+    };
+
+    btns.appendChild(bOpen); btns.appendChild(bRen); btns.appendChild(bDel);
+    row.appendChild(left); row.appendChild(btns);
+    cont.appendChild(row);
+  });
+}
+
+function showLocalAppsManager(){ document.getElementById('localAppsModal').classList.add('show'); renderLocalAppsManager(); }
+function hideLocalAppsManager(){ document.getElementById('localAppsModal').classList.remove('show'); }
+
+// Export/clear helpers
+function exportAllLocalApps(){
+  const list = lsListLocalApps();
+  const payload = { apps: list, contents: list.reduce((acc,a)=>{ acc[a.id] = LS.raw('dual.localapp.'+a.id) || ''; return acc; }, {}) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'dual.localapps.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+function clearAllLocalApps(){
+  if(!confirm('Remover TODOS os apps locais?')) return;
+  const list = lsListLocalApps();
+  list.forEach(a=>{ try{ localStorage.removeItem('dual.localapp.'+a.id) }catch(e){} });
+  lsSaveLocalApps([]);
+  renderLocalAppsManager();
+  renderApps();
+}
+</script>
+
 </body>
 </html>
