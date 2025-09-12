@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>HUB Dual — PWA</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1e2235" />
+<style>
+  :root{
+    --grad-a:#ff52e5; --grad-b:#00c5e5;
+    --text:#f5f7ff; --muted:rgba(245,247,255,.65);
+    --surface:rgba(15,17,32,.45); --surface-strong:rgba(15,17,32,.85);
+    --border:rgba(255,255,255,.12);
+    --radius:24px; --radius-lg:28px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --header-h:78px;
+  }
+  @supports not (padding: env(safe-area-inset-bottom)) { :root{ --safe:0px; } }
+  @supports (padding: env(safe-area-inset-bottom)) { :root{ --safe: env(safe-area-inset-bottom); } }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; margin:0; }
+  body{
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(42deg, var(--grad-a), var(--grad-b)) fixed;
+    color: var(--text); overflow-x:hidden; overscroll-behavior-y:contain; min-height:100dvh;
+  }
+
+  /* HEADER */
+  header{
+    position:fixed; inset:0 0 auto 0; height:var(--header-h);
+    padding:0 16px; display:flex; align-items:center; justify-content:space-between;
+    backdrop-filter:blur(16px) saturate(120%); z-index:100;
+  }
+  .icon-btn{ width:42px; height:42px; border-radius:50%; display:grid; place-items:center;
+    background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow); color:var(--text); }
+  .icon-btn:active{ transform:scale(.96); }
+  .title{ flex:1; text-align:center; line-height:1.1; }
+  .title h1{ margin:0; font-size:22px; font-weight:900; letter-spacing:.05em; }
+  .title small{ display:block; font-size:12px; letter-spacing:.08em; color:var(--muted); }
+
+  /* MAIN */
+  main{
+    padding-top: calc(var(--header-h) + 12px);
+    /* reserva p/ tabbar + dock + safe-area */
+    padding-bottom: calc(118px + var(--safe));
+    width:100%; max-width:520px; margin:0 auto; position:relative;
+  }
+  section{ display:none; }
+  section.active{ display:block; }
+
+  /* GRID DE APPS */
+  .apps-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:14px; padding:0 16px; }
+  .app-icon{ display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); height:84px; cursor:pointer; }
+  .app-icon span{ margin-top:6px; font-size:12px; font-weight:600; color:var(--muted); }
+  .app-icon img{ width:28px; height:28px; border-radius:8px; object-fit:contain; }
+
+  /* TABBAR + INPUT DOCK */
+  footer.tabbar{ position:fixed; left:0; right:0; bottom:0; z-index:120; padding:6px 14px calc(6px + var(--safe)); }
+  .tabbar .container{
+    width:100%; max-width:520px; margin:0 auto; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow);
+    display:grid; gap:10px; padding:10px 12px calc(10px + var(--safe));
+  }
+  /* linha de tabs */
+  .tabs{ display:flex; align-items:center; justify-content:space-around; gap:6px; }
+  .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:8px 0; border-radius:16px; color:var(--muted); font-size:11px; font-weight:700; }
+  .tab.active{ color:var(--text); background:rgba(255,255,255,.10); box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); }
+  .tab svg{ width:22px; height:22px; }
+
+  /* Dock refinado */
+  .dock{
+    display:grid; grid-template-columns:1fr auto auto auto auto auto; gap:8px; align-items:center;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:8px;
+  }
+  .dock.hidden-icons .dock-btn{ display:none; }
+  .dock.hidden-icons .dock-input{ grid-column:1 / -1; }
+  .dock-input{ display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:6px 10px; }
+  .dock-input input{ appearance:none; border:0; outline:0; background:transparent; color:var(--text); width:100%; font-size:14px; }
+  .dock-btn{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); }
+  .dock-btn:active{ transform:scale(.96); }
+  .dock-btn img, .dock-btn svg{ width:22px; height:22px; display:block; }
+
+  /* Botão-frase */
+  .mantra{ display:flex; align-items:center; justify-content:center; border-radius:14px; padding:10px 12px;
+    background:linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+    border:1px solid rgba(255,255,255,.14); font-weight:600; cursor:pointer; text-align:center; }
+  .mantra strong{ font-weight:800; }
+
+  /* Painel de Ações + ASCII */
+  .actions{ display:none; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+  .actions.open{ display:grid; }
+  .pill{ display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 12px; border-radius:12px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); font-size:13px; font-weight:700; }
+
+  .ascii-panel{ display:none; grid-template-columns:1fr; gap:8px; background:rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:10px; }
+  .ascii-panel.open{ display:grid; }
+  .ascii-row{ display:flex; gap:8px; }
+  .ascii-row .pill{ flex:1; }
+  .ascii-box{ width:100%; min-height:120px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+    background:rgba(0,0,0,.25); color:#fff; padding:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:12.5px; }
+
+  /* Ocultar cards (.chat-card) global */
+  .hide-cards .chat-card{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="icon-btn" id="backBtn" aria-label="Voltar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="title"><h1>HUB DUAL</h1><small>UNO Dual Trinity</small></div>
+  <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Dual Brain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+  </button>
+
+  <!-- Brain menu -->
+  <div class="brain-menu" id="brainMenu" style="display:none; position:absolute; top:calc(100% + 6px); right:16px; width:min(92vw, 340px); padding:12px; background:var(--surface-strong); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); z-index:150;">
+    <h3 style="margin:4px 0 10px; font-size:16px; font-weight:800; letter-spacing:.05em;">Brain</h3>
+    <ul class="brain-list" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
+      <li class="brain-item" onclick="exportBackup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Exportar</span></li>
+      <li class="brain-item" onclick="promptKey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2"/><path d="M7.5 13.5L2 19v3h3l5.5-5.5"/><circle cx="16" cy="8" r="5"/></svg><span>SK Key</span></li>
+      <li class="brain-item" onclick="toast('Testar TTS')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg><span>TTS</span></li>
+      <li class="brain-item" onclick="clearLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18"/><path d="M3 8h18"/><path d="M3 13h18"/><path d="M3 18h18"/></svg><span>Logs</span></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <section id="page-home" class="active">
+    <div style="padding:20px; text-align:center;">
+      <p>Bem-vindo ao Dual Hub! Toque em <strong>Apps</strong> para explorar.</p>
+    </div>
+  </section>
+
+  <section id="page-apps"><div class="apps-grid" id="appsGrid"></div></section>
+
+  <section id="page-stack"><div style="padding:20px; text-align:center;"><p>Sem apps abertos por enquanto.</p></div></section>
+</main>
+
+<footer class="tabbar">
+  <div class="container" id="tabbarContainer">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" id="tab-home" onclick="navigate('home')"><svg><use href="#hub_home"></use></svg><span>Home</span></div>
+      <div class="tab" id="tab-apps"  onclick="navigate('apps')"><svg><use href="#hub_apps"></use></svg><span>Apps</span></div>
+      <div class="tab" id="tab-stack" onclick="navigate('stack')"><svg><use href="#hub_stack"></use></svg><span>Stack</span></div>
+    </div>
+
+    <!-- Input Dock -->
+    <div class="dock" id="dock">
+      <div class="dock-input">
+        <input id="promptInput" placeholder="Escreva sua intenção…" autocomplete="off" />
+      </div>
+      <button class="dock-btn" id="btn-ascii"   title="Arte ASCII" ></button>
+      <button class="dock-btn" id="btn-arteask" title="Arteask"   ></button>
+      <button class="dock-btn" id="btn-voice"   title="Voz"       ></button>
+      <button class="dock-btn" id="btn-send"    title="Enviar"    ></button>
+      <button class="dock-btn" id="btn-cards"   title="Cards"     ></button>
+    </div>
+
+    <!-- Botão-frase -->
+    <button class="mantra" id="mantraBtn" onclick="toggleActions()">
+      do seu jeito.&nbsp;<strong>Sempre</strong>&nbsp;único,&nbsp;<strong>sempre</strong>&nbsp;seu.
+    </button>
+
+    <!-- Painel de ações -->
+    <div class="actions" id="actionsPanel">
+      <button class="pill" onclick="copyPrompt()">⎘ Copiar</button>
+      <button class="pill" onclick="pastePrompt()">📎 Colar</button>
+      <button class="pill" onclick="toggleIcons()">🙈 Ocultar</button>
+      <button class="pill" onclick="toggleActions()">✕ Fechar</button>
+    </div>
+
+    <!-- Painel Arte ASCII -->
+    <div class="ascii-panel" id="asciiPanel">
+      <div class="ascii-row">
+        <button class="pill" onclick="asciiGenerate('369')">Fractal 369</button>
+        <button class="pill" onclick="asciiGenerate('portal')">Portal</button>
+        <button class="pill" onclick="asciiGenerate('heptagrama')">Heptagrama</button>
+      </div>
+      <textarea class="ascii-box" id="asciiBox" placeholder="Sua Arte ASCII aparece aqui…"></textarea>
+      <div class="ascii-row">
+        <button class="pill" onclick="asciiToPrompt()">➕ Inserir no prompt</button>
+        <button class="pill" onclick="asciiCopy()">⎘ Copiar ASCII</button>
+        <button class="pill" onclick="toggleAscii()">✕ Fechar ASCII</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Sprite fallback -->
+<svg style="display:none" aria-hidden="true">
+  <defs id="icon-defs">
+    <symbol id="hub_home" viewBox="0 0 24 24"><path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M9 21V9h6v12" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+    <symbol id="hub_apps" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+    <symbol id="hub_stack" viewBox="0 0 24 24"><path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+  </defs>
+</svg>
+
+<script>
+/* ===== Helpers ===== */
+const qs = s => document.querySelector(s);
+const toast = (...m) => console.log('[Dual]', ...m);
+
+const ls = {
+  get:k=>{ try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;} },
+  set:(k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+};
+const UI_STATE = 'dual.hub.ui';
+
+/* ===== Nav ===== */
+function navigate(target){
+  ['home','apps','stack'].forEach(pg=>{
+    qs('#page-'+pg).classList.toggle('active', pg===target);
+    qs('#tab-'+pg).classList.toggle('active', pg===target);
+  });
+  if(target==='apps' && !navigate._apps){ loadApps(); navigate._apps=true; }
+}
+
+/* Brain menu */
+const brainBtn = qs('#brainBtn'), brainMenu = qs('#brainMenu');
+brainBtn.addEventListener('click', e=>{ const o=brainMenu.style.display!=='block'; brainMenu.style.display=o?'block':'none'; e.stopPropagation(); });
+document.addEventListener('click', e=>{ if(!brainMenu.contains(e.target) && e.target!==brainBtn){ brainMenu.style.display='none'; }});
+
+function exportBackup(){ const data={when:Date.now(), storage:localStorage};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='dual.backup.json'; a.click(); URL.revokeObjectURL(url); toast('Backup exportado'); }
+function promptKey(){ const key=prompt('Cole sua SK (salva localmente)'); if(key){ localStorage.setItem('dual.keys.openrouter', key); toast('Chave armazenada'); } }
+function clearLogs(){ console.clear(); toast('Logs limpos'); }
+
+/* ===== Apps (lendo apps.json agrupado) ===== */
+async function loadApps(){
+  const grid=qs('#appsGrid'); grid.innerHTML='';
+  async function getJSON(p){ try{ const r=await fetch(p); if(r.ok) return r.json(); }catch(e){} return null; }
+  let data = await getJSON('apps.json') || await getJSON('apps/apps.json');
+  if(data?.groups){
+    Object.values(data.groups).forEach(group=>{
+      group.forEach(app=>{
+        const div=document.createElement('div'); div.className='app-icon';
+        div.onclick=()=>window.open(app.url,'_blank');
+        const img=document.createElement('img'); img.src=app.icon || (data.defaultIcons?.base || '/icons/icon-192.png'); img.alt='';
+        const span=document.createElement('span'); span.textContent=app.title;
+        div.appendChild(img); div.appendChild(span); grid.appendChild(div);
+      });
+    });
+  }else{
+    ['Chat','Editor','Books'].forEach(t=>{
+      const el=document.createElement('div'); el.className='app-icon';
+      el.innerHTML=`<img src="/icons/icon-192.png"/><span>${t}</span>`; el.onclick=()=>toast('Abrir '+t); grid.appendChild(el);
+    });
+  }
+}
+
+/* ===== Input Dock actions ===== */
+function onSend(){ const v=qs('#promptInput').value.trim(); if(!v) return toast('Prompt vazio'); toast('Enviar:', v); qs('#promptInput').value=''; }
+function onVoz(){ toast('Voz ON'); }
+function onArteask(){ toast('Arteask presets'); }
+function toggleCards(){ document.body.classList.toggle('hide-cards'); saveUI(); }
+
+/* Ações (frase) */
+function toggleActions(){ qs('#actionsPanel').classList.toggle('open'); saveUI(); }
+function copyPrompt(){ const v=qs('#promptInput').value || ''; navigator.clipboard?.writeText(v).then(()=>toast('Copiado')); }
+async function pastePrompt(){ try{ const t=await navigator.clipboard.readText(); if(t) qs('#promptInput').value=t; }catch(e){ toast('Permita acesso à área de transferência'); } }
+function toggleIcons(){ qs('#dock').classList.toggle('hidden-icons'); saveUI(); }
+
+/* ===== Arte ASCII ===== */
+function toggleAscii(){ qs('#asciiPanel').classList.toggle('open'); saveUI(); }
+function onAscii(){ toggleAscii(); }
+function asciiToPrompt(){ const box=qs('#asciiBox'); const p=qs('#promptInput'); p.value = (p.value? (p.value + '\\n') : '') + box.value; toast('ASCII inserido no prompt'); }
+function asciiCopy(){ const v=qs('#asciiBox').value||''; navigator.clipboard?.writeText(v); toast('ASCII copiado'); }
+function asciiGenerate(kind){
+  let a='';
+  if(kind==='369'){
+    a =
+`    3   6   9
+   ◐   ◐   ◐
+  ◐◐◐ ◐◐◐ ◐◐◐
+   ◐   ◐   ◐
+    3   6   9`;
+  }else if(kind==='portal'){
+    a =
+`╔════🌌════╗
+║  ⭕ ⭕ ⭕  ║
+║   ◐ ◐    ║
+║    ●     ║
+╚════🌌════╝`;
+  }else{ // heptagrama simples
+    a =
+`   /\\
+  /  \\
+ / /\\ \\
+ \\ \\/ /
+  \\  /
+   \\/   ★7`;
+  }
+  qs('#asciiBox').value=a;
+}
+
+/* ===== Persistência UI ===== */
+function saveUI(){
+  ls.set(UI_STATE, {
+    actionsOpen: qs('#actionsPanel').classList.contains('open'),
+    asciiOpen: qs('#asciiPanel').classList.contains('open'),
+    iconsHidden: qs('#dock').classList.contains('hidden-icons'),
+    cardsHidden: document.body.classList.contains('hide-cards')
+  });
+}
+(function restoreUI(){
+  const st = ls.get(UI_STATE) || {};
+  if(st.actionsOpen) qs('#actionsPanel').classList.add('open');
+  if(st.asciiOpen)   qs('#asciiPanel').classList.add('open');
+  if(st.iconsHidden) qs('#dock').classList.add('hidden-icons');
+  if(st.cardsHidden) document.body.classList.add('hide-cards');
+})();
+
+/* ===== Ícones dos botões (orders/ > icons/others/ > inline) ===== */
+async function setBtnIcon(btnId, name, inlineFallback){
+  const btn = qs(btnId);
+  async function trySrc(path){
+    try{ const r=await fetch(path); if(r.ok){ const txt=await r.text(); btn.innerHTML=txt; return true; } }catch(e){}
+    return false;
+  }
+  const tried = await trySrc(`orders/${name}.svg`) || await trySrc(`icons/others/${name}.svg`);
+  if(!tried){ btn.innerHTML = inlineFallback; }
+}
+const inline = {
+  ascii:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>',
+  arteask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 3"/></svg>',
+  voice:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 19v2"/></svg>',
+  send:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  cards:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>',
+};
+setBtnIcon('#btn-ascii','ascii', inline.ascii);
+setBtnIcon('#btn-arteask','arteask', inline.arteask);
+setBtnIcon('#btn-voice','mic', inline.voice);
+setBtnIcon('#btn-send','send', inline.send);
+setBtnIcon('#btn-cards','cards', inline.cards);
+
+/* Handlers dos botões */
+qs('#btn-send').onclick   = onSend;
+qs('#btn-voice').onclick  = onVoz;
+qs('#btn-arteask').onclick= onArteask;
+qs('#btn-cards').onclick  = toggleCards;
+qs('#btn-ascii').onclick  = onAscii;
+
+/* SW */
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js')); }
+</script>
+</body>
+</html>

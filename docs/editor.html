@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<link rel="manifest" href="./manifest.json"/>
+<title>Editor Nebula — HTML/CSS/Preview</title>
+<style>
+:root{
+  --grad-a:#ff52e5; --grad-b:#00c5e5;
+  --text:#f5f7ff; --muted:rgba(245,247,255,.75);
+  --surface:rgba(15,17,32,.45); --surface-strong:rgba(15,17,32,.88);
+  --border:1px solid rgba(255,255,255,.12);
+  --r:22px; --r-lg:28px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  --gold:#F2C75C;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:linear-gradient(42deg,var(--grad-a),var(--grad-b)) fixed;
+  color:var(--text); overflow-x:hidden; -webkit-text-size-adjust:100%;
+}
+a{color:#7fd}
+.mast{position:fixed;inset:env(safe-area-inset-top,0) 0 auto 0;height:76px;
+  display:flex;align-items:center;gap:12px;padding:0 14px;z-index:100;
+  backdrop-filter:blur(16px) saturate(120%)}
+.title{flex:1;text-align:center;line-height:1.1}
+.title h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.06em}
+.title small{display:block;font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface);border:var(--border);box-shadow:var(--shadow);color:var(--text);cursor:pointer}
+main{padding:92px 16px 100px;max-width:860px;margin:0 auto}
+footer.tabbar{position:fixed;inset:auto 0 env(safe-area-inset-bottom,0) 0;height:80px;display:flex;align-items:center;justify-content:center}
+footer .container{width:100%;max-width:520px;background:var(--surface);border:var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);display:flex;justify-content:space-around;align-items:center;padding:10px 16px}
+footer .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;padding:6px;border-radius:14px}
+footer .tab.active{color:var(--text);background:rgba(255,255,255,.08)}
+.card{background:var(--surface);border:var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.btn{appearance:none;border:var(--border);background:linear-gradient(42deg,var(--grad-a),var(--grad-b));
+  color:#fff;border-radius:999px;padding:.72rem 1.05rem;font-weight:900;cursor:pointer}
+.badge{padding:.3rem .6rem;border:var(--border);border-radius:999px}
+.loader{--size:52px;position:relative;width:var(--size);height:var(--size)}
+.loader .ring{position:absolute;inset:0;border:2px solid var(--gold);border-radius:50%;animation:spin 6s linear infinite}
+.loader .bar{position:absolute;left:50%;top:50%;width:62%;height:2px;background:var(--gold);
+  transform:translate(-50%,-50%);border-radius:999px;animation:breathe 2.4s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes breathe{0%,100%{opacity:.9}50%{opacity:1}}
+</style>
+</head>
+<body>
+<header class="mast">
+  <button class="icon-btn" onclick="location.href='index.html'">⌂</button>
+  <div class="title"><h1>EDITOR</h1><small>HTML • CSS • Preview</small></div>
+  <button class="icon-btn" id="btnExport" title="Exportar">⤓</button>
+</header>
+<main>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="btnLoad">Abrir HTML</button>
+      <button class="btn" id="btnApply">Aplicar no Preview</button>
+      <button class="btn" id="btnReset">Reset</button>
+    </div>
+    <textarea id="code" style="min-height:36vh;border-radius:14px;border:var(--border);background:rgba(255,255,255,.06);color:#fff;padding:12px" placeholder="Cole seu HTML aqui"></textarea>
+    <div class="card" style="background:var(--surface-strong)">
+      <div style="font-weight:900;margin:4px 0">Preview</div>
+      <iframe id="pv" style="width:100%;height:40vh;border:0;background:#0b0f1a"></iframe>
+    </div>
+  </div>
+</main>
+<footer class="tabbar">
+  <div class="container">
+    <div class="tab" onclick="location.href='chat.html'"><span>Chat</span></div>
+    <div class="tab active" onclick="location.href='editor.html'"><span>Editor</span></div>
+    <div class="tab" onclick="location.href='index.html'"><span>Hub</span></div>
+  </div>
+</footer>
+<script>
+const code=document.getElementById('code'); const pv=document.getElementById('pv');
+document.getElementById('btnApply').onclick=()=>{ const blob=new Blob([code.value],{type:'text/html'}); const url=URL.createObjectURL(blob); pv.src=url; };
+document.getElementById('btnReset').onclick=()=>{ code.value=''; pv.src='about:blank' };
+document.getElementById('btnExport').onclick=()=>{
+  const a=document.createElement('a'); const blob=new Blob([code.value||''],{type:'text/html'});
+  const url=URL.createObjectURL(blob); a.href=url; a.download='dual-editor-export.html'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500);
+};
+document.getElementById('btnLoad').onclick=()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='.html,.htm,text/html'; inp.onchange=async(e)=>{ const f=e.target.files[0]; if(!f) return; code.value=await f.text(); }; inp.click(); };
+</script>
+</body></html>

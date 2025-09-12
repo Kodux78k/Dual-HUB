@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>HUB Dual — v0.3 (Nebula + Icons)</title>
+    <!-- In a single-file version we embed all the same markup as the PWA index.
+         Apps will be loaded from `apps/apps.json` if available, otherwise
+         fallback data will be used. Icons can be replaced by placing
+         matching SVG files in a subfolder `icons/others/`. -->
+    <style>
+      /* Copy of the Nebula Pro styling from index.html */
+      :root {
+        --grad-a: #ff52e5;
+        --grad-b: #00c5e5;
+        --text: #f5f7ff;
+        --muted: rgba(245, 247, 255, 0.65);
+        --surface: rgba(15, 17, 32, 0.45);
+        --surface-strong: rgba(15, 17, 32, 0.85);
+        --border-color: rgba(255, 255, 255, 0.12);
+        --radius: 24px;
+        --radius-lg: 28px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: linear-gradient(42deg, var(--grad-a) 0%, var(--grad-b) 100%) fixed;
+        color: var(--text);
+        overflow-x: hidden;
+        overscroll-behavior-y: contain;
+      }
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 78px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        backdrop-filter: blur(16px) saturate(120%);
+        z-index: 100;
+      }
+      .title {
+        flex: 1;
+        text-align: center;
+        line-height: 1.1;
+      }
+      .title h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 0.05em; }
+      .title small { display: block; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); }
+      .icon-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+        color: var(--text);
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
+      .icon-btn:active { transform: scale(0.96); }
+      .icon-btn:hover { background: rgba(255, 255, 255, 0.08); }
+      .brain-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        width: min(92vw, 340px);
+        padding: 12px;
+        background: var(--surface-strong);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        display: none;
+        z-index: 99;
+      }
+      .brain-menu.open { display: block; animation: appear 0.18s ease-out forwards; }
+      @keyframes appear {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: none; }
+      }
+      .brain-menu h3 { margin: 4px 0 10px; font-size: 16px; font-weight: 800; letter-spacing: 0.05em; }
+      .brain-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+      .brain-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+      }
+      .brain-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+      .brain-item span { flex: 1; font-weight: 600; font-size: 14px; }
+      .brain-item:hover { background: rgba(255, 255, 255, 0.08); }
+      main {
+        padding-top: calc(78px + 12px);
+        padding-bottom: calc(80px + 16px);
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        position: relative;
+      }
+      section { display: none; }
+      section.active { display: block; }
+      .apps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 14px;
+        padding: 0 16px;
+      }
+      .app-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        height: 84px;
+        cursor: pointer;
+      }
+      .app-icon span { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+      .app-icon svg { width: 28px; height: 28px; }
+      .tabbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 78px;
+        padding: 6px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+      .tabbar .container {
+        width: 100%;
+        max-width: 480px;
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 10px 16px;
+      }
+      .tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 14px;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .tab.active { color: var(--text); background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08); }
+      .tab svg { width: 22px; height: 22px; }
+      @media (prefers-reduced-motion: no-preference) {
+        section { transition: opacity 0.2s ease, transform 0.2s ease; }
+        section.inactive { opacity: 0; transform: translateX(6px); }
+      }
+    </style>
+  </head>
+  <body>
+    <header data-symbio="hub.header">
+      <button class="icon-btn" id="backBtn" aria-label="Voltar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <div class="title">
+        <h1>HUB DUAL</h1>
+        <small>UNO Dual Trinity</small>
+      </div>
+      <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Dual Brain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21a8 8 0 1 0-16 0" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </button>
+      <div class="brain-menu" id="brainMenu">
+        <h3>Brain</h3>
+        <ul class="brain-list">
+          <li class="brain-item" onclick="exportBackup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Exportar</span>
+          </li>
+          <li class="brain-item" onclick="promptKey()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 2l-2 2" />
+              <path d="M7.5 13.5L2 19v3h3l5.5-5.5" />
+              <circle cx="16" cy="8" r="5" />
+            </svg>
+            <span>SK Key</span>
+          </li>
+          <li class="brain-item" onclick="toast('Testar TTS')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+            </svg>
+            <span>TTS</span>
+          </li>
+          <li class="brain-item" onclick="clearLogs()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h18" />
+              <path d="M3 8h18" />
+              <path d="M3 13h18" />
+              <path d="M3 18h18" />
+            </svg>
+            <span>Logs</span>
+          </li>
+        </ul>
+      </div>
+    </header>
+    <main data-symbio="hub.main">
+      <section id="page-home" class="active">
+        <div style="padding:20px; text-align:center;">
+          <p>Bem-vindo ao Dual Hub! Toque em <strong>Apps</strong> para explorar.</p>
+        </div>
+      </section>
+      <section id="page-apps">
+        <div class="apps-grid" id="appsGrid" data-symbio="hub.apps"></div>
+      </section>
+      <section id="page-stack">
+        <div style="padding:20px; text-align:center;">
+          <p>Sem apps abertos por enquanto.</p>
+        </div>
+      </section>
+    </main>
+    <footer class="tabbar">
+      <div class="container">
+        <div class="tab active" id="tab-home" onclick="navigate('home')">
+          <svg><use href="#hub_home"></use></svg>
+          <span>Home</span>
+        </div>
+        <div class="tab" id="tab-apps" onclick="navigate('apps')">
+          <svg><use href="#hub_apps"></use></svg>
+          <span>Apps</span>
+        </div>
+        <div class="tab" id="tab-stack" onclick="navigate('stack')">
+          <svg><use href="#hub_stack"></use></svg>
+          <span>Stack</span>
+        </div>
+      </div>
+    </footer>
+    <svg style="display:none;" aria-hidden="true" focusable="false">
+      <defs id="icon-defs">
+        <!-- same symbols as index.html; copy definitions for fallback icons -->
+        <symbol id="hub_home" viewBox="0 0 24 24">
+          <path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="2" fill="none" />
+          <path d="M9 21V9h6v12" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_apps" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+          <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+          <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+          <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_stack" viewBox="0 0 24 24">
+          <path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" stroke="currentColor" stroke-width="2" fill="none" />
+          <path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_chat" viewBox="0 0 24 24">
+          <path d="M21 11.5a8.38 8.38 0 0 1-3.3 6.7 8.5 8.5 0 0 1-9.4 0 8.38 8.38 0 0 1-3.3-6.7V5.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" fill="none" />
+          <polyline points="9 13 12 10 15 13" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_config" viewBox="0 0 24 24">
+          <polygon points="4 4 20 4 20 20 4 20" stroke="currentColor" stroke-width="2" fill="none" />
+          <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" />
+          <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="hub_books" viewBox="0 0 24 24">
+          <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" stroke="currentColor" stroke-width="2" fill="none" />
+          <path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_lightning" viewBox="0 0 24 24">
+          <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+        <symbol id="hub_memoria" viewBox="0 0 24 24">
+          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+          <path d="M8 4v16" stroke="currentColor" stroke-width="2" />
+          <path d="M16 4v16" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="hub_download" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" fill="none" />
+          <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" fill="none" />
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" />
+        </symbol>
+        <symbol id="hub_perfil" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none" />
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none" />
+        </symbol>
+      </defs>
+    </svg>
+    <script>
+      function toast(msg) { console.log(msg); }
+      function navigate(target) {
+        document.getElementById('brainMenu').classList.remove('open');
+        document.getElementById('brainBtn').setAttribute('aria-expanded', 'false');
+        ['home', 'apps', 'stack'].forEach(function (page) {
+          var sec = document.getElementById('page-' + page);
+          if (sec) sec.classList.remove('active');
+          var tab = document.getElementById('tab-' + page);
+          if (tab) tab.classList.remove('active');
+        });
+        var newSec = document.getElementById('page-' + target);
+        if (newSec) newSec.classList.add('active');
+        var newTab = document.getElementById('tab-' + target);
+        if (newTab) newTab.classList.add('active');
+        if (target === 'apps' && !navigate.appsLoaded) {
+          loadApps();
+          navigate.appsLoaded = true;
+        }
+      }
+      const brainBtn = document.getElementById('brainBtn');
+      const brainMenu = document.getElementById('brainMenu');
+      brainBtn.addEventListener('click', function (e) {
+        var isOpen = brainMenu.classList.toggle('open');
+        brainBtn.setAttribute('aria-expanded', String(isOpen));
+        e.stopPropagation();
+      });
+      document.addEventListener('click', function (e) {
+        if (!brainMenu.contains(e.target) && e.target !== brainBtn) {
+          brainMenu.classList.remove('open');
+          brainBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      function exportBackup() {
+        const data = { when: Date.now(), storage: localStorage };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dual.backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('Backup exportado');
+      }
+      function promptKey() {
+        const key = prompt('Cole sua SK (será salva localmente)');
+        if (key) {
+          localStorage.setItem('dual.keys.openrouter', key);
+          toast('Chave armazenada');
+        }
+      }
+      function clearLogs() {
+        console.clear();
+        toast('Logs limpos');
+      }
+      async function loadApps() {
+        const grid = document.getElementById('appsGrid');
+        grid.innerHTML = '';
+        let apps = [];
+        try {
+          const res = await fetch('apps/apps.json');
+          if (res.ok) { apps = await res.json(); }
+        } catch (err) { console.warn('Erro ao carregar apps.json', err); }
+        if (!Array.isArray(apps) || apps.length === 0) {
+          apps = [
+            { id: 'chat', name: 'Chat', icon: 'hub_chat' },
+            { id: 'editor', name: 'Editor', icon: 'hub_config' },
+            { id: 'books', name: 'Books', icon: 'hub_books' },
+            { id: 'koblox', name: 'KOBLOX', icon: 'hub_lightning' }
+          ];
+        }
+        for (const app of apps) {
+          const div = document.createElement('div');
+          div.className = 'app-icon';
+          div.onclick = () => toast('Abrindo ' + app.name);
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('width', '28');
+          svg.setAttribute('height', '28');
+          try {
+            const resp = await fetch('icons/others/' + app.icon);
+            if (resp.ok) {
+              const text = await resp.text();
+              svg.innerHTML = text;
+            } else {
+              const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+              use.setAttribute('href', '#' + app.icon);
+              svg.appendChild(use);
+            }
+          } catch (err) {
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttribute('href', '#' + app.icon);
+            svg.appendChild(use);
+          }
+          const name = document.createElement('span');
+          name.textContent = app.name;
+          div.appendChild(svg);
+          div.appendChild(name);
+          grid.appendChild(div);
+        }
+      }
+      async function overrideSprite() {
+        const ids = ['hub_home','hub_apps','hub_stack','hub_chat','hub_config','hub_books','hub_lightning','hub_memoria','hub_download','hub_perfil'];
+        for (const id of ids) {
+          try {
+            const resp = await fetch('icons/others/' + id + '.svg');
+            if (resp.ok) {
+              const text = await resp.text();
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(text, 'image/svg+xml');
+              const svgEl = doc.querySelector('svg');
+              if (svgEl) {
+                const symbol = document.getElementById(id);
+                symbol.innerHTML = svgEl.innerHTML;
+              }
+            }
+          } catch (err) {}
+        }
+      }
+      overrideSprite();
+    </script>
+  <script>
+/* Dual Symbiotic Injector — inline */
+(function(global){
+  const LS_HISTORY = "dual.symbio.history";
+  const LS_ACTIVE  = "dual.symbio.active";
+  const EVT        = "dual:symbio:applied";
+  function parseDoc(html){ return new DOMParser().parseFromString(html,"text/html"); }
+  function mergeHead(t,p){
+    const tHead=t.head,pHead=p.head;
+    const ids=new Set([...tHead.querySelectorAll("style[id],link[id],script[id],[data-id]")].map(n=>n.id||n.getAttribute("data-id")).filter(Boolean));
+    for(const n of pHead.children){
+      if(!(n instanceof Element)) continue;
+      const id=n.id||n.getAttribute("data-id");
+      if(id && ids.has(id)) continue;
+      tHead.appendChild(t.importNode(n,true));
+    }
+  }
+  async function applyFull(t,p){ t.body.replaceWith(t.importNode(p.body,true)); }
+  function applyPartial(t,p){
+    const nodes=p.querySelectorAll("[data-symbio]");
+    for(const src of nodes){
+      const k=src.getAttribute("data-symbio");
+      const dst=t.querySelector(`[data-symbio="${k}"]`);
+      if(dst) dst.replaceWith(t.importNode(src,true));
+      else t.body.appendChild(t.importNode(src,true));
+    }
+  }
+  function runOnce(t,p){
+    const key="dual.symbio.executed";
+    const done=new Set(JSON.parse(localStorage.getItem(key)||"[]"));
+    p.querySelectorAll("script[data-run]").forEach(s=>{
+      const id=s.getAttribute("data-id")||Math.random().toString(36).slice(2,8);
+      if(done.has(id)) return;
+      try{ (0,eval)(s.textContent||""); done.add(id); }catch(e){ console.error("[symbio] script error",e); }
+    });
+    localStorage.setItem(key, JSON.stringify([...done]));
+  }
+  async function loadURL(url){ const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error(r.status); return await r.text(); }
+  async function sandbox(html){
+    return new Promise(res=>{
+      const ifr=document.createElement("iframe");
+      ifr.style.cssText="position:fixed;left:-9999px;top:-9999px;width:10px;height:10px";
+      document.body.appendChild(ifr);
+      const d=ifr.contentDocument; d.open(); d.write(html); d.close();
+      setTimeout(()=>res({ifr,doc:d}),40);
+    });
+  }
+  async function apply({html,url,mode="auto",label="Patch"}){
+    const text = html || await loadURL(url);
+    const {ifr,doc:p} = await sandbox(text);
+    const t = document;
+    mergeHead(t,p);
+    const has = p.querySelector("[data-symbio]");
+    if(mode==="full" || (!has && mode==="auto")) await applyFull(t,p); else applyPartial(t,p);
+    runOnce(t,p);
+    ifr.remove();
+    const entry={label,mode,url:url||"(inline)",ts:Date.now()};
+    const hist=JSON.parse(localStorage.getItem(LS_HISTORY)||"[]"); hist.unshift(entry);
+    localStorage.setItem(LS_HISTORY, JSON.stringify(hist.slice(0,50))); localStorage.setItem(LS_ACTIVE, JSON.stringify(entry));
+    document.dispatchEvent(new CustomEvent(EVT,{detail:entry}));
+    return {ok:true,mode};
+  }
+  function history(){ try{return JSON.parse(localStorage.getItem(LS_HISTORY)||"[]")}catch{return []} }
+  function active(){ try{return JSON.parse(localStorage.getItem(LS_ACTIVE)||"null")}catch{return null} }
+  function reset(){ localStorage.removeItem(LS_HISTORY); localStorage.removeItem(LS_ACTIVE); }
+  global.DualPatcher = {apply,history,active,reset};
+})(window);
+</script>
+
+<!-- Symbio Control -->
+<div style="position:fixed;right:10px;bottom:10px;z-index:9999">
+  <button id="symbioBtn" style="padding:8px 12px;border-radius:12px;border:1px solid #ffffff22;background:#0b0f18cc;color:#eaf7ff">⚡️ Symbio</button>
+</div>
+<div id="symbioPanel" style="display:none;position:fixed;right:10px;bottom:56px;width:min(92vw,360px);background:#0b0f18ee;border:1px solid #ffffff22;border-radius:14px;padding:10px;z-index:9999">
+  <div style="display:grid;gap:8px">
+    <input id="symbioURL" placeholder="URL de patch single-file…" style="padding:8px;border-radius:8px;border:1px solid #ffffff22;background:#111726;color:#eaf7ff"/>
+    <div style="display:flex;gap:8px">
+      <button id="symbioApplyAuto">Auto</button>
+      <button id="symbioApplyPartial">Partial</button>
+      <button id="symbioApplyFull">Full</button>
+      <button id="symbioClose" style="margin-left:auto">Fechar</button>
+    </div>
+    <textarea id="symbioInline" rows="6" placeholder="Ou cole o HTML aqui…" style="padding:8px;border-radius:8px;border:1px solid #ffffff22;background:#111726;color:#eaf7ff"></textarea>
+    <button id="symbioApplyInline">Aplicar Inline</button>
+  </div>
+</div>
+<script>
+document.getElementById('symbioBtn').onclick=()=>{ const p=document.getElementById('symbioPanel'); p.style.display=p.style.display==='none'?'block':'none'; };
+document.getElementById('symbioClose').onclick=()=>{ document.getElementById('symbioPanel').style.display='none'; };
+document.getElementById('symbioApplyAuto').onclick=async()=>{
+  const u=document.getElementById('symbioURL').value.trim(); if(!u) return alert('Informe uma URL'); await DualPatcher.apply({url:u,mode:'auto',label:u}); alert('Patch aplicado (auto)'); };
+document.getElementById('symbioApplyPartial').onclick=async()=>{
+  const u=document.getElementById('symbioURL').value.trim(); if(!u) return alert('Informe uma URL'); await DualPatcher.apply({url:u,mode:'partial',label:u}); alert('Patch aplicado (partial)'); };
+document.getElementById('symbioApplyFull').onclick=async()=>{
+  const u=document.getElementById('symbioURL').value.trim(); if(!u) return alert('Informe uma URL'); await DualPatcher.apply({url:u,mode:'full',label:u}); alert('Patch aplicado (full)'); };
+document.getElementById('symbioApplyInline').onclick=async()=>{
+  const h=document.getElementById('symbioInline').value; if(!h.trim()) return alert('Cole HTML primeiro'); await DualPatcher.apply({html:h,mode:'auto',label:'inline'}); alert('Inline aplicado'); };
+</script>
+
+</body>
+</html>
