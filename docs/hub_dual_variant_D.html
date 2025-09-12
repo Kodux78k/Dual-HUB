@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>HUB Dual — Variante A</title>
+<link rel="icon" href="icons/others/favicon.svg" type="image/svg+xml"/>
+<meta name="theme-color" content="#00ffff"/>
+<style>
+  :root{
+    --bg1:#ff43ff; --bg2:#25f7ff;
+    --ink:#f4f7ff; --ink-dim:#d7e4ff; --ink-muted:#a7b9d6;
+    --edge:#ffffff16; --glass:#0b0b0fdd; --glass2:#0a0a14cc; --glass3:#0a0a12f2;
+    --h:72px; --f:82px; --radius:26px; --radius-sm:18px; --pad:14px; --gap:12px;
+    --shadow:0 14px 34px rgba(0,0,0,.38);
+    --blur:16px;
+    --sm:13px; --md:15px; --lg:18px; --xl:26px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:400 var(--md)/1.45 ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial;
+    color:var(--ink);
+    background:
+      radial-gradient(1000px 900px at 8% -10%, #ff67ff29, transparent 60%),
+      radial-gradient(1000px 900px at 110% 110%, #6ff9ff29, transparent 60%),
+      linear-gradient(42deg,var(--bg1),var(--bg2));
+    background-attachment:fixed;
+  }
+  .glass{background:var(--glass); backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur)); border:1px solid var(--edge)}
+  header{
+    position:fixed; inset:0 0 auto 0; height:var(--h); padding:0 16px; z-index:30;
+    display:flex; align-items:center; gap:12px; box-shadow:0 10px 30px rgba(0,0,0,.25);
+    border-bottom:1px solid var(--edge);
+  }
+  .hTitle{font-weight:800; letter-spacing:.2px; font-size:28px}
+  .grow{flex:1}
+  .iconbtn{width:40px;height:40px;border-radius:14px;border:1px solid var(--edge);display:grid;place-content:center;background:#0c0c16aa;cursor:pointer}
+  .iconbtn:active{transform:scale(.96)}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(180deg,#222,#111);border:1px solid var(--edge);display:grid;place-content:center}
+  main{padding:calc(var(--h) + 14px) 14px calc(var(--f) + 14px)}
+  .card{border-radius:22px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--edge);background:var(--glass2)}
+  .muted{color:var(--ink-muted)}
+  .divider{height:1px;background:var(--edge);margin:10px 0}
+  /* Apps */
+  .appsGrid{display:grid;gap:12px}
+  .appRow{display:flex;gap:12px;align-items:center;border:1px solid var(--edge);background:#090914cc;border-radius:18px;padding:10px}
+  .appRow img,.appRow .ico{width:34px;height:34px;border-radius:10px;border:1px solid var(--edge);background:#080812}
+  .row{display:flex;gap:10px;align-items:center}
+  .growMin{flex:1;min-width:0}
+  .title{font-weight:700}
+  .desc{font-size:13px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{font-size:13px;color:var(--ink);border:1px solid var(--edge);background:#0c0c18cc;padding:8px 12px;border-radius:12px;cursor:pointer}
+  .btn.pri{background:linear-gradient(42deg,#4ef5ffcc,#c996ffcc)}
+  .btn.star[data-on="true"]{background:linear-gradient(42deg,#ffd36ecc,#ff8f6ecc);color:#2c1200}
+  /* Sessions empilhadas */
+  .session{margin:14px 0;border-radius:22px;border:1px solid var(--edge);overflow:hidden;background:#080811f2;box-shadow:var(--shadow)}
+  .sHead{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0a0a14ea}
+  .sBody{height:440px;border-top:1px solid var(--edge);background:#07070e}
+  .sBody iframe{width:100%;height:100%;border:0}
+  .sBtns{display:flex;gap:8px;margin-left:auto}
+  .sBtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--edge);display:grid;place-content:center;background:#0c0c18cc;cursor:pointer}
+  /* Footer dock (flutuante) */
+  footer{
+    position:fixed; inset:auto 12px 12px 12px; height:var(--f); border-radius:26px;
+    padding:10px 14px; z-index:35; display:flex; align-items:center; gap:12px;
+    box-shadow:var(--shadow); border:1px solid var(--edge);
+  }
+  .dockL,.dockR{display:flex;gap:10px;align-items:center}
+  .quick{flex:1;display:flex;gap:8px;overflow:auto;scrollbar-width:none}
+  .quick::-webkit-scrollbar{display:none}
+  .mini{display:inline-flex;gap:8px;align-items:center;background:#0e0e19cc;border:1px solid var(--edge);border-radius:999px;padding:6px 10px}
+  .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(42deg,#7ff,#f9f);box-shadow:0 0 12px #7ff}
+  /* Brain popover */
+  #brain{position:fixed; top:calc(var(--h) + 10px); right:12px; width:min(92vw,420px); z-index:50}
+  .popover{border-radius:22px;padding:12px;background:var(--glass3);border:1px solid var(--edge);backdrop-filter:blur(var(--blur))}
+  .menuItem{display:flex;gap:12px;align-items:center;border:1px solid var(--edge);background:#0c0c17cc;border-radius:14px;padding:12px}
+  .menuItem + .menuItem{margin-top:8px}
+  .input{display:flex;gap:8px;align-items:center;background:#0a0a15;border:1px solid var(--edge);border-radius:12px;padding:8px 10px}
+  .input input,.input select{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:13px}
+  .notice{font-size:12px;color:var(--ink-muted)}
+  .hide{display:none!important}
+  svg{display:block}
+</style>
+</head>
+<body>
+  <header class="glass">
+    <div class="hTitle">HUB Dual</div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnDownload" title="Baixar HTML"><img src="icons/others/hub_download.svg" width="20" height="20" onerror="this.replaceWith(svgDL())" alt=""></button>
+    <div class="avatar" id="btnBrain" title="Brain"><img src="icons/others/hub_perfil.svg" width="18" height="18" onerror="this.replaceWith(svgUser())" alt=""></div>
+  </header>
+
+  <main>
+    <section id="sessionsAnchor"></section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="title">Home</div>
+          <div class="desc">Abra apps empilhados; minimize e reabra pelo dock.</div>
+        </div>
+        <div class="row muted"><img src="icons/others/hub_lightning.svg" width="18" height="18" onerror="this.replaceWith(svgBolt(18))" alt=""> Nebula Pro</div>
+      </div>
+      <div class="divider"></div>
+      <div id="favoritesWrap" class="hide">
+        <div class="row" style="justify-content:space-between"><div class="title">Favoritos</div><div class="desc">seus fixados</div></div>
+        <div id="favoritesList" class="appsGrid"></div>
+        <div class="divider"></div>
+      </div>
+      <div id="groupsWrap" class="appsGrid"></div>
+    </section>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="title">Minimizados</div><div class="desc" id="miniCount">0</div>
+      </div>
+      <div id="miniWrap" class="row" style="flex-wrap:wrap"></div>
+    </section>
+
+    <!-- Chat offline / validação -->
+    <section class="card" id="chatCard">
+      <div class="row" style="justify-content:space-between">
+        <div class="title">Chat</div>
+        <div class="desc">Validação offline — ecoa sua mensagem</div>
+      </div>
+      <div class="divider"></div>
+      <div class="row" style="align-items:flex-start">
+        <textarea id="chatInput" rows="3" style="flex:1; min-height:68px; background:var(--glass2); color:var(--ink); border-radius:12px; padding:8px; border:1px solid var(--edge); resize:vertical" placeholder="Escreva aqui..."></textarea>
+        <button class="btn pri" id="chatSend">Enviar</button>
+      </div>
+      <div class="divider"></div>
+      <div id="chatLog" style="max-height:200px; overflow:auto; font:13px/1.4 ui-monospace,monospace; color:var(--ink-muted); white-space:pre-wrap"></div>
+    </section>
+  </main>
+
+  <footer class="glass">
+    <div class="dockL">
+      <button class="iconbtn" id="btnHome" title="Home"><img src="icons/others/hub_home.svg" width="20" height="20" onerror="this.replaceWith(svgHome())" alt=""></button>
+      <button class="iconbtn" id="btnApps" title="Apps"><img src="icons/others/hub_apps.svg" width="20" height="20" onerror="this.replaceWith(svgApps())" alt=""></button>
+    </div>
+    <div class="quick" id="quickBadges"></div>
+    <div class="dockR">
+      <button class="iconbtn" id="btnLogs" title="Logs"><img src="icons/others/hub_relatorio.svg" width="20" height="20" onerror="this.replaceWith(svgList())" alt=""></button>
+    </div>
+  </footer>
+
+  <!-- Brain -->
+  <div id="brain" class="hide">
+    <div class="popover">
+      <div class="menuItem" style="cursor:default">
+        <img class="ico" src="icons/others/hub_memoria.svg" width="22" height="22" onerror="this.replaceWith(svgUser())" alt="">
+        <div class="growMin"><div class="title">Perfil</div><div class="notice">Nome e rótulo do seu Dual</div></div>
+      </div>
+      <div class="input" style="margin-top:8px"><input id="inpName" placeholder="Seu nome"></div>
+      <div class="input" style="margin-top:8px"><input id="inpDual" placeholder="Nome do seu Dual"></div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px">
+        <img src="icons/others/hub_cloud.svg" width="22" height="22" onerror="this.replaceWith(svgKey())" alt="">
+        <div class="growMin"><div class="title">Chave SK (OpenRouter)</div><div class="notice">Guardada localmente</div></div>
+      </div>
+      <div class="input" style="margin-top:8px">
+        <input id="inpSK" placeholder="sk-..."><button class="btn" id="btnSaveSK">Salvar</button>
+      </div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px">
+        <img src="icons/others/hub_health.svg" width="22" height="22" onerror="this.replaceWith(svgPerf())" alt="">
+        <div class="growMin"><div class="title">Performance</div><div class="notice" id="perfLabel">Med</div></div>
+      </div>
+      <div class="input" style="margin-top:8px">
+        <select id="selPerf"><option value="low">Low</option><option value="med" selected>Med</option><option value="high">High</option></select>
+        <button class="btn" id="btnPerf">Aplicar</button>
+      </div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px">
+        <img src="icons/others/hub_bind.svg" width="22" height="22" onerror="this.replaceWith(svgVoice())" alt="">
+        <div class="growMin"><div class="title">Vozes / TTS</div><div class="notice">menu por arquétipo (placeholder)</div></div>
+      </div>
+      <div class="input" style="margin-top:8px">
+        <select id="selVoice"><option>Nova</option><option>Elysha</option><option>Kaion</option><option>Serena</option></select>
+        <button class="btn" id="btnVoice">Salvar</button>
+      </div>
+
+      <div class="menuItem" id="btnClear" style="margin-top:8px">
+        <img src="icons/others/hub_memoria.svg" width="22" height="22" onerror="this.replaceWith(svgTrash())" alt="">
+        <div class="growMin"><div class="title">Limpar Memória</div><div class="notice">apaga preferências e favoritos</div></div>
+      </div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px">
+        <img src="icons/others/hub_relatorio.svg" width="22" height="22" onerror="this.replaceWith(svgList())" alt="">
+        <div class="growMin"><div class="title">Logs</div><div class="notice">eventos recentes</div></div>
+      </div>
+      <div class="card" style="margin-top:8px;max-height:140px;overflow:auto"><pre id="logs" style="margin:0;font:12px/1.4 ui-monospace,monospace;color:var(--ink-muted)"></pre></div>
+    </div>
+  </div>
+
+<script>
+const $ = s=>document.querySelector(s);
+function svgWrap(s){const x=document.createElement('span');x.innerHTML=s.trim();return x.firstChild}
+function svgDL(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><rect x="4" y="19" width="16" height="2" rx="1" fill="currentColor"/></svg>`)}
+function svgUser(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>`)}
+function svgKey(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="15" r="4"/><path d="M12 15h10l-2 2 2 2-2 2"/></svg>`)}
+function svgPerf(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19a8 8 0 1 1 16 0"/><path d="M12 12v4"/><path d="M7 12v2"/><path d="M17 12v3"/></svg>`)}
+function svgVoice(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>`)}
+function svgTrash(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><rect x="6" y="6" width="12" height="14" rx="2"/></svg>`)}
+function svgHome(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11L12 3l9 8"/><path d="M5 10v10h14V10"/></svg>`)}
+function svgApps(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`)}
+function svgList(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/></svg>`)}
+function svgBolt(s=18){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="currentColor"><path d="M13 3L4 14h6l-1 7 9-11h-6l1-7z"/></svg>`)}
+const state = {
+  sessions: [], minimized: [], favorites: new Set(JSON.parse(localStorage.getItem('hub.favs')||'[]')),
+  profile: JSON.parse(localStorage.getItem('hub.profile')||'{}'),
+  perf: localStorage.getItem('hub.perf') || 'med',
+  voice: localStorage.getItem('hub.voice') || 'Nova',
+  sk: localStorage.getItem('hub.sk') || '', logs:[]
+};
+function log(m){const l=`[${new Date().toLocaleTimeString()}] ${m}`;state.logs.unshift(l);$('#logs').textContent=state.logs.slice(0,60).join('\n')}
+function loadProfileUI(){
+  $('#inpName').value = state.profile.name||''; $('#inpDual').value = state.profile.dual||'';
+  $('#inpSK').value = state.sk; $('#selPerf').value = state.perf; $('#perfLabel').textContent = state.perf.toUpperCase();
+  $('#selVoice').value = state.voice;
+}
+$('#btnBrain').addEventListener('click',()=>$('#brain').classList.toggle('hide'));
+document.addEventListener('click',e=>{const b=$('#brain'); if(!b.classList.contains('hide') && !b.contains(e.target) && !$('#btnBrain').contains(e.target)) b.classList.add('hide')});
+['inpName','inpDual'].forEach(id=>$('#'+id).addEventListener('change',()=>{state.profile.name=$('#inpName').value.trim();state.profile.dual=$('#inpDual').value.trim();localStorage.setItem('hub.profile',JSON.stringify(state.profile));log('Perfil atualizado')}))
+$('#btnSaveSK').addEventListener('click',()=>{state.sk=$('#inpSK').value.trim();localStorage.setItem('hub.sk',state.sk);log('SK salva')})
+$('#btnPerf').addEventListener('click',()=>{state.perf=$('#selPerf').value;localStorage.setItem('hub.perf',state.perf);$('#perfLabel').textContent=state.perf.toUpperCase();log('Performance: '+state.perf)})
+$('#btnVoice').addEventListener('click',()=>{state.voice=$('#selVoice').value;localStorage.setItem('hub.voice',state.voice);log('Voz padrão: '+state.voice)})
+$('#btnDownload').addEventListener('click',()=>{fetch(location.href).then(r=>r.text()).then(t=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.download='HUB_Dual_VarA.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado')}).catch(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'}));a.download='HUB_Dual_VarA_runtime.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado (runtime)')})})
+/* apps.json */
+const groupsWrap = $('#groupsWrap'); const favoritesWrap = $('#favoritesWrap'); const favoritesList = $('#favoritesList');
+async function loadApps(){
+  try{
+    const res = await fetch('./apps/apps.json',{cache:'no-store'}); const data = await res.json(); const groups = data.groups||{};
+    groupsWrap.innerHTML=''; for(const [name,items] of Object.entries(groups)){
+      const card=document.createElement('div'); card.className='card'; card.innerHTML=`<div class="row" style="justify-content:space-between; margin-bottom:6px"><div class="title">${name.replaceAll('_',' ')}</div><span class="muted">${items.length} apps</span></div><div class="appsGrid"></div>`;
+      const listEl = card.querySelector('.appsGrid');
+      items.forEach(app=>{
+        const row=document.createElement('div'); row.className='appRow';
+        const icon=app.icon || 'icons/others/hub_apps.svg';
+        row.innerHTML = `
+          <img alt="" onerror="this.replaceWith(svgApps(32))" src="${icon}">
+          <div class="growMin"><div class="title">${app.title||app.key}</div><div class="desc" title="${app.desc||''}">${app.desc||''}</div></div>
+          <div class="row"><button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button><button class="btn" onclick="openSession('${app.key}', '${(app.title||app.key).replace(/['\"<>]/g,'')}', '${app.url||''}', '${icon}')">Abrir</button></div>`;
+        listEl.appendChild(row);
+      });
+      groupsWrap.appendChild(card);
+    }
+    renderFavorites(); log('apps.json carregado');
+  }catch(e){
+    groupsWrap.innerHTML = `<div class="desc">Falha ao carregar apps/apps.json</div>`;
+    log('Falha ao carregar apps.json');
+  }
+}
+
+// Função alternativa para carregar apps com tentativas em múltiplos caminhos e suporte a abrir fora
+async function loadAppsRobust(){
+  try{
+    const candidates = [
+      './apps/apps.json',
+      './apps.json',
+      './docs/apps/apps.json',
+      '/apps/apps.json'
+    ];
+    let data = null, lastErr = null;
+    for(const u of candidates){
+      try{
+        const r = await fetch(u, {cache:'no-store'});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        data = await r.json();
+        log('apps.json carregado de: '+u);
+        break;
+      }catch(err){
+        lastErr = err;
+      }
+    }
+    if(!data){
+      throw lastErr || new Error('apps.json não encontrado nos caminhos conhecidos');
+    }
+    const groups = data.groups || {};
+    groupsWrap.innerHTML = '';
+    for(const [name,items] of Object.entries(groups)){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="row" style="justify-content:space-between; margin-bottom:6px">
+          <div class="title">${(name||'').replaceAll('_',' ')}</div>
+          <span class="muted">${items.length} apps</span>
+        </div>
+        <div class="appsGrid"></div>`;
+      const listEl = card.querySelector('.appsGrid');
+      items.forEach(app=>{
+        const icon = app.icon || 'icons/others/hub_apps.svg';
+        const safeTitle = (app.title || app.key || 'App').replace(/['"<>]/g,'');
+        const url = app.url || '';
+        const row = document.createElement('div');
+        row.className = 'appRow';
+        row.innerHTML = `
+          <img alt="" onerror="this.replaceWith(svgApps(32))" src="${icon}">
+          <div class="growMin">
+            <div class="title">${safeTitle}</div>
+            <div class="desc" title="${app.desc||''}">${app.desc||''}</div>
+          </div>
+          <div class="row">
+            <button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button>
+            <button class="btn" onclick="openSession('${app.key}', '${safeTitle}', '${url}', '${icon}')">Abrir</button>
+            <button class="btn" onclick="openOutside('${url}')">↗️ Fora</button>
+          </div>`;
+        listEl.appendChild(row);
+      });
+      groupsWrap.appendChild(card);
+    }
+    renderFavorites();
+  }catch(e){
+    console.error(e);
+    groupsWrap.innerHTML = `<div class="desc">Falha ao carregar apps.json. Verifique o caminho ./apps/apps.json</div>`;
+    log('Falha ao carregar apps.json: '+(e?.message||e));
+  }
+}
+document.addEventListener('click', (e)=>{
+  const starBtn = e.target.closest('.btn.star');
+  if(!starBtn) return;
+  const key = starBtn.dataset.key;
+  const on = starBtn.getAttribute('data-on') === 'true';
+  if(on){ state.favorites.delete(key) } else { state.favorites.add(key) }
+  starBtn.setAttribute('data-on', String(!on));
+  localStorage.setItem('hub.favs', JSON.stringify([...state.favorites]));
+  renderFavorites();
+});
+function renderFavorites(){
+  favoritesList.innerHTML = '';
+  const favs = [...state.favorites];
+  favoritesWrap.classList.toggle('hide', favs.length===0);
+  if(!favs.length) return;
+  // procure nos cards renderizados
+  const all = groupsWrap.querySelectorAll('.appRow');
+  favs.forEach(k=>{
+    const row = [...all].find(r => r.querySelector('.btn.star')?.dataset.key === k);
+    if(row){
+      const clone = row.cloneNode(true);
+      clone.querySelector('.btn.star').remove(); // não duplicar toggle aqui
+      favoritesList.appendChild(clone);
+    }
+  });
+}
+/* sessions */
+const sessionsAnchor = $('#sessionsAnchor');
+const miniWrap = $('#miniWrap');
+const miniCount = $('#miniCount');
+const quickBadges = $('#quickBadges');
+
+function openSession(key,title,url,icon){
+  const id = 'S'+Date.now().toString(36);
+  const el = document.createElement('section');
+  el.className = 'session'; el.id = id;
+  el.innerHTML = `
+    <div class="sHead">
+      <img class="ico" src="${icon}" onerror="this.replaceWith(svgApps(16))" alt="" width="16" height="16"/>
+      <div class="title">${title}</div>
+      <div class="sBtns">
+        <button class="sBtn" title="Minimizar" onclick="minimizeSession('${id}')">${svgWrap('<svg width=18 height=18 viewBox=\'0 0 24 24\' fill=none stroke=currentColor stroke-width=1.6><path d=\'M5 12h14\'/></svg>').outerHTML}</button>
+        <button class="sBtn" title="Fechar" onclick="closeSession('${id}')">${svgWrap('<svg width=18 height=18 viewBox=\'0 0 24 24\' fill=none stroke=currentColor stroke-width=1.6><path d=\'M6 6 18 18\'/><path d=\'M18 6 6 18\'/></svg>').outerHTML}</button>
+      </div>
+    </div>
+    <div class="sBody"><iframe src="${url}"></iframe></div>`;
+  sessionsAnchor.prepend(el);
+  addBadge({id,title});
+  log('Sessão aberta: '+title);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function minimizeSession(id){
+  const sEl = document.getElementById(id);
+  if(!sEl) return;
+  sEl.classList.add('hide');
+  const title = sEl.querySelector('.title').textContent;
+  addBadge({id,title});
+  renderMinimized();
+  log('Sessão minimizada');
+}
+function closeSession(id){
+  const sEl = document.getElementById(id);
+  if(sEl) sEl.remove();
+  removeBadge(id);
+  renderMinimized();
+  log('Sessão fechada');
+}
+function addBadge(sess){
+  if(quickBadges.querySelector(`[data-id="${sess.id}"]`)) return;
+  const badge = document.createElement('button');
+  badge.className = 'mini';
+  badge.setAttribute('data-id', sess.id);
+  badge.innerHTML = `<span class="dot"></span> <span>${sess.title}</span>`;
+  badge.addEventListener('click', ()=>restoreSession(sess.id));
+  quickBadges.prepend(badge);
+}
+function removeBadge(id){
+  quickBadges.querySelector(`[data-id="${id}"]`)?.remove();
+}
+function renderMinimized(){
+  miniWrap.innerHTML='';
+  const minimized = [...document.querySelectorAll('.session.hide')];
+  minimized.forEach(sEl=>{
+    const t=sEl.querySelector('.title').textContent;
+    const chip=document.createElement('button');
+    chip.className='mini'; chip.innerHTML=`<span class="dot"></span> ${t}`;
+    chip.addEventListener('click',()=>restoreSession(sEl.id));
+    miniWrap.appendChild(chip);
+  });
+  miniCount.textContent = minimized.length;
+}
+
+// helper: abre URL em nova aba quando iframe é bloqueado ou quando preferir abrir fora
+function openOutside(u){
+  if(!u){
+    alert('Este app não tem URL configurada.');
+    return;
+  }
+  const win = window.open(u, '_blank', 'noopener,noreferrer');
+  if(!win){
+    alert('O navegador bloqueou o pop-up. Permita abrir nova aba.');
+  }
+}
+function restoreSession(id){
+  const sEl = document.getElementById(id);
+  if(!sEl) return;
+  sEl.classList.remove('hide');
+  renderMinimized();
+  log('Sessão reaberta');
+}
+$('#btnHome').addEventListener('click', ()=>window.scrollTo({top: sessionsAnchor.offsetTop + 1, behavior:'smooth'}));
+$('#btnApps').addEventListener('click', ()=>{
+  const y = $('#groupsWrap').getBoundingClientRect().top + window.scrollY - 80;
+  window.scrollTo({top:y,behavior:'smooth'});
+});
+$('#btnLogs').addEventListener('click', ()=>{
+  $('#brain').classList.remove('hide');
+  $('#brain').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+// ====== Chat offline de validação ======
+// Apêndice de linha ao log de chat. role = 'user' ou 'assistant'
+function chatAppend(role, text){
+  const box = document.getElementById('chatLog');
+  if(!box) return;
+  const time = new Date().toLocaleTimeString();
+  const who = role === 'user' ? 'Você' : 'Dual';
+  const line = `[${time}] ${who}: ${text}\n`;
+  box.textContent += line;
+  box.scrollTop = box.scrollHeight;
+}
+// Gera resposta offline ecoando a entrada (placeholder para integração com LLM)
+async function chatReplyOffline(prompt){
+  const reply = 'eco> ' + prompt.replace(/\s+/g,' ').trim();
+  await new Promise(r=>setTimeout(r,120));
+  return reply;
+}
+// Vincula botão e input
+{
+  const chatBtn = document.getElementById('chatSend');
+  const chatInp = document.getElementById('chatInput');
+  if(chatBtn && chatInp){
+    chatBtn.addEventListener('click', async ()=>{
+      const q = (chatInp.value||'').trim();
+      if(!q) return;
+      chatAppend('user', q);
+      chatInp.value = '';
+      const ans = await chatReplyOffline(q);
+      chatAppend('assistant', ans);
+    });
+  }
+}
+/* init */
+loadProfileUI();
+// utilize a versão robusta do loader para garantir que apps.json seja encontrado em múltiplos caminhos
+loadAppsRobust();
+log('Hub iniciado');
+</script>
+</body>
+</html>
