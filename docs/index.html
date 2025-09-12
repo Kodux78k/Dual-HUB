@@ -158,13 +158,11 @@
         background: rgba(255, 255, 255, 0.08);
       }
       /* Main content */
-      main {
+      main{
         padding-top: calc(78px + 12px);
-        padding-bottom: calc(80px + 16px);
-        width: 100%;
-        max-width: 480px;
-        margin: 0 auto;
-        position: relative;
+        /* antes: calc(80px + 16px)  → agora considera a tabbar + safe-area */
+        padding-bottom: calc(78px + 16px + env(safe-area-inset-bottom));
+        width:100%; max-width:480px; margin:0 auto; position:relative;
       }
       section {
         display: none;
@@ -202,29 +200,25 @@
         height: 28px;
       }
       /* Tab bar */
-      .tabbar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 78px;
-        padding: 6px 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
+            /* Tab bar — fix: safe-area + sem vão no fundo */
+      .tabbar{
+        position:fixed; left:0; right:0; bottom:0;
+        /* padding horizontal + safe-area no fundo */
+        padding: 6px 14px calc(6px + env(safe-area-inset-bottom));
+        z-index:100;
+        /* remove height fixa para não “empurrar” nada */
+        height:auto;
       }
-      .tabbar .container {
-        width: 100%;
-        max-width: 480px;
-        background: var(--surface);
-        border: 1px solid var(--border-color);
+      .tabbar .container{
+        width:100%; max-width:480px;
+        background:var(--surface);
+        border:1px solid var(--border-color);
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow);
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        padding: 10px 16px;
+        display:flex; justify-content:space-around; align-items:center;
+        padding:10px 16px;
+        /* garante que o conteúdo também respeite o safe-area */
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
       }
       .tab {
         flex: 1;
