@@ -1,0 +1,51 @@
+<!doctype html><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><title>Home</title><style>
+:root{
+  --font: 'Inter', 'JetBrains Mono', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --bg-a:#ff52e5; --bg-b:#00c5e5;
+  --ink:#eef3ff; --ink-weak:#a9b3c9;
+  --panel:#0d0f15cc; --panel-strong:#0d0f15f2;
+  --accent:#9d7aff; --accent-2:#39ffb6;
+  --radius:22px;
+  --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font:500 16px/1.4 var(--font);
+  color:var(--ink);
+  background: radial-gradient(120% 120% at 0% 0%, var(--bg-a), transparent 50%),
+              radial-gradient(120% 120% at 100% 0%, var(--bg-b), #0b0e14 60%);
+}
+.app{min-height:100%; display:flex; flex-direction:column; gap:12px; padding:clamp(12px,2vh,20px)}
+.header{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-radius:22px; background:var(--panel-strong); box-shadow:var(--shadow)}
+.hrow{display:flex; align-items:center; gap:10px}
+.title{font-weight:800; letter-spacing:.4px; font-size:20px}
+.badge{font-size:12px; color:var(--ink-weak); padding:3px 8px; border-radius:999px; background:#ffffff14}
+.icon{display:inline-flex; width:22px; height:22px}
+.icon>img{width:100%; height:100%; filter:invert(99%) sepia(2%) saturate(232%) hue-rotate(180deg) brightness(105%) contrast(98%)}
+.panel{background:var(--panel); border-radius:22px; box-shadow:var(--shadow); padding:14px; backdrop-filter: blur(10px)}
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+.appcard{background:#ffffff10; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center}
+.appcard .icon{width:28px;height:28px}
+.nav{position:sticky; bottom:0; margin-top:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.tab{background:var(--panel-strong); border-radius:18px; text-align:center; padding:10px 6px}
+.tab .icon{width:20px;height:20px; display:block; margin:0 auto 4px}
+.btn{appearance:none; border:none; color:var(--ink); background:#ffffff10; padding:12px 14px; border-radius:14px; width:100%}
+.select{appearance:none; border:none; color:var(--ink); background:#ffffff10; padding:12px 14px; border-radius:14px; width:100%}
+.toggle{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.toggle input{appearance:none; width:44px; height:24px; background:#ffffff24; border-radius:999px; position:relative}
+.toggle input:checked{background:linear-gradient(90deg, var(--accent), var(--accent-2))}
+.toggle input::after{content:''; position:absolute; width:18px; height:18px; top:3px; left:3px; border-radius:50%; background:#fff; transition:.2s}
+.toggle input:checked::after{left:23px}
+.viewer{position:fixed; inset:0; display:none; flex-direction:column; padding:14px}
+.viewer.show{display:flex}
+.vhead{display:flex; align-items:center; justify-content:space-between; background:var(--panel-strong); border-radius:18px; padding:10px 12px; box-shadow:var(--shadow)}
+.vbody{flex:1; margin-top:10px; background:#00000055; border-radius:18px; overflow:hidden}
+.vbody iframe{border:0; width:100%; height:100%; background:#0b0e14}
+.minibadge{position:fixed; right:14px; bottom:88px; background:linear-gradient(180deg,#ffffff26,#00000040); color:var(--ink); padding:10px 12px; border-radius:999px; display:none; backdrop-filter:blur(8px); box-shadow:var(--shadow)}
+.minibadge.show{display:flex; align-items:center; gap:8px}
+.loader{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#00000060}
+.loader.show{display:flex}
+.spinner{width:44px; height:44px; border:3px solid #ffffff30; border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style><div class='app'><div class='header'><div class='hrow'><span class='icon'><img src='../icons/others/home.svg'></span><div class='title'>Home</div></div></div><div class='panel'>Home demo</div></div>
