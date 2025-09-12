@@ -1,563 +1,316 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Hub Dual — Nebula Pro (refinado)</title>
-<style>
-  /*
-    Nebula Pro refinado
-    Esta folha de estilo tenta capturar o visual de referência fornecido: 
-    gradiente roxo→ciano, superfícies glassy escuras, sombras suaves e bordas amplas. 
-    O layout é mobile-first retrato, com um cabeçalho integrado ao fundo, 
-    um menu "cérebro" suspenso abaixo do avatar e uma barra de navegação inferior com três tabs.
-  */
-  :root {
-    /* Gradiente principal do pano de fundo */
-    --grad-a: #ff52e5;
-    --grad-b: #00c5e5;
-    /* Cores de texto */
-    --text: #f5f7ff;
-    --muted: rgba(245,247,255,0.65);
-    /* Vidro e bordas */
-    --surface: rgba(15,17,32,0.45);
-    --surface-strong: rgba(15,17,32,0.85);
-    --border: 1px solid rgba(255,255,255,0.1);
-    --radius: 24px;
-    --radius-lg: 28px;
-    /* Sombra suave */
-    --shadow: 0 10px 30px rgba(0,0,0,0.35);
-  }
-  * { box-sizing: border-box; }
-  html,body { height:100%; margin:0; }
-  body {
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: linear-gradient(42deg,var(--grad-a) 0%,var(--grad-b) 100%) fixed;
-    color: var(--text);
-    overflow-x: hidden;
-    overscroll-behavior-y: contain;
-  }
-  /* Cabeçalho superior integrado */
-  .masthead {
-    position: fixed;
-    top: env(safe-area-inset-top,0);
-    left: 0;
-    right: 0;
-    height: 78px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    backdrop-filter: blur(16px) saturate(120%);
-    /* sem cor de fundo extra; o gradiente de fundo aparece por baixo */
-    z-index: 100;
-  }
-  .masthead .title-block {
-    text-align: center;
-    flex: 1;
-    line-height: 1.1;
-  }
-  .masthead h1 {
-    margin:0;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-  }
-  .masthead small {
-    display:block;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-  .icon-btn {
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    background: var(--surface);
-    border: var(--border);
-    box-shadow: var(--shadow);
-    color: var(--text);
-    cursor:pointer;
-    transition: background .15s ease;
-  }
-  .icon-btn:active { transform: scale(0.96); }
-  .icon-btn:hover { background: rgba(255,255,255,0.08); }
-  /* Menu suspenso do cérebro */
-  .brain-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    width: min(92vw, 340px);
-    padding: 12px;
-    background: var(--surface-strong);
-    border: var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    display:none;
-    z-index: 99;
-  }
-  .brain-menu.open { display:block; animation: appear .18s ease-out forwards; }
-  @keyframes appear { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform:none; } }
-  .brain-menu h3 {
-    margin:4px 0 10px;
-    font-size:16px;
-    font-weight:800;
-    letter-spacing:0.05em;
-  }
-  .brain-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
-  .brain-item {
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:10px 12px;
-    border-radius:18px;
-    background: rgba(255,255,255,0.05);
-    border: var(--border);
-    cursor:pointer;
-  }
-  .brain-item svg { width:22px; height:22px; flex-shrink:0; }
-  .brain-item span { flex:1; font-weight:600; font-size:14px; }
-  .brain-item small { font-size:12px; color: var(--muted); }
-  .brain-item:hover { background: rgba(255,255,255,0.08); }
-  /* Conteúdo principal */
-  main {
-    padding-top: calc(78px + env(safe-area-inset-top,0) + 12px);
-    padding-bottom: calc(80px + env(safe-area-inset-bottom,0) + 16px);
-    width:100%;
-    max-width:480px;
-    margin:0 auto;
-    position: relative;
-    min-height:100vh;
-  }
-  section { display:none; }
-  section.active { display:block; }
-  /* Home page list */
-  .home-list {
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-    margin:0 16px;
-  }
-  .home-item {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:14px 18px;
-    background: var(--surface);
-    border: var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    cursor:pointer;
-  }
-  .home-item .left {
-    display:flex;
-    align-items:center;
-    gap:14px;
-  }
-  .home-item .left svg { width:26px; height:26px; }
-  .home-item .name { font-weight:700; font-size:16px; }
-  .home-item .tag {
-    font-size:12px;
-    color: var(--muted);
-    margin-left:4px;
-  }
-  .home-item .right {
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .bubble {
-    font-size:12px;
-    background: #a66fff;
-    color:#fff;
-    border-radius:999px;
-    padding:3px 8px;
-    font-weight:700;
-  }
-  /* Apps grid */
-  .apps-grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px,1fr));
-    gap:14px;
-    padding:0 16px;
-  }
-  .app-icon {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    background: var(--surface);
-    border: var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    height:84px;
-    cursor:pointer;
-  }
-  .app-icon span { margin-top:6px; font-size:12px; font-weight:600; color: var(--muted); }
-  .app-icon svg { width:28px; height:28px; }
-  /* Stack cards */
-  .stack-list { display:flex; flex-direction:column; gap:16px; padding:0 16px; }
-  .stack-card {
-    position:relative;
-    background: var(--surface);
-    border: var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding:18px;
-    min-height:120px;
-  }
-  .stack-card h2 {
-    margin:0 0 4px; font-size:20px; font-weight:800;
-  }
-  .stack-card .tools {
-    position:absolute;
-    top:14px;
-    right:14px;
-    display:flex;
-    gap:8px;
-  }
-  .stack-card .tools .icon-btn { width:36px; height:36px; border-radius:12px; box-shadow:none; }
-  .stack-card .badge {
-    position:absolute;
-    right:14px;
-    bottom:14px;
-    font-size:12px;
-    padding:4px 10px;
-    border-radius:999px;
-    background: rgba(166,111,255,0.8);
-    border: var(--border);
-  }
-  /* Botão de atualização no stack */
-  .update-section {
-    margin:24px 16px;
-    text-align:center;
-  }
-  .update-btn {
-    display:inline-block;
-    padding:12px 32px;
-    border-radius: var(--radius);
-    background: linear-gradient(90deg,#a66fff,#6db4ff);
-    border:none;
-    box-shadow: var(--shadow);
-    color:#0a0d1f;
-    font-weight:800;
-    font-size:14px;
-    cursor:pointer;
-    transition: transform .1s ease;
-  }
-  .update-btn:active { transform: scale(0.97); }
-  /* Barra de navegação inferior */
-  .tabbar {
-    position: fixed;
-    bottom: env(safe-area-inset-bottom,0);
-    left:0;
-    right:0;
-    height:78px;
-    padding: 6px 14px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    pointer-events:auto;
-    z-index: 100;
-  }
-  .tabbar .container {
-    width:100%;
-    max-width:480px;
-    background: var(--surface);
-    border: var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-    padding: 10px 16px;
-  }
-  .tab {
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    color: var(--muted);
-    font-size:11px;
-    font-weight:700;
-    cursor:pointer;
-    padding:6px;
-    border-radius:14px;
-    transition: background .15s ease, color .15s ease;
-  }
-  .tab.active {
-    color: var(--text);
-    background: rgba(255,255,255,0.08);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
-  }
-  .tab svg { width:22px; height:22px; }
-  /* Linha de ações rápidas */
-  .quick-actions {
-    position: fixed;
-    bottom: calc(env(safe-area-inset-bottom,0) + 86px);
-    right:16px;
-    display:flex;
-    gap:12px;
-    z-index:99;
-  }
-  .quick-actions .small-btn {
-    width:44px; height:44px;
-    border-radius:50%;
-    display:grid; place-items:center;
-    background: var(--surface);
-    border: var(--border);
-    box-shadow: var(--shadow);
-    cursor:pointer;
-    transition: background .15s ease;
-  }
-  .quick-actions .small-btn:hover { background: rgba(255,255,255,0.08); }
-  /* Transições suaves para seções */
-  @media (prefers-reduced-motion: no-preference) {
-    section { transition: opacity .2s ease, transform .2s ease; }
-    section.inactive { opacity:0; transform: translateX(6px); }
-  }
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Infodose Hub Ultra — Revo</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0b0b0b" id="metaThemeColor">
+  <link rel="apple-touch-startup-image" href="splash-1242x2688.png"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <style>
+    :root {
+      --fg:#fff;
+      --muted:#a7c1cc;
+      --acc:#E7C65A;
+      --stroke:rgba(255,235,180,.30);
+      --stroke-soft:rgba(255,235,180,.16);
+      --blur:22px;
+      --radius:18px;
+      --radius-lg:22px;
+      --dock-space:84px;
+      --header-h:72px;
+    }
+
+    html,body{height:100%;margin:0}
+    html{background: linear-gradient(42deg, #f0f, #0ff)}
+    body{
+      color:var(--fg);
+      font-family:ui-rounded,system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial;
+      background: linear-gradient(42deg, #f0f, #0ff);
+      min-height:100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Header */
+    .header {
+      position:sticky;
+      top:0;
+      z-index:100;
+      backdrop-filter:blur(var(--blur)) saturate(150%);
+      background:rgba(0,0,0,.4);
+      border-bottom:1px solid var(--stroke);
+      box-shadow:0 12px 34px rgba(0,0,0,.42);
+      padding-top:env(safe-area-inset-top);
+    }
+    .inner {
+      max-width:980px;margin:0 auto;padding:14px;
+      display:flex;gap:14px;align-items:center;
+    }
+    .logo {width:46px;height:46px;border-radius:50%;display:inline-grid;place-items:center;position:relative;background:rgba(0,0,0,.25)}
+    .ring{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;animation:spin 6s linear infinite}
+    .bar{position:absolute;left:50%;top:50%;width:60%;height:2px;background:var(--acc);transform:translate(-50%,-50%);border-radius:999px;animation:breathe 2.4s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
+    h1{font-size:1.2rem;margin:.12rem 0 0;font-weight:800}
+    .kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
+
+    /* Grid/cards */
+    .grid{max-width:980px;margin:18px auto 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:0 14px;
+      padding-bottom:calc(var(--dock-space) + env(safe-area-inset-bottom) + 12px)}
+    @media(max-width:560px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(0,0,0,.3);border:1px solid var(--stroke-soft);border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+    .icon{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft)}
+    .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.72rem 1.05rem;border-radius:999px;font-weight:700}
+
+    /* Bottom Dock — stays ABOVE any iframe */
+    .dock{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:block}
+    .dock-inner{
+      max-width:980px;margin:0 auto;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+      display:flex;gap:8px;justify-content:space-between;align-items:center;
+      backdrop-filter:blur(18px) saturate(140%);
+      background:rgba(0,0,0,.45);
+      border-top:1px solid var(--stroke);
+      box-shadow:0 -10px 30px rgba(0,0,0,.45);
+    }
+    .dbtn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
+    .dbtn.small{padding:.5rem .7rem;font-size:.9rem}
+
+    footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0;opacity:.9}
+
+    /* REVO viewer (iframe overlay UNDER the dock) */
+    .viewer{
+      position:fixed;left:0;right:0;z-index:900;
+      /* dynamic top/bottom set via JS to respect header and dock */
+      background:rgba(0,0,0,.18);
+      backdrop-filter: blur(6px);
+      box-shadow:0 -10px 30px rgba(0,0,0,.35) inset;
+      border-top:1px solid var(--stroke-soft);
+      display:none; /* hidden by default */
+    }
+    .viewer.active{display:block}
+    .viewer-head{
+      position:sticky;top:0;z-index:1;
+      display:flex;gap:8px;align-items:center;justify-content:space-between;
+      padding:8px 10px;
+      background:rgba(0,0,0,.55);
+      border-bottom:1px solid var(--stroke);
+      backdrop-filter: blur(10px) saturate(140%);
+    }
+    .viewer-title{font-weight:800}
+    .viewer-actions{display:flex;gap:8px;align-items:center}
+    .viewer-iframe{
+      display:block;width:100%;height:100%;
+      border:0;outline:0;background:#0b0b0b;
+      -webkit-overflow-scrolling: touch;
+      transform: translateZ(0); /* iOS z-index fix */
+    }
+    .reopen{
+      position:fixed;right:12px;bottom:calc(var(--dock-space) + env(safe-area-inset-bottom) + 12px);
+      z-index:950;display:none;
+    }
+    .reopen.active{display:block}
+  </style>
 </head>
 <body>
-  <!-- Cabeçalho principal -->
-  <header class="masthead">
-    <button class="icon-btn" id="backBtn" aria-label="Voltar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-    </button>
-    <div class="title-block">
-      <h1>HUB DUAL</h1>
-      <small>UNO Dual Trinity</small>
-    </div>
-    <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Dual Brain">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21a8 8 0 1 0-16 0" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    </button>
-    <!-- Menu de opções do cérebro -->
-    <div class="brain-menu" id="brainMenu">
-      <h3>Brain</h3>
-      <ul class="brain-list">
-        <li class="brain-item" onclick="exportBackup()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-          <span>Download</span>
-        </li>
-        <li class="brain-item" onclick="promptKey()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2" /><path d="M7.5 13.5L2 19v3h3l5.5-5.5" /><circle cx="16" cy="8" r="5" /></svg>
-          <span>SK Key</span>
-        </li>
-        <li class="brain-item" onclick="toast('Teste TTS')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg>
-          <span>TTS Voices</span>
-        </li>
-        <li class="brain-item" onclick="clearLogs()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18" /><path d="M3 8h18" /><path d="M3 13h18" /><path d="M3 18h18" /></svg>
-          <span>Logs</span>
-        </li>
-      </ul>
+  <header class="header" id="mainHeader">
+    <div class="inner">
+      <span class="logo" aria-hidden="true">
+        <span class="ring"></span><span class="bar"></span>
+      </span>
+      <div style="flex:1">
+        <div class="kicker">Infodose • Hub Principal</div>
+        <h1>Infodose Hub Ultra</h1>
+      </div>
+      <nav aria-label="Instalar">
+        <button class="btn" id="btnInstall" type="button">⬇️ Instalar</button>
+      </nav>
     </div>
   </header>
-  <!-- Ações rápidas (pequenos botões flutuantes) -->
-  <div class="quick-actions">
-    <button class="small-btn" onclick="toast('Atalho 1')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-    </button>
-    <button class="small-btn" onclick="toast('Atalho 2')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4z" /><line x1="7" y1="7" x2="17" y2="17" /><line x1="17" y1="7" x2="7" y2="17" /></svg>
-    </button>
-  </div>
-  <!-- Conteúdo principal -->
-  <main>
-    <section id="page-home" class="active">
-      <div class="home-list">
-        <div class="home-item" onclick="go('apps')">
-          <div class="left">
-            <!-- Home item icon (apps) -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /></svg>
-            <span class="name">Apps</span>
-          </div>
-          <div class="right">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
-          </div>
-        </div>
-        <div class="home-item" onclick="go('stack')">
-          <div class="left">
-            <!-- Icon for stack / sessions -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" /><path d="M3 13l9 4.5 9-4.5" /></svg>
-            <span class="name">Stack</span>
-          </div>
-          <div class="right">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
-          </div>
-        </div>
-        <div class="home-item" onclick="toast('Minimized')">
-          <div class="left">
-            <!-- Icon for minimized -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18" /></svg>
-            <span class="name">Minimized</span>
-          </div>
-          <div class="right">
-            <span class="bubble">1</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- Apps: grid de aplicativos -->
-    <section id="page-apps">
-      <div class="apps-grid">
-        <div class="app-icon" onclick="toast('Chat')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-3.3 6.7 8.5 8.5 0 0 1-9.4 0 8.38 8.38 0 0 1-3.3-6.7V5.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" /><polyline points="9 13 12 10 15 13" /></svg>
-          <span>Chat</span>
-        </div>
-        <div class="app-icon" onclick="toast('Editor')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="4 4 20 4 20 20 4 20" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
-          <span>Editor</span>
-        </div>
-        <div class="app-icon" onclick="toast('Books')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" /><path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15" /></svg>
-          <span>Books</span>
-        </div>
-        <div class="app-icon" onclick="toast('Player')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-          <span>KOBLOX</span>
-        </div>
-      </div>
-    </section>
-    <!-- Stack: lista de apps abertos -->
-    <section id="page-stack">
-      <div class="stack-list">
-        <div class="stack-card">
-          <h2>App 1</h2>
-          <div class="tools">
-            <button class="icon-btn" title="Minimizar" onclick="toast('App 1 minimizado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
-            </button>
-            <button class="icon-btn" title="Recarregar" onclick="toast('Recarregado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0 0 20.49 15" /></svg>
-            </button>
-            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-          </div>
-        </div>
-        <div class="stack-card">
-          <h2>App 2</h2>
-          <div class="tools">
-            <button class="icon-btn" title="Minimizar" onclick="toast('Minimizado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
-            </button>
-            <button class="icon-btn" title="Mais" onclick="toast('Mais')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /><circle cx="5" cy="12" r="1.5" /></svg>
-            </button>
-            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-          </div>
-          <div class="badge">Minimized</div>
-        </div>
-        <div class="stack-card">
-          <h2>App 3</h2>
-          <div class="tools">
-            <button class="icon-btn" title="Minimizar" onclick="toast('Minimizado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
-            </button>
-            <button class="icon-btn" title="Mais" onclick="toast('Mais')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /><circle cx="5" cy="12" r="1.5" /></svg>
-            </button>
-            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-          </div>
-          <div class="badge" style="left:14px;">◀ • ▶</div>
-        </div>
-      </div>
-      <div class="update-section">
-        <button class="update-btn" onclick="toast('Update')">Update</button>
-      </div>
-    </section>
-  </main>
-  <!-- Barra de navegação inferior -->
-  <footer class="tabbar">
-    <div class="container">
-      <div class="tab" id="tab-home" onclick="go('home')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9" /><path d="M9 21V9h6v12" /></svg>
-        <span>Home</span>
-      </div>
-      <div class="tab" id="tab-apps" onclick="go('apps')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /></svg>
-        <span>Apps</span>
-      </div>
-      <div class="tab" id="tab-stack" onclick="go('stack')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" /><path d="M3 13l9 4.5 9-4.5" /></svg>
-        <span>Stack</span>
+
+  <main class="grid" id="cards" aria-live="polite"></main>
+  <footer>Infodose Hub Ultra • PWA</footer>
+
+  <!-- REVO: iframe viewer overlay (sits UNDER the dock) -->
+  <section class="viewer" id="revo">
+    <div class="viewer-head">
+      <div class="viewer-title" id="revoTitle">Revo</div>
+      <div class="viewer-actions">
+        <button class="dbtn small" id="revoBack" type="button">← Hub</button>
+        <button class="dbtn small" id="revoMin" type="button">— Minimizar</button>
+        <a class="dbtn small" id="revoOpen" target="_blank" rel="noopener">↗ Abrir</a>
       </div>
     </div>
-  </footer>
+    <iframe id="revoFrame" class="viewer-iframe" sandbox="allow-scripts allow-forms allow-modals allow-same-origin allow-popups allow-downloads" referrerpolicy="no-referrer"></iframe>
+  </section>
+  <button class="dbtn reopen" id="btnReopen">◐ Reabrir App</button>
+
+  <!-- Bottom dock -->
+  <div class="dock" role="navigation" aria-label="Dock">
+    <div class="dock-inner">
+      <div style="display:flex;gap:8px">
+        <button class="dbtn" id="dockHome" type="button">Home</button>
+        <button class="dbtn" id="dockInfodose" type="button">Infodose</button>
+        <button class="dbtn" id="dockInstall" type="button">Instalar</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input id="localHtmlInput" type="file" accept=".html,.htm,text/html" hidden>
+        <button class="dbtn" id="btnLocalOpen" type="button">📁 Abrir HTML Local</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Roteamento e navegação
-    function go(target) {
-      // Fechar o menu do cérebro
-      document.getElementById('brainMenu').classList.remove('open');
-      document.getElementById('brainBtn').setAttribute('aria-expanded','false');
-      // Atualiza seção
-      ['home','apps','stack'].forEach(function(page){
-        var sec = document.getElementById('page-' + page);
-        if(sec) sec.classList.remove('active');
-        var tab = document.getElementById('tab-' + page);
-        if(tab) tab.classList.remove('active');
+  const $ = (q,root=document) => root.querySelector(q);
+
+  // Revo geometry: keeps dock visible on top and header space at top
+  function fitRevo(){
+    const header = $('#mainHeader');
+    const revo   = $('#revo');
+    const rect   = header.getBoundingClientRect();
+    const headerH = rect.height;
+    document.documentElement.style.setProperty('--header-h', headerH + 'px');
+    // Respect safe-areas and leave space for dock
+    const bottomSpace = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dock-space')) || 84;
+    revo.style.top = headerH + 'px';
+    revo.style.bottom = 'calc(' + bottomSpace + 'px + env(safe-area-inset-bottom))';
+  }
+  window.addEventListener('resize', fitRevo);
+  window.addEventListener('orientationchange', fitRevo);
+
+  // Load cards from apps.json but open inside Revo (iframe), not a new tab
+  async function loadApps(){
+    try{
+      const res  = await fetch('./apps/apps.json', {cache:'no-store'});
+      const data = await res.json();
+      const root = $('#cards');
+      root.innerHTML='';
+      (data.apps || []).forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const icon = app.icon || 'icons/icon-192.png';
+        const title = app.title || app.key || 'App';
+        const desc  = app.desc || '';
+        const url   = app.url;
+        const onclick = url ? `openInRevo('${encodeURI(url)}','${(title+'').replace(/'/g,"\\'")}')` : '';
+        card.innerHTML = `
+          <div class="icon">
+            <img src="${icon}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>
+          </div>
+          <div style="flex:1">
+            <div class="title" style="font-weight:800">${title}</div>
+            <div class="muted" style="opacity:.9">${desc}</div>
+            <div class="row" style="margin-top:8px">
+              <button class="btn" type="button" ${onclick ? `onclick="${onclick}"` : 'disabled'}>Abrir</button>
+            </div>
+          </div>`;
+        root.appendChild(card);
       });
-      var newSec = document.getElementById('page-' + target);
-      if(newSec) newSec.classList.add('active');
-      var newTab = document.getElementById('tab-' + target);
-      if(newTab) newTab.classList.add('active');
+    } catch(e) {
+      $('#cards').innerHTML =
+        '<div class="card">' +
+        '<div class="icon">⚠️</div>' +
+        '<div><div class="title" style="font-weight:800">Falha ao carregar</div><div class="muted">' +
+        'apps/apps.json não encontrado.' +
+        '</div></div></div>';
     }
-    // Menu do cérebro toggle
-    var brainBtn = document.getElementById('brainBtn');
-    var brainMenu = document.getElementById('brainMenu');
-    brainBtn.addEventListener('click', function(e) {
-      var isOpen = brainMenu.classList.toggle('open');
-      brainBtn.setAttribute('aria-expanded', String(isOpen));
-      e.stopPropagation();
+  }
+  loadApps();
+
+  // REVO controls
+  let currentObjectURL = null;
+  function openInRevo(url, title='App'){
+    fitRevo();
+    const frame = $('#revoFrame');
+    const v = $('#revo');
+    const t = $('#revoTitle');
+    const openA = $('#revoOpen');
+    t.textContent = title;
+    frame.src = url;
+    openA.href = url;
+    v.classList.add('active');
+    $('#btnReopen').classList.remove('active');
+    // Prevent body scroll when viewer is open (better iOS behavior)
+    document.body.style.overflow = 'hidden';
+  }
+  function closeRevo(){
+    const frame = $('#revoFrame');
+    const v = $('#revo');
+    v.classList.remove('active');
+    // revoke previous object URL from local uploads
+    if(currentObjectURL){
+      URL.revokeObjectURL(currentObjectURL);
+      currentObjectURL = null;
+    }
+    frame.src = 'about:blank';
+    document.body.style.overflow = '';
+  }
+  function minRevo(){
+    $('#revo').classList.remove('active');
+    $('#btnReopen').classList.add('active');
+    document.body.style.overflow = '';
+  }
+  $('#revoBack').addEventListener('click', closeRevo);
+  $('#revoMin').addEventListener('click', minRevo);
+  $('#btnReopen').addEventListener('click', () => {
+    $('#btnReopen').classList.remove('active');
+    $('#revo').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+
+  // Dock actions
+  $('#dockHome').addEventListener('click', () => {
+    closeRevo();
+    window.scrollTo({top:0, behavior:'smooth'});
+    history.pushState('', document.title, window.location.pathname + window.location.search);
+  });
+  $('#dockInfodose').addEventListener('click', () => {
+    openInRevo('https://infodose.com.br','Infodose');
+  });
+
+  // PWA install
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     });
-    document.addEventListener('click', function(e) {
-      if(!brainMenu.contains(e.target) && e.target !== brainBtn){
-        brainMenu.classList.remove('open');
-        brainBtn.setAttribute('aria-expanded','false');
-      }
-    });
-    // Placeholder helpers
-    function toast(msg) { console.log(msg); }
-    function exportBackup() {
-      const data = { when: Date.now(), storage: localStorage };
-      const blob = new Blob([JSON.stringify(data,null,2)], { type:'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'dual.backup.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('Backup exportado');
+  }
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+  async function doInstall(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    } else {
+      alert('Use “Adicionar à Tela de Início”.');
     }
-    function promptKey() {
-      const key = prompt('Cole sua SK (será salva localmente)');
-      if(key) {
-        localStorage.setItem('dual.keys.openrouter', key);
-        toast('Chave armazenada');
-      }
-    }
-    function clearLogs() {
-      console.clear();
-      toast('Logs limpos');
-    }
-    // Ajuste do botão voltar: apenas demonstração
-    document.getElementById('backBtn').addEventListener('click', function(){ history.back(); });
+  }
+  $('#btnInstall').addEventListener('click', doInstall);
+  $('#dockInstall').addEventListener('click', doInstall);
+
+  // Local HTML upload → open in Revo
+  const inputLocal = $('#localHtmlInput');
+  $('#btnLocalOpen').addEventListener('click', () => inputLocal.click());
+  inputLocal.addEventListener('change', (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    if(!f) return;
+    // revoke any previous object URL
+    if(currentObjectURL) URL.revokeObjectURL(currentObjectURL);
+    currentObjectURL = URL.createObjectURL(f);
+    openInRevo(currentObjectURL, f.name || 'HTML Local');
+    // reset input so same file can be picked again later
+    inputLocal.value = '';
+  });
+
+  // First layout
+  fitRevo();
   </script>
 </body>
 </html>
