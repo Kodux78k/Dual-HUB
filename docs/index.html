@@ -1,248 +1,167 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
+<head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<link rel="manifest" href="./manifest.json"/>
-<title>Dual Hub — Nebula Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>HUB Dual — Variante B</title>
+<link rel="icon" href="icons/others/favicon.svg" type="image/svg+xml"/>
+<meta name="theme-color" content="#00ffff"/>
 <style>
-  /*
-    Dual Hub – Nebula Pro
-
-    A simple progressive web‑app launcher. Apps are read from
-    the JSON file at ./apps/apps.json and rendered as cards on
-    the home page. Clicking a card will either embed the page in
-    an iframe or open it in a new tab depending on the user’s
-    preference. The current app and its state are persisted in
-    localStorage under the key “dual.stack”. User preferences
-    (selected model and default open mode) are persisted under
-    “dual.brain.pref”.
-
-    Styles are inspired by the Nebula Pro aesthetic: soft
-    gradients for the background, rounded panels, subtle glass
-    effects and pastel accent colours. See the other HTML files
-    in this package for examples of how to build pages to match
-    this look and feel.
-  */
   :root{
-    --font: 'Inter', 'JetBrains Mono', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --bg-a:#ff52e5; --bg-b:#00c5e5;
-    --ink:#eef3ff; --ink-weak:#a9b3c9;
-    --panel:#0d0f15cc; --panel-strong:#0d0f15f2;
-    --accent:#9d7aff; --accent-2:#39ffb6;
-    --radius:22px;
-    --shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    --bg1:#f03bff; --bg2:#14f0ff;
+    --ink:#f4f7ff; --ink-muted:#a9bdd9; --edge:#ffffff18;
+    --h:84px; --f:72px; --radius:30px; --pad:16px; --blur:18px;
+    --shadow:0 18px 38px rgba(0,0,0,.40);
   }
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; margin:0; }
+  *{box-sizing:border-box}
   body{
-    font:500 16px/1.4 var(--font);
-    color:var(--ink);
-    background: radial-gradient(120% 120% at 0% 0%, var(--bg-a), transparent 50%),
-                radial-gradient(120% 120% at 100% 0%, var(--bg-b), #0b0e14 60%);
+    margin:0; font:400 15px/1.45 ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial; color:var(--ink);
+    background:
+      radial-gradient(1100px 1000px at 8% -10%, #ff6bff33, transparent 60%),
+      radial-gradient(1100px 1000px at 110% 110%, #6bffff33, transparent 60%),
+      linear-gradient(42deg,var(--bg1),var(--bg2)); background-attachment:fixed;
   }
-  a{ color:inherit; text-decoration:none; }
-
-  .app{ min-height:100%; display:flex; flex-direction:column; gap:12px; padding:clamp(12px,2vh,20px); }
-  .header{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-radius:var(--radius); background:var(--panel-strong); box-shadow:var(--shadow); }
-  .hrow{ display:flex; align-items:center; gap:10px; }
-  .title{ font-weight:800; letter-spacing:.4px; font-size:20px; }
-  .badge{ font-size:12px; color:var(--ink-weak); padding:3px 8px; border-radius:999px; background:#ffffff14; }
-  .icon{ display:inline-flex; width:22px; height:22px; }
-  .icon>img{ width:100%; height:100%; filter:invert(99%) sepia(2%) saturate(232%) hue-rotate(180deg) brightness(105%) contrast(98%); }
-  .panel{ background:var(--panel); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; backdrop-filter: blur(10px); }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; }
-  .appcard{ background:#ffffff10; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center; transition:transform .15s ease; cursor:pointer; }
-  .appcard:hover{ transform:scale(1.05); }
-  .appcard .icon{ width:32px; height:32px; }
-  .nav{ position:sticky; bottom:0; margin-top:auto; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .tab{ background:var(--panel-strong); border-radius:18px; text-align:center; padding:10px 6px; display:block; }
-  .tab .icon{ width:20px; height:20px; display:block; margin:0 auto 4px; }
-  .btn{ appearance:none; border:none; color:var(--ink); background:#ffffff10; padding:12px 14px; border-radius:14px; width:100%; cursor:pointer; }
-  .select{ appearance:none; border:none; color:var(--ink); background:#ffffff10; padding:12px 14px; border-radius:14px; width:100%; }
-  .toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
-  .toggle input{ appearance:none; width:44px; height:24px; background:#ffffff24; border-radius:999px; position:relative; cursor:pointer; }
-  .toggle input:checked{ background:linear-gradient(90deg, var(--accent), var(--accent-2)); }
-  .toggle input::after{ content:''; position:absolute; width:18px; height:18px; top:3px; left:3px; border-radius:50%; background:#fff; transition:.2s; }
-  .toggle input:checked::after{ left:23px; }
-  .viewer{ position:fixed; inset:0; display:none; flex-direction:column; padding:14px; z-index:1000; }
-  .viewer.show{ display:flex; }
-  .vhead{ display:flex; align-items:center; justify-content:space-between; background:var(--panel-strong); border-radius:18px; padding:10px 12px; box-shadow:var(--shadow); }
-  .vbody{ flex:1; margin-top:10px; background:#00000055; border-radius:18px; overflow:hidden; }
-  .vbody iframe{ border:0; width:100%; height:100%; background:#0b0e14; }
-  .minibadge{ position:fixed; right:14px; bottom:88px; background:linear-gradient(180deg,#ffffff26,#00000040); color:var(--ink); padding:10px 12px; border-radius:999px; display:none; align-items:center; gap:8px; backdrop-filter:blur(8px); box-shadow:var(--shadow); z-index:1001; }
-  .minibadge.show{ display:flex; }
-  .loader{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:#00000060; z-index:1002; }
-  .loader.show{ display:flex; }
-  .spinner{ width:44px; height:44px; border:3px solid #ffffff30; border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .glass{background:#0a0a12ee; border:1px solid var(--edge); backdrop-filter:blur(var(--blur))}
+  header{position:fixed; inset:0 0 auto 0; height:var(--h); padding:0 var(--pad); z-index:30; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--edge); box-shadow:var(--shadow); border-bottom-left-radius:18px; border-bottom-right-radius:18px}
+  .title{font-weight:900; font-size:34px; letter-spacing:.2px}
+  .grow{flex:1}
+  .pill{width:44px;height:44px;border-radius:16px;border:1px solid var(--edge);display:grid;place-content:center;background:#0e0e18cc;cursor:pointer}
+  main{padding:calc(var(--h) + 16px) 14px calc(var(--f) + 16px)}
+  .card{border-radius:24px;padding:14px;border:1px solid var(--edge);background:#0b0b15e6;box-shadow:var(--shadow)}
+  .muted{color:var(--ink-muted)}
+  .divider{height:1px;background:var(--edge);margin:12px 0}
+  .appsGrid{display:grid;gap:12px}
+  .appRow{display:flex;gap:14px;align-items:center;border:1px solid var(--edge);background:#0a0a14f2;border-radius:20px;padding:12px}
+  .appRow img{width:36px;height:36px;border-radius:12px;border:1px solid var(--edge);background:#080812}
+  .btn{border:1px solid var(--edge);background:#0e0e1acc;color:var(--ink);padding:9px 13px;border-radius:14px;cursor:pointer;font-size:13px}
+  .btn.pri{background:linear-gradient(42deg,#52f3ffcc,#d19affcc)}
+  .btn.star[data-on="true"]{background:linear-gradient(42deg,#ffd36ecc,#ff8f6ecc);color:#2c1200}
+  .session{margin:16px 0;border-radius:26px;border:1px solid var(--edge);overflow:hidden;background:#090912f2;box-shadow:var(--shadow)}
+  .sHead{display:flex;gap:12px;align-items:center;padding:12px;background:#0b0b16e8}
+  .sBtns{display:flex;gap:9px;margin-left:auto}
+  .sBtn{width:36px;height:36px;border-radius:12px;border:1px solid var(--edge);background:#0f0f1bcc;display:grid;place-content:center;cursor:pointer}
+  .sBody{height:460px;border-top:1px solid var(--edge);background:#07070e}
+  .sBody iframe{width:100%;height:100%;border:0}
+  footer{position:fixed; inset:auto 0 0 0; height:var(--f); padding:10px 14px; z-index:32; display:flex; align-items:center; gap:12px; border-top:1px solid var(--edge); box-shadow:var(--shadow)}
+  .iconbtn{width:40px;height:40px;border-radius:14px;border:1px solid var(--edge);display:grid;place-content:center;background:#0e0e19cc;cursor:pointer}
+  .quick{flex:1;display:flex;gap:10px;overflow:auto;scrollbar-width:none}
+  .quick::-webkit-scrollbar{display:none}
+  .mini{display:inline-flex;gap:8px;align-items:center;background:#0e0e19cc;border:1px solid var(--edge);border-radius:999px;padding:7px 11px}
+  .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(42deg,#7ff,#f9f);box-shadow:0 0 12px #7ff}
+  #brain{position:fixed; top:calc(var(--h) + 12px); right:14px; width:min(92vw,440px); z-index:40}
+  .popover{border-radius:24px;padding:12px;background:#0a0a13f2;border:1px solid var(--edge);backdrop-filter:blur(var(--blur))}
+  .menuItem{display:flex;gap:12px;align-items:center;border:1px solid var(--edge);background:#0c0c17e6;border-radius:16px;padding:12px}
+  .menuItem + .menuItem{margin-top:9px}
+  .input{display:flex;gap:8px;align-items:center;background:#090915;border:1px solid var(--edge);border-radius:14px;padding:9px 11px}
+  .input input,.input select{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:13px}
+  .notice{font-size:12px;color:var(--ink-muted)}
+  .hide{display:none!important}
+  svg{display:block}
 </style>
+</head>
 <body>
-<div class="app">
-  <!-- Header -->
-  <div class="header">
-    <div class="hrow">
-      <span class="icon"><img src="icons/others/apps.svg" alt="Hub"></span>
-      <div class="title">Dual Hub</div>
-      <span class="badge">Nebula&nbsp;Pro</span>
-    </div>
-    <span class="icon"><img src="icons/others/profile.svg" alt="Perfil"></span>
-  </div>
+  <header class="glass">
+    <div class="title">HUB Dual</div>
+    <div class="grow"></div>
+    <button class="pill" id="btnDownload" title="Baixar"><img src="icons/others/hub_download.svg" width="20" height="20" onerror="this.replaceWith(svgDL())" alt=""></button>
+    <button class="pill" id="btnBrain" title="Brain"><img src="icons/others/hub_perfil.svg" width="20" height="20" onerror="this.replaceWith(svgUser())" alt=""></button>
+  </header>
 
-  <!-- Preferences Panel -->
-  <div class="panel">
-    <div class="toggle">
-      <span>Modelo (OpenRouter)</span>
-      <select id="modelSel" class="select" style="max-width:60%">
-        <option value="openrouter/auto">openrouter/auto</option>
-        <option value="anthropic/claude-3.5-sonnet">claude-3.5-sonnet</option>
-        <option value="openai/gpt-4o-mini">gpt-4o-mini</option>
-        <option value="mistralai/mistral-large">mistral-large</option>
-      </select>
-    </div>
-    <div class="toggle">
-      <span>Abrir em nova aba por padrão</span>
-      <input type="checkbox" id="openNew"/>
-    </div>
-  </div>
+  <main>
+    <section id="sessionsAnchor"></section>
 
-  <!-- Apps Grid -->
-  <div class="panel">
-    <div id="appsGrid" class="grid"></div>
-  </div>
+    <section class="card">
+      <div class="row" style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:700">Home</div><div class="muted">Empilhe apps; minimize e reabra no dock.</div></div>
+        <div class="row muted" style="display:flex;align-items:center;gap:8px"><img src="icons/others/hub_lightning.svg" width="18" height="18" onerror="this.replaceWith(svgBolt(18))" alt=""> Nebula Pro</div>
+      </div>
+      <div class="divider"></div>
 
-  <!-- Navigation (optional) -->
-  <div class="nav">
-    <a class="tab" href="#"><span class="icon"><img src="icons/others/home.svg" alt="Home"></span>Home</a>
-    <a class="tab" href="html/brain.html"><span class="icon"><img src="icons/others/brain.svg" alt="Brain"></span>Brain</a>
-    <a class="tab" href="#apps"><span class="icon"><img src="icons/others/apps.svg" alt="Apps"></span>Apps</a>
-  </div>
-</div>
+      <div id="favoritesWrap" class="hide">
+        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">Favoritos</div><div class="muted">seus fixados</div></div>
+        <div id="favoritesList" class="appsGrid" style="margin-top:8px"></div>
+        <div class="divider"></div>
+      </div>
 
-<!-- Viewer overlay for embedded apps -->
-<div id="viewer" class="viewer" aria-hidden="true">
-  <div class="vhead">
-    <div class="hrow">
-      <button id="vBack" class="btn" style="width:auto"><span class="icon"><img src="icons/others/arrow-left.svg" alt="Voltar"></span>Hub</button>
-      <span id="vTitle" class="badge"></span>
-    </div>
-    <div class="hrow">
-      <button id="vMin" class="btn" style="width:auto"><span class="icon"><img src="icons/others/minimize.svg" alt="Minimizar"></span>Minimizar</button>
-      <button id="vNew" class="btn" style="width:auto"><span class="icon"><img src="icons/others/opennew.svg" alt="Nova aba"></span>Novo</button>
-      <button id="vClose" class="btn" style="width:auto"><span class="icon"><img src="icons/others/x.svg" alt="Fechar"></span>Fechar</button>
+      <div id="groupsWrap" class="appsGrid"></div>
+    </section>
+
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700">Minimizados</div><div class="muted" id="miniCount">0</div>
+      </div>
+      <div id="miniWrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+    </section>
+  </main>
+
+  <footer class="glass">
+    <button class="iconbtn" id="btnHome"><img src="icons/others/hub_home.svg" width="20" height="20" onerror="this.replaceWith(svgHome())" alt=""></button>
+    <button class="iconbtn" id="btnApps"><img src="icons/others/hub_apps.svg" width="20" height="20" onerror="this.replaceWith(svgApps())" alt=""></button>
+    <div class="quick" id="quickBadges"></div>
+    <button class="iconbtn" id="btnLogs"><img src="icons/others/hub_relatorio.svg" width="20" height="20" onerror="this.replaceWith(svgList())" alt=""></button>
+  </footer>
+
+  <div id="brain" class="hide">
+    <div class="popover">
+      <div class="menuItem" style="cursor:default"><img src="icons/others/hub_memoria.svg" width="22" height="22" onerror="this.replaceWith(svgUser())" alt=""><div style="flex:1"><div style="font-weight:700">Perfil</div><div class="notice">Nome e rótulo do seu Dual</div></div></div>
+      <div class="input" style="margin-top:8px"><input id="inpName" placeholder="Seu nome"></div>
+      <div class="input" style="margin-top:8px"><input id="inpDual" placeholder="Nome do seu Dual"></div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px"><img src="icons/others/hub_cloud.svg" width="22" height="22" onerror="this.replaceWith(svgKey())" alt=""><div style="flex:1"><div style="font-weight:700">Chave SK (OpenRouter)</div><div class="notice">Guardada localmente</div></div></div>
+      <div class="input" style="margin-top:8px"><input id="inpSK" placeholder="sk-..."><button class="btn" id="btnSaveSK">Salvar</button></div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px"><img src="icons/others/hub_health.svg" width="22" height="22" onerror="this.replaceWith(svgPerf())" alt=""><div style="flex:1"><div style="font-weight:700">Performance</div><div class="notice" id="perfLabel">Med</div></div></div>
+      <div class="input" style="margin-top:8px"><select id="selPerf"><option value="low">Low</option><option value="med" selected>Med</option><option value="high">High</option></select><button class="btn" id="btnPerf">Aplicar</button></div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px"><img src="icons/others/hub_bind.svg" width="22" height="22" onerror="this.replaceWith(svgVoice())" alt=""><div style="flex:1"><div style="font-weight:700">Vozes / TTS</div><div class="notice">menu por arquétipo (placeholder)</div></div></div>
+      <div class="input" style="margin-top:8px"><select id="selVoice"><option>Nova</option><option>Elysha</option><option>Kaion</option><option>Serena</option></select><button class="btn" id="btnVoice">Salvar</button></div>
+
+      <div class="menuItem" id="btnClear" style="margin-top:8px"><img src="icons/others/hub_memoria.svg" width="22" height="22" onerror="this.replaceWith(svgTrash())" alt=""><div style="flex:1"><div style="font-weight:700">Limpar Memória</div><div class="notice">apaga preferências e favoritos</div></div></div>
+
+      <div class="menuItem" style="cursor:default; margin-top:8px"><img src="icons/others/hub_relatorio.svg" width="22" height="22" onerror="this.replaceWith(svgList())" alt=""><div style="flex:1"><div style="font-weight:700">Logs</div><div class="notice">eventos recentes</div></div></div>
+      <div class="card" style="margin-top:8px;max-height:140px;overflow:auto"><pre id="logs" style="margin:0;font:12px/1.4 ui-monospace,monospace;color:var(--ink-muted)"></pre></div>
     </div>
   </div>
-  <div class="vbody">
-    <iframe id="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
-  </div>
-</div>
-<div id="badge" class="minibadge"><span class="icon"><img src="icons/others/apps.svg" alt="Reabrir"></span>Reabrir App</div>
-<div id="loader" class="loader"><div class="spinner"></div></div>
 
 <script>
-  // Helpers for persistent storage
-  const LS = (k, v) => v === undefined ? JSON.parse(localStorage.getItem(k) || "null") : localStorage.setItem(k, JSON.stringify(v));
-
-  const grid    = document.getElementById('appsGrid');
-  const viewer  = document.getElementById('viewer');
-  const frame   = document.getElementById('frame');
-  const badge   = document.getElementById('badge');
-  const loader  = document.getElementById('loader');
-  const vBack   = document.getElementById('vBack');
-  const vMin    = document.getElementById('vMin');
-  const vClose  = document.getElementById('vClose');
-  const vNew    = document.getElementById('vNew');
-  const vTitle  = document.getElementById('vTitle');
-  const modelSel= document.getElementById('modelSel');
-  const openNew = document.getElementById('openNew');
-
-  function savePrefs(){ LS('dual.brain.pref', { model: modelSel.value, openNew: openNew.checked }); }
-  function loadPrefs(){ const p = LS('dual.brain.pref') || { model:'openrouter/auto', openNew:false }; modelSel.value = p.model; openNew.checked = p.openNew; }
-  modelSel.addEventListener('change', savePrefs);
-  openNew.addEventListener('change', savePrefs);
-
-  function showLoader(on){ loader.classList[on?'add':'remove']('show'); }
-  function showViewer(on){ viewer.classList[on?'add':'remove']('show'); viewer.setAttribute('aria-hidden', (!on).toString()); }
-
-  function openApp(app){
-    // Decide whether to open in a new tab
-    if(app.openInNew || openNew.checked){
-      window.open(app.url, '_blank');
-      return;
-    }
-    vTitle.textContent = app.name;
-    showViewer(true);
-    showLoader(true);
-    frame.src = app.url;
-    frame.onload = () => showLoader(false);
-    LS('dual.stack', { active: app, minimized: false });
-  }
-  function closeViewer(){
-    frame.src = 'about:blank';
-    showViewer(false);
-    LS('dual.stack', { active: null, minimized: false });
-  }
-  vBack.onclick  = closeViewer;
-  vClose.onclick = closeViewer;
-  vMin.onclick   = () => {
-    showViewer(false);
-    badge.classList.add('show');
-    const st = LS('dual.stack') || {};
-    st.minimized = true;
-    LS('dual.stack', st);
-  };
-  badge.onclick  = () => {
-    badge.classList.remove('show');
-    const st = LS('dual.stack') || {};
-    if(st.active){ openApp(st.active); }
-    st.minimized = false;
-    LS('dual.stack', st);
-  };
-  vNew.onclick   = () => {
-    const st = LS('dual.stack') || {};
-    if(st.active) window.open(st.active.url, '_blank');
-  };
-
-  async function loadApps(){
-    showLoader(true);
-    try{
-      // Read remote apps from apps.json
-      const res = await fetch('apps/apps.json?ts=' + Date.now());
-      const apps = await res.json();
-      // Read any locally uploaded apps from localStorage (see brain.html)
-      const localApps = LS('dual.localApps') || [];
-      grid.innerHTML = '';
-      [...apps, ...localApps].forEach(app => {
-        const card = document.createElement('button');
-        card.className = 'appcard';
-        const iconKey = app.iconKey || app.key || 'apps';
-        const iconSrc = app.icon ? app.icon : ('icons/others/' + iconKey + '.svg');
-        card.innerHTML = `
-          <span class="icon"><img src="${iconSrc}" alt=""></span>
-          <strong>${app.name}</strong>
-        `;
-        card.onclick = () => openApp(app);
-        grid.appendChild(card);
-      });
-    } catch(e){
-      grid.innerHTML = '<div style="opacity:.7">Erro ao carregar apps.json</div>';
-    } finally{
-      showLoader(false);
-    }
-  }
-
-  loadPrefs();
-  loadApps();
-  // Restore open app from stack
-  const st = LS('dual.stack') || {};
-  if(st.minimized) badge.classList.add('show');
-  if(st.active && !st.minimized){ openApp(st.active); }
-
-  // Register the service worker for offline capability
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./service-worker.js').catch(err => {
-      console.warn('SW registration failed', err);
-    });
-  }
+const $ = s=>document.querySelector(s);
+function svgWrap(s){const x=document.createElement('span');x.innerHTML=s.trim();return x.firstChild}
+function svgDL(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><rect x="4" y="19" width="16" height="2" rx="1" fill="currentColor"/></svg>`)}
+function svgUser(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>`)}
+function svgKey(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="15" r="4"/><path d="M12 15h10l-2 2 2 2-2 2"/></svg>`)}
+function svgPerf(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19a8 8 0 1 1 16 0"/><path d="M12 12v4"/><path d="M7 12v2"/><path d="M17 12v3"/></svg>`)}
+function svgVoice(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>`)}
+function svgTrash(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><rect x="6" y="6" width="12" height="14" rx="2"/></svg>`)}
+function svgHome(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11L12 3l9 8"/><path d="M5 10v10h14V10"/></svg>`)}
+function svgApps(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`)}
+function svgList(s=20){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1.6"/><circle cx="4" cy="12" r="1.6"/><circle cx="4" cy="18" r="1.6"/></svg>`)}
+function svgBolt(s=18){return svgWrap(`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="currentColor"><path d="M13 3L4 14h6l-1 7 9-11h-6l1-7z"/></svg>`)}
+const state={sessions:[],favorites:new Set(JSON.parse(localStorage.getItem('hub.favs')||'[]')),profile:JSON.parse(localStorage.getItem('hub.profile')||'{}'),perf:localStorage.getItem('hub.perf')||'med',voice:localStorage.getItem('hub.voice')||'Nova',sk:localStorage.getItem('hub.sk')||'',logs:[]};
+function log(m){const l=`[${new Date().toLocaleTimeString()}] ${m}`;state.logs.unshift(l);$('#logs').textContent=state.logs.slice(0,60).join('\n')}
+$('#btnBrain').addEventListener('click',()=>$('#brain').classList.toggle('hide'));
+document.addEventListener('click',e=>{const b=$('#brain'); if(!b.classList.contains('hide') && !b.contains(e.target) && !$('#btnBrain').contains(e.target)) b.classList.add('hide')});
+function loadProfileUI(){ $('#inpName').value=state.profile.name||''; $('#inpDual').value=state.profile.dual||''; $('#inpSK').value=state.sk; $('#selPerf').value=state.perf; $('#perfLabel').textContent=state.perf.toUpperCase(); $('#selVoice').value=state.voice; }
+['inpName','inpDual'].forEach(id=>$('#'+id).addEventListener('change',()=>{state.profile.name=$('#inpName').value.trim();state.profile.dual=$('#inpDual').value.trim();localStorage.setItem('hub.profile',JSON.stringify(state.profile));log('Perfil atualizado')}))
+$('#btnSaveSK').addEventListener('click',()=>{state.sk=$('#inpSK').value.trim();localStorage.setItem('hub.sk',state.sk);log('SK salva')})
+$('#btnPerf').addEventListener('click',()=>{state.perf=$('#selPerf').value;localStorage.setItem('hub.perf',state.perf);$('#perfLabel').textContent=state.perf.toUpperCase();log('Performance: '+state.perf)})
+$('#btnVoice').addEventListener('click',()=>{state.voice=$('#selVoice').value;localStorage.setItem('hub.voice',state.voice);log('Voz setada: '+state.voice)})
+$('#btnDownload').addEventListener('click',()=>{fetch(location.href).then(r=>r.text()).then(t=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.download='HUB_Dual_VarB.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado')}).catch(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'}));a.download='HUB_Dual_VarB_runtime.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado (runtime)')})})
+const groupsWrap=$('#groupsWrap'), favoritesWrap=$('#favoritesWrap'), favoritesList=$('#favoritesList');
+async function loadApps(){ try{ const res=await fetch('./apps/apps.json',{cache:'no-store'}); const data=await res.json(); const groups=data.groups||{}; groupsWrap.innerHTML=''; for(const [n,items] of Object.entries(groups)){ const card=document.createElement('div'); card.className='card'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${n.replaceAll('_',' ')}</div><div class=muted>${items.length} apps</div></div><div class=appsGrid></div>`; const list=card.querySelector('.appsGrid'); items.forEach(app=>{ const row=document.createElement('div'); row.className='appRow'; const icon=app.icon||'icons/others/hub_apps.svg'; row.innerHTML=`<img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt=""><div style="flex:1;min-width:0"><div style="font-weight:700">${app.title||app.key}</div><div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${app.desc||''}">${app.desc||''}</div></div><div style="display:flex;gap:10px"><button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button><button class="btn pri" onclick="openSession('${app.key}','${(app.title||app.key).replace(/['\"<>&]/g,'')}', '${app.url||''}', '${icon}')">Abrir</button></div>`; list.appendChild(row)}); groupsWrap.appendChild(card);} renderFavorites(); log('apps.json carregado') }catch(e){ groupsWrap.innerHTML='<div class=muted>Falha ao carregar apps/apps.json</div>'; log('Erro apps.json') } }
+document.addEventListener('click',e=>{const star=e.target.closest('.btn.star'); if(!star)return; const key=star.dataset.key; const on=star.getAttribute('data-on')==='true'; if(on)state.favorites.delete(key); else state.favorites.add(key); star.setAttribute('data-on', String(!on)); localStorage.setItem('hub.favs', JSON.stringify([...state.favorites])); renderFavorites(); });
+function renderFavorites(){ favoritesList.innerHTML=''; const favs=[...state.favorites]; favoritesWrap.classList.toggle('hide',favs.length===0); if(!favs.length) return; const all=groupsWrap.querySelectorAll('.appRow'); favs.forEach(k=>{ const row=[...all].find(r=>r.querySelector('.btn.star')?.dataset.key===k); if(row){ const c=row.cloneNode(true); c.querySelector('.btn.star').remove(); favoritesList.appendChild(c);} }); }
+const sessionsAnchor=$('#sessionsAnchor'), miniWrap=$('#miniWrap'), miniCount=$('#miniCount'), quickBadges=$('#quickBadges');
+function openSession(key,title,url,icon){ const id='S'+Date.now().toString(36); const el=document.createElement('section'); el.className='session'; el.id=id; el.innerHTML=`<div class="sHead"><img src="${icon}" width="18" height="18" onerror="this.replaceWith(svgApps(18))" alt=""><div style="font-weight:700">${title}</div><div class="sBtns"><button class="sBtn" onclick="minimizeSession('${id}')">${svgWrap('<svg viewBox=0 0 24 24 width=18 height=18 fill=none stroke=currentColor stroke-width=1.7><path d=M5 12h14/></svg>').outerHTML}</button><button class="sBtn" onclick="closeSession('${id}')">${svgWrap('<svg viewBox=0 0 24 24 width=18 height=18 fill=none stroke=currentColor stroke-width=1.7><path d=M6 6 18 18/><path d=M18 6 6 18/></svg>').outerHTML}</button></div></div><div class="sBody"><iframe src="${url}"></iframe></div>`; sessionsAnchor.prepend(el); addBadge({id,title}); log('Sessão aberta: '+title); window.scrollTo({top:0,behavior:'smooth'}); }
+function minimizeSession(id){document.getElementById(id)?.classList.add('hide'); addBadge({id,title:document.querySelector('#'+id+' .sHead div[style*="font-weight"]')?.textContent||'App'}); renderMinimized(); log('Minimizada')}
+function closeSession(id){document.getElementById(id)?.remove(); removeBadge(id); renderMinimized(); log('Fechada')}
+function addBadge(s){if(quickBadges.querySelector(`[data-id="${s.id}"]`)) return; const b=document.createElement('button'); b.className='mini'; b.dataset.id=s.id; b.innerHTML=`<span class="dot"></span> <span>${s.title}</span>`; b.onclick=()=>restoreSession(s.id); quickBadges.prepend(b)}
+function removeBadge(id){quickBadges.querySelector(`[data-id="${id}"]`)?.remove()}
+function renderMinimized(){const m=[...document.querySelectorAll('.session.hide')]; miniWrap.innerHTML=''; m.forEach(e=>{const t=e.querySelector('.sHead div[style*="font-weight"]')?.textContent||'App'; const c=document.createElement('button'); c.className='mini'; c.innerHTML=`<span class="dot"></span> ${t}`; c.onclick=()=>restoreSession(e.id); miniWrap.appendChild(c)}); miniCount.textContent=m.length}
+function restoreSession(id){document.getElementById(id)?.classList.remove('hide'); renderMinimized(); log('Reaberta')}
+$('#btnHome').addEventListener('click',()=>window.scrollTo({top:sessionsAnchor.offsetTop+1,behavior:'smooth'}))
+$('#btnApps').addEventListener('click',()=>{const y=$('#groupsWrap').getBoundingClientRect().top+scrollY-90; window.scrollTo({top:y,behavior:'smooth'})})
+$('#btnLogs').addEventListener('click',()=>{$('#brain').classList.remove('hide'); $('#brain').scrollIntoView({behavior:'smooth',block:'nearest'})})
+loadApps(); loadProfileUI(); log('Hub iniciado');
 </script>
 </body>
 </html>
