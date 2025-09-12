@@ -1018,6 +1018,59 @@ function clearAllLocalApps(){
   renderApps();
 }
 </script>
+<style>
+/* === Viewer atrás do HUD (header+tabbar) === */
+.masthead{ z-index:200; }
+.tabbar{ z-index:200; }
 
+/* Viewer ocupa o espaço útil entre header e tabbar solta */
+.viewer{
+  position: fixed;
+  top: 78px;               /* altura do header */
+  left: 0; right: 0;
+  bottom: calc(88px + 24px); /* altura tabbar + gap “solto” */
+  z-index: 100;            /* ATRÁS do header/tabbar */
+  display: none;
+}
+.viewer.open{ display:block; }
+
+/* Tabbar flutuando (desgrudada do fundo) + safe-area */
+.tabbar{
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(env(safe-area-inset-bottom,0px) + 24px);
+  height: 78px;
+  padding: 6px 14px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+
+/* Cápsula com respiro lateral e sombra */
+.tabbar .container{
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border: var(--border);
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.35);
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 10px 16px;
+  margin: 0 16px; /* “solta” das bordas curvas */
+}
+
+/* Quick-actions acompanham a tabbar solta */
+.quick-actions{
+  position: fixed;
+  bottom: calc(24px + 78px + env(safe-area-inset-bottom,0) + 12px);
+  right: calc(16px + env(safe-area-inset-right,0));
+  display: flex; gap: 12px; z-index: 195;
+}
+
+/* Se você tinha regras que escondiam header/footer com body.viewer-open, neutraliza: */
+body.viewer-open .masthead,
+body.viewer-open .tabbar{
+  opacity: 1; pointer-events: auto; transform: none;
+}
+</style>
 </body>
 </html>
