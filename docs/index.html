@@ -1,568 +1,563 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <title>HUB Dual — PWA</title>
-    <!-- PWA manifest and meta -->
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#1e2235" />
-    <style>
-      /*
-        Nebula Pro inspired styling for the Dual Hub PWA.
-        This stylesheet defines a vibrant gradient background, glassy surfaces,
-        rounded corners and soft shadows. It is mobile-first and works well
-        in portrait orientation. Colours, spacing and fonts mirror the
-        reference design provided by the user.
-      */
-      :root {
-        --grad-a: #ff52e5;
-        --grad-b: #00c5e5;
-        --text: #f5f7ff;
-        --muted: rgba(245, 247, 255, 0.65);
-        --surface: rgba(15, 17, 32, 0.45);
-        --surface-strong: rgba(15, 17, 32, 0.85);
-        --border-color: rgba(255, 255, 255, 0.12);
-        --radius: 24px;
-        --radius-lg: 28px;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      body {
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: linear-gradient(42deg, var(--grad-a) 0%, var(--grad-b) 100%) fixed;
-        color: var(--text);
-        overflow-x: hidden;
-        overscroll-behavior-y: contain;
-      }
-      /* Masthead */
-      header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 78px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        backdrop-filter: blur(16px) saturate(120%);
-        z-index: 100;
-      }
-      .title {
-        flex: 1;
-        text-align: center;
-        line-height: 1.1;
-      }
-      .title h1 {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 900;
-        letter-spacing: 0.05em;
-      }
-      .title small {
-        display: block;
-        font-size: 12px;
-        letter-spacing: 0.08em;
-        color: var(--muted);
-      }
-      .icon-btn {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        background: var(--surface);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow);
-        color: var(--text);
-        cursor: pointer;
-        transition: background 0.15s ease;
-      }
-      .icon-btn:active {
-        transform: scale(0.96);
-      }
-      .icon-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      /* Brain menu */
-      .brain-menu {
-        position: absolute;
-        top: calc(100% + 6px);
-        right: 0;
-        width: min(92vw, 340px);
-        padding: 12px;
-        background: var(--surface-strong);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow);
-        display: none;
-        z-index: 99;
-      }
-      .brain-menu.open {
-        display: block;
-        animation: appear 0.18s ease-out forwards;
-      }
-      @keyframes appear {
-        from {
-          opacity: 0;
-          transform: translateY(-8px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .brain-menu h3 {
-        margin: 4px 0 10px;
-        font-size: 16px;
-        font-weight: 800;
-        letter-spacing: 0.05em;
-      }
-      .brain-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .brain-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--border-color);
-        cursor: pointer;
-      }
-      .brain-item svg {
-        width: 22px;
-        height: 22px;
-        flex-shrink: 0;
-      }
-      .brain-item span {
-        flex: 1;
-        font-weight: 600;
-        font-size: 14px;
-      }
-      .brain-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      /* Main content */
-      main{
-        padding-top: calc(78px + 12px);
-        /* antes: calc(80px + 16px)  → agora considera a tabbar + safe-area */
-        padding-bottom: calc(78px + 16px + env(safe-area-inset-bottom));
-        width:100%; max-width:480px; margin:0 auto; position:relative;
-      }
-      section {
-        display: none;
-      }
-      section.active {
-        display: block;
-      }
-      /* Apps grid */
-      .apps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-        gap: 14px;
-        padding: 0 16px;
-      }
-      .app-icon {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        height: 84px;
-        cursor: pointer;
-      }
-      .app-icon span {
-        margin-top: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--muted);
-      }
-      .app-icon svg {
-        width: 28px;
-        height: 28px;
-      }
-      /* Tab bar */
-            /* Tab bar — fix: safe-area + sem vão no fundo */
-      .tabbar{
-        position:fixed; left:0; right:0; bottom:0;
-        /* padding horizontal + safe-area no fundo */
-        padding: 6px 14px calc(6px + env(safe-area-inset-bottom));
-        z-index:100;
-        /* remove height fixa para não “empurrar” nada */
-        height:auto;
-      }
-      .tabbar .container{
-        width:100%; max-width:480px;
-        background:var(--surface);
-        border:1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow);
-        display:flex; justify-content:space-around; align-items:center;
-        padding:10px 16px;
-        /* garante que o conteúdo também respeite o safe-area */
-        padding-bottom: calc(10px + env(safe-area-inset-bottom));
-      }
-      .tab {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: var(--muted);
-        font-size: 11px;
-        font-weight: 700;
-        cursor: pointer;
-        padding: 6px;
-        border-radius: 14px;
-        transition: background 0.15s ease, color 0.15s ease;
-      }
-      .tab.active {
-        color: var(--text);
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
-      }
-      .tab svg {
-        width: 22px;
-        height: 22px;
-      }
-      /* Transition animation for sections */
-      @media (prefers-reduced-motion: no-preference) {
-        section {
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        section.inactive {
-          opacity: 0;
-          transform: translateX(6px);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <button class="icon-btn" id="backBtn" aria-label="Voltar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-      <div class="title">
-        <h1>HUB DUAL</h1>
-        <small>UNO Dual Trinity</small>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Hub Dual — Nebula Pro (refinado)</title>
+<style>
+  /*
+    Nebula Pro refinado
+    Esta folha de estilo tenta capturar o visual de referência fornecido: 
+    gradiente roxo→ciano, superfícies glassy escuras, sombras suaves e bordas amplas. 
+    O layout é mobile-first retrato, com um cabeçalho integrado ao fundo, 
+    um menu "cérebro" suspenso abaixo do avatar e uma barra de navegação inferior com três tabs.
+  */
+  :root {
+    /* Gradiente principal do pano de fundo */
+    --grad-a: #ff52e5;
+    --grad-b: #00c5e5;
+    /* Cores de texto */
+    --text: #f5f7ff;
+    --muted: rgba(245,247,255,0.65);
+    /* Vidro e bordas */
+    --surface: rgba(15,17,32,0.45);
+    --surface-strong: rgba(15,17,32,0.85);
+    --border: 1px solid rgba(255,255,255,0.1);
+    --radius: 24px;
+    --radius-lg: 28px;
+    /* Sombra suave */
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html,body { height:100%; margin:0; }
+  body {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(42deg,var(--grad-a) 0%,var(--grad-b) 100%) fixed;
+    color: var(--text);
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+  }
+  /* Cabeçalho superior integrado */
+  .masthead {
+    position: fixed;
+    top: env(safe-area-inset-top,0);
+    left: 0;
+    right: 0;
+    height: 78px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(16px) saturate(120%);
+    /* sem cor de fundo extra; o gradiente de fundo aparece por baixo */
+    z-index: 100;
+  }
+  .masthead .title-block {
+    text-align: center;
+    flex: 1;
+    line-height: 1.1;
+  }
+  .masthead h1 {
+    margin:0;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+  }
+  .masthead small {
+    display:block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .icon-btn {
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background: var(--surface);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    cursor:pointer;
+    transition: background .15s ease;
+  }
+  .icon-btn:active { transform: scale(0.96); }
+  .icon-btn:hover { background: rgba(255,255,255,0.08); }
+  /* Menu suspenso do cérebro */
+  .brain-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: min(92vw, 340px);
+    padding: 12px;
+    background: var(--surface-strong);
+    border: var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    display:none;
+    z-index: 99;
+  }
+  .brain-menu.open { display:block; animation: appear .18s ease-out forwards; }
+  @keyframes appear { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform:none; } }
+  .brain-menu h3 {
+    margin:4px 0 10px;
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:0.05em;
+  }
+  .brain-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .brain-item {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 12px;
+    border-radius:18px;
+    background: rgba(255,255,255,0.05);
+    border: var(--border);
+    cursor:pointer;
+  }
+  .brain-item svg { width:22px; height:22px; flex-shrink:0; }
+  .brain-item span { flex:1; font-weight:600; font-size:14px; }
+  .brain-item small { font-size:12px; color: var(--muted); }
+  .brain-item:hover { background: rgba(255,255,255,0.08); }
+  /* Conteúdo principal */
+  main {
+    padding-top: calc(78px + env(safe-area-inset-top,0) + 12px);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom,0) + 16px);
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    position: relative;
+    min-height:100vh;
+  }
+  section { display:none; }
+  section.active { display:block; }
+  /* Home page list */
+  .home-list {
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin:0 16px;
+  }
+  .home-item {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor:pointer;
+  }
+  .home-item .left {
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .home-item .left svg { width:26px; height:26px; }
+  .home-item .name { font-weight:700; font-size:16px; }
+  .home-item .tag {
+    font-size:12px;
+    color: var(--muted);
+    margin-left:4px;
+  }
+  .home-item .right {
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .bubble {
+    font-size:12px;
+    background: #a66fff;
+    color:#fff;
+    border-radius:999px;
+    padding:3px 8px;
+    font-weight:700;
+  }
+  /* Apps grid */
+  .apps-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px,1fr));
+    gap:14px;
+    padding:0 16px;
+  }
+  .app-icon {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    height:84px;
+    cursor:pointer;
+  }
+  .app-icon span { margin-top:6px; font-size:12px; font-weight:600; color: var(--muted); }
+  .app-icon svg { width:28px; height:28px; }
+  /* Stack cards */
+  .stack-list { display:flex; flex-direction:column; gap:16px; padding:0 16px; }
+  .stack-card {
+    position:relative;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding:18px;
+    min-height:120px;
+  }
+  .stack-card h2 {
+    margin:0 0 4px; font-size:20px; font-weight:800;
+  }
+  .stack-card .tools {
+    position:absolute;
+    top:14px;
+    right:14px;
+    display:flex;
+    gap:8px;
+  }
+  .stack-card .tools .icon-btn { width:36px; height:36px; border-radius:12px; box-shadow:none; }
+  .stack-card .badge {
+    position:absolute;
+    right:14px;
+    bottom:14px;
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:999px;
+    background: rgba(166,111,255,0.8);
+    border: var(--border);
+  }
+  /* Botão de atualização no stack */
+  .update-section {
+    margin:24px 16px;
+    text-align:center;
+  }
+  .update-btn {
+    display:inline-block;
+    padding:12px 32px;
+    border-radius: var(--radius);
+    background: linear-gradient(90deg,#a66fff,#6db4ff);
+    border:none;
+    box-shadow: var(--shadow);
+    color:#0a0d1f;
+    font-weight:800;
+    font-size:14px;
+    cursor:pointer;
+    transition: transform .1s ease;
+  }
+  .update-btn:active { transform: scale(0.97); }
+  /* Barra de navegação inferior */
+  .tabbar {
+    position: fixed;
+    bottom: env(safe-area-inset-bottom,0);
+    left:0;
+    right:0;
+    height:78px;
+    padding: 6px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:auto;
+    z-index: 100;
+  }
+  .tabbar .container {
+    width:100%;
+    max-width:480px;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding: 10px 16px;
+  }
+  .tab {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    color: var(--muted);
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+    padding:6px;
+    border-radius:14px;
+    transition: background .15s ease, color .15s ease;
+  }
+  .tab.active {
+    color: var(--text);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+  }
+  .tab svg { width:22px; height:22px; }
+  /* Linha de ações rápidas */
+  .quick-actions {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom,0) + 86px);
+    right:16px;
+    display:flex;
+    gap:12px;
+    z-index:99;
+  }
+  .quick-actions .small-btn {
+    width:44px; height:44px;
+    border-radius:50%;
+    display:grid; place-items:center;
+    background: var(--surface);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    cursor:pointer;
+    transition: background .15s ease;
+  }
+  .quick-actions .small-btn:hover { background: rgba(255,255,255,0.08); }
+  /* Transições suaves para seções */
+  @media (prefers-reduced-motion: no-preference) {
+    section { transition: opacity .2s ease, transform .2s ease; }
+    section.inactive { opacity:0; transform: translateX(6px); }
+  }
+</style>
+</head>
+<body>
+  <!-- Cabeçalho principal -->
+  <header class="masthead">
+    <button class="icon-btn" id="backBtn" aria-label="Voltar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    </button>
+    <div class="title-block">
+      <h1>HUB DUAL</h1>
+      <small>UNO Dual Trinity</small>
+    </div>
+    <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Dual Brain">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21a8 8 0 1 0-16 0" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    </button>
+    <!-- Menu de opções do cérebro -->
+    <div class="brain-menu" id="brainMenu">
+      <h3>Brain</h3>
+      <ul class="brain-list">
+        <li class="brain-item" onclick="exportBackup()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+          <span>Download</span>
+        </li>
+        <li class="brain-item" onclick="promptKey()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2" /><path d="M7.5 13.5L2 19v3h3l5.5-5.5" /><circle cx="16" cy="8" r="5" /></svg>
+          <span>SK Key</span>
+        </li>
+        <li class="brain-item" onclick="toast('Teste TTS')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg>
+          <span>TTS Voices</span>
+        </li>
+        <li class="brain-item" onclick="clearLogs()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18" /><path d="M3 8h18" /><path d="M3 13h18" /><path d="M3 18h18" /></svg>
+          <span>Logs</span>
+        </li>
+      </ul>
+    </div>
+  </header>
+  <!-- Ações rápidas (pequenos botões flutuantes) -->
+  <div class="quick-actions">
+    <button class="small-btn" onclick="toast('Atalho 1')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+    </button>
+    <button class="small-btn" onclick="toast('Atalho 2')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3H7a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7a4 4 0 0 0-4-4z" /><line x1="7" y1="7" x2="17" y2="17" /><line x1="17" y1="7" x2="7" y2="17" /></svg>
+    </button>
+  </div>
+  <!-- Conteúdo principal -->
+  <main>
+    <section id="page-home" class="active">
+      <div class="home-list">
+        <div class="home-item" onclick="go('apps')">
+          <div class="left">
+            <!-- Home item icon (apps) -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /></svg>
+            <span class="name">Apps</span>
+          </div>
+          <div class="right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
+          </div>
+        </div>
+        <div class="home-item" onclick="go('stack')">
+          <div class="left">
+            <!-- Icon for stack / sessions -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" /><path d="M3 13l9 4.5 9-4.5" /></svg>
+            <span class="name">Stack</span>
+          </div>
+          <div class="right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
+          </div>
+        </div>
+        <div class="home-item" onclick="toast('Minimized')">
+          <div class="left">
+            <!-- Icon for minimized -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18" /></svg>
+            <span class="name">Minimized</span>
+          </div>
+          <div class="right">
+            <span class="bubble">1</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
+          </div>
+        </div>
       </div>
-      <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Dual Brain">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21a8 8 0 1 0-16 0" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      </button>
-      <!-- Brain menu -->
-      <div class="brain-menu" id="brainMenu">
-        <h3>Brain</h3>
-        <ul class="brain-list">
-          <li class="brain-item" onclick="exportBackup()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>Exportar</span>
-          </li>
-          <li class="brain-item" onclick="promptKey()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 2l-2 2" />
-              <path d="M7.5 13.5L2 19v3h3l5.5-5.5" />
-              <circle cx="16" cy="8" r="5" />
-            </svg>
-            <span>SK Key</span>
-          </li>
-          <li class="brain-item" onclick="toast('Testar TTS')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-            </svg>
-            <span>TTS</span>
-          </li>
-          <li class="brain-item" onclick="clearLogs()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3h18" />
-              <path d="M3 8h18" />
-              <path d="M3 13h18" />
-              <path d="M3 18h18" />
-            </svg>
-            <span>Logs</span>
-          </li>
-        </ul>
-      </div>
-    </header>
-    <main>
-      <!-- Home page (placeholder) -->
-      <section id="page-home" class="active">
-        <div style="padding:20px; text-align:center;">
-          <p>Bem-vindo ao Dual Hub! Toque em <strong>Apps</strong> para explorar.</p>
+    </section>
+    <!-- Apps: grid de aplicativos -->
+    <section id="page-apps">
+      <div class="apps-grid">
+        <div class="app-icon" onclick="toast('Chat')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-3.3 6.7 8.5 8.5 0 0 1-9.4 0 8.38 8.38 0 0 1-3.3-6.7V5.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" /><polyline points="9 13 12 10 15 13" /></svg>
+          <span>Chat</span>
         </div>
-      </section>
-      <!-- Apps page (dynamic grid) -->
-      <section id="page-apps">
-        <div class="apps-grid" id="appsGrid"></div>
-      </section>
-      <!-- Stack page (placeholder) -->
-      <section id="page-stack">
-        <div style="padding:20px; text-align:center;">
-          <p>Sem apps abertos por enquanto.</p>
+        <div class="app-icon" onclick="toast('Editor')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="4 4 20 4 20 20 4 20" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
+          <span>Editor</span>
         </div>
-      </section>
-    </main>
-    <!-- Tab bar -->
-    <footer class="tabbar">
-      <div class="container">
-        <div class="tab active" id="tab-home" onclick="navigate('home')">
-          <svg><use href="#hub_home"></use></svg>
-          <span>Home</span>
+        <div class="app-icon" onclick="toast('Books')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" /><path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15" /></svg>
+          <span>Books</span>
         </div>
-        <div class="tab" id="tab-apps" onclick="navigate('apps')">
-          <svg><use href="#hub_apps"></use></svg>
-          <span>Apps</span>
-        </div>
-        <div class="tab" id="tab-stack" onclick="navigate('stack')">
-          <svg><use href="#hub_stack"></use></svg>
-          <span>Stack</span>
+        <div class="app-icon" onclick="toast('Player')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+          <span>KOBLOX</span>
         </div>
       </div>
-    </footer>
-    <!-- Default icon sprite definitions (fallback) -->
-    <svg style="display:none;" aria-hidden="true" focusable="false">
-      <defs id="icon-defs">
-        <!-- Home icon -->
-        <symbol id="hub_home" viewBox="0 0 24 24">
-          <path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="2" fill="none" />
-          <path d="M9 21V9h6v12" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Apps grid icon -->
-        <symbol id="hub_apps" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-          <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-          <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-          <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Stack icon -->
-        <symbol id="hub_stack" viewBox="0 0 24 24">
-          <path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" stroke="currentColor" stroke-width="2" fill="none" />
-          <path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Chat icon -->
-        <symbol id="hub_chat" viewBox="0 0 24 24">
-          <path d="M21 11.5a8.38 8.38 0 0 1-3.3 6.7 8.5 8.5 0 0 1-9.4 0 8.38 8.38 0 0 1-3.3-6.7V5.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" fill="none" />
-          <polyline points="9 13 12 10 15 13" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Editor/config icon -->
-        <symbol id="hub_config" viewBox="0 0 24 24">
-          <polygon points="4 4 20 4 20 20 4 20" stroke="currentColor" stroke-width="2" fill="none" />
-          <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2" />
-          <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2" />
-        </symbol>
-        <!-- Books icon -->
-        <symbol id="hub_books" viewBox="0 0 24 24">
-          <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20" stroke="currentColor" stroke-width="2" fill="none" />
-          <path d="M20 2H6.5A2.5 2.5 0 0 0 4 4.5v15" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Lightning/player icon -->
-        <symbol id="hub_lightning" viewBox="0 0 24 24">
-          <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-        <!-- Memoria/books icon -->
-        <symbol id="hub_memoria" viewBox="0 0 24 24">
-          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
-          <path d="M8 4v16" stroke="currentColor" stroke-width="2" />
-          <path d="M16 4v16" stroke="currentColor" stroke-width="2" />
-        </symbol>
-        <!-- Download icon -->
-        <symbol id="hub_download" viewBox="0 0 24 24">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" fill="none" />
-          <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" fill="none" />
-          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" />
-        </symbol>
-        <!-- Perfil icon -->
-        <symbol id="hub_perfil" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none" />
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none" />
-        </symbol>
-      </defs>
-    </svg>
-    <script>
-      // Basic toast function for debugging
-      function toast(msg) {
-        console.log(msg);
-      }
-      // Navigation between sections
-      function navigate(target) {
-        // Close brain menu
-        document.getElementById('brainMenu').classList.remove('open');
-        document.getElementById('brainBtn').setAttribute('aria-expanded', 'false');
-        ['home', 'apps', 'stack'].forEach(function (page) {
-          var sec = document.getElementById('page-' + page);
-          if (sec) sec.classList.remove('active');
-          var tab = document.getElementById('tab-' + page);
-          if (tab) tab.classList.remove('active');
-        });
-        var newSec = document.getElementById('page-' + target);
-        if (newSec) newSec.classList.add('active');
-        var newTab = document.getElementById('tab-' + target);
-        if (newTab) newTab.classList.add('active');
-        // On first navigate to apps, load apps
-        if (target === 'apps' && !navigate.appsLoaded) {
-          loadApps();
-          navigate.appsLoaded = true;
-        }
-      }
-      // Brain menu toggle
-      const brainBtn = document.getElementById('brainBtn');
-      const brainMenu = document.getElementById('brainMenu');
-      brainBtn.addEventListener('click', function (e) {
-        var isOpen = brainMenu.classList.toggle('open');
-        brainBtn.setAttribute('aria-expanded', String(isOpen));
-        e.stopPropagation();
+    </section>
+    <!-- Stack: lista de apps abertos -->
+    <section id="page-stack">
+      <div class="stack-list">
+        <div class="stack-card">
+          <h2>App 1</h2>
+          <div class="tools">
+            <button class="icon-btn" title="Minimizar" onclick="toast('App 1 minimizado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
+            </button>
+            <button class="icon-btn" title="Recarregar" onclick="toast('Recarregado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10M1 14l5.36 4.36A9 9 0 0 0 20.49 15" /></svg>
+            </button>
+            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
+        </div>
+        <div class="stack-card">
+          <h2>App 2</h2>
+          <div class="tools">
+            <button class="icon-btn" title="Minimizar" onclick="toast('Minimizado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
+            </button>
+            <button class="icon-btn" title="Mais" onclick="toast('Mais')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /><circle cx="5" cy="12" r="1.5" /></svg>
+            </button>
+            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
+          <div class="badge">Minimized</div>
+        </div>
+        <div class="stack-card">
+          <h2>App 3</h2>
+          <div class="tools">
+            <button class="icon-btn" title="Minimizar" onclick="toast('Minimizado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14" /></svg>
+            </button>
+            <button class="icon-btn" title="Mais" onclick="toast('Mais')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /><circle cx="5" cy="12" r="1.5" /></svg>
+            </button>
+            <button class="icon-btn" title="Fechar" onclick="toast('Fechado')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
+          <div class="badge" style="left:14px;">◀ • ▶</div>
+        </div>
+      </div>
+      <div class="update-section">
+        <button class="update-btn" onclick="toast('Update')">Update</button>
+      </div>
+    </section>
+  </main>
+  <!-- Barra de navegação inferior -->
+  <footer class="tabbar">
+    <div class="container">
+      <div class="tab" id="tab-home" onclick="go('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9" /><path d="M9 21V9h6v12" /></svg>
+        <span>Home</span>
+      </div>
+      <div class="tab" id="tab-apps" onclick="go('apps')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /></svg>
+        <span>Apps</span>
+      </div>
+      <div class="tab" id="tab-stack" onclick="go('stack')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" /><path d="M3 13l9 4.5 9-4.5" /></svg>
+        <span>Stack</span>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // Roteamento e navegação
+    function go(target) {
+      // Fechar o menu do cérebro
+      document.getElementById('brainMenu').classList.remove('open');
+      document.getElementById('brainBtn').setAttribute('aria-expanded','false');
+      // Atualiza seção
+      ['home','apps','stack'].forEach(function(page){
+        var sec = document.getElementById('page-' + page);
+        if(sec) sec.classList.remove('active');
+        var tab = document.getElementById('tab-' + page);
+        if(tab) tab.classList.remove('active');
       });
-      document.addEventListener('click', function (e) {
-        if (!brainMenu.contains(e.target) && e.target !== brainBtn) {
-          brainMenu.classList.remove('open');
-          brainBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-      // Data export helper: exports localStorage to JSON
-      function exportBackup() {
-        const data = { when: Date.now(), storage: localStorage };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'dual.backup.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        toast('Backup exportado');
+      var newSec = document.getElementById('page-' + target);
+      if(newSec) newSec.classList.add('active');
+      var newTab = document.getElementById('tab-' + target);
+      if(newTab) newTab.classList.add('active');
+    }
+    // Menu do cérebro toggle
+    var brainBtn = document.getElementById('brainBtn');
+    var brainMenu = document.getElementById('brainMenu');
+    brainBtn.addEventListener('click', function(e) {
+      var isOpen = brainMenu.classList.toggle('open');
+      brainBtn.setAttribute('aria-expanded', String(isOpen));
+      e.stopPropagation();
+    });
+    document.addEventListener('click', function(e) {
+      if(!brainMenu.contains(e.target) && e.target !== brainBtn){
+        brainMenu.classList.remove('open');
+        brainBtn.setAttribute('aria-expanded','false');
       }
-      // Prompt user for SK key and save to localStorage
-      function promptKey() {
-        const key = prompt('Cole sua SK (será salva localmente)');
-        if (key) {
-          localStorage.setItem('dual.keys.openrouter', key);
-          toast('Chave armazenada');
-        }
+    });
+    // Placeholder helpers
+    function toast(msg) { console.log(msg); }
+    function exportBackup() {
+      const data = { when: Date.now(), storage: localStorage };
+      const blob = new Blob([JSON.stringify(data,null,2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dual.backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Backup exportado');
+    }
+    function promptKey() {
+      const key = prompt('Cole sua SK (será salva localmente)');
+      if(key) {
+        localStorage.setItem('dual.keys.openrouter', key);
+        toast('Chave armazenada');
       }
-      // Clear browser console logs
-      function clearLogs() {
-        console.clear();
-        toast('Logs limpos');
-      }
-      // Load apps from apps/apps.json
-      async function loadApps() {
-        const grid = document.getElementById('appsGrid');
-        grid.innerHTML = '';
-        let apps = [];
-        try {
-          const res = await fetch('apps/apps.json');
-          if (res.ok) {
-            apps = await res.json();
-          }
-        } catch (err) {
-          console.warn('Erro ao carregar apps.json', err);
-        }
-        // Fallback sample apps if none loaded
-        if (!Array.isArray(apps) || apps.length === 0) {
-          apps = [
-            { id: 'chat', name: 'Chat', icon: 'hub_chat' },
-            { id: 'editor', name: 'Editor', icon: 'hub_config' },
-            { id: 'books', name: 'Books', icon: 'hub_books' },
-            { id: 'koblox', name: 'KOBLOX', icon: 'hub_lightning' }
-          ];
-        }
-        for (const app of apps) {
-          const div = document.createElement('div');
-          div.className = 'app-icon';
-          div.onclick = () => toast('Abrindo ' + app.name);
-          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svg.setAttribute('viewBox', '0 0 24 24');
-          svg.setAttribute('width', '28');
-          svg.setAttribute('height', '28');
-          // Try to fetch custom SVG from icons/others; fallback to sprite
-          try {
-            const resp = await fetch('icons/others/' + app.icon);
-            if (resp.ok) {
-              const text = await resp.text();
-              svg.innerHTML = text;
-            } else {
-              const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-              use.setAttribute('href', '#' + app.icon);
-              svg.appendChild(use);
-            }
-          } catch (err) {
-            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-            use.setAttribute('href', '#' + app.icon);
-            svg.appendChild(use);
-          }
-          const name = document.createElement('span');
-          name.textContent = app.name;
-          div.appendChild(svg);
-          div.appendChild(name);
-          grid.appendChild(div);
-        }
-      }
-      // Override default icon symbols if custom versions are available
-      async function overrideSprite() {
-        const ids = [
-          'hub_home',
-          'hub_apps',
-          'hub_stack',
-          'hub_chat',
-          'hub_config',
-          'hub_books',
-          'hub_lightning',
-          'hub_memoria',
-          'hub_download',
-          'hub_perfil'
-        ];
-        for (const id of ids) {
-          try {
-            const resp = await fetch('icons/others/' + id + '.svg');
-            if (resp.ok) {
-              const text = await resp.text();
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(text, 'image/svg+xml');
-              const svgEl = doc.querySelector('svg');
-              if (svgEl) {
-                const symbol = document.getElementById(id);
-                symbol.innerHTML = svgEl.innerHTML;
-              }
-            }
-          } catch (err) {
-            // ignore
-          }
-        }
-      }
-      // PWA registration
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('sw.js');
-        });
-      }
-      // Run on load
-      overrideSprite();
-    </script>
-  </body>
+    }
+    function clearLogs() {
+      console.clear();
+      toast('Logs limpos');
+    }
+    // Ajuste do botão voltar: apenas demonstração
+    document.getElementById('backBtn').addEventListener('click', function(){ history.back(); });
+  </script>
+</body>
 </html>
