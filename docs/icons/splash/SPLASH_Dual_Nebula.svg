@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 3040">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="1" y2="0">
+      <stop offset="0" stop-color="#ff52e5"/>
+      <stop offset="1" stop-color="#00c5e5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1440" height="3040" fill="url(#bg)"/>
+  <circle cx="720" cy="1220" r="540" fill="url(#glow)"/>
+  <!-- Dual circle mark -->
+  <circle cx="720" cy="1220" r="280" fill="none" stroke="#ffffff" stroke-width="28"/>
+  <circle cx="720" cy="1220" r="6" fill="#ffffff"/>
+  <text x="50%" y="72%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-weight="800" font-size="88" fill="#ffffff" opacity=".92">
+    HUB DUAL
+  </text>
+  <text x="50%" y="76.5%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+        font-weight="600" font-size="36" fill="#ffffff" opacity=".8">
+    UNO • DUAL • TRINITY
+  </text>
+</svg>
