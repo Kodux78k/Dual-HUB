@@ -1,316 +1,690 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Infodose Hub Ultra — Revo</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0b0b0b" id="metaThemeColor">
-  <link rel="apple-touch-startup-image" href="splash-1242x2688.png"
-        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
-  <style>
-    :root {
-      --fg:#fff;
-      --muted:#a7c1cc;
-      --acc:#E7C65A;
-      --stroke:rgba(255,235,180,.30);
-      --stroke-soft:rgba(255,235,180,.16);
-      --blur:22px;
-      --radius:18px;
-      --radius-lg:22px;
-      --dock-space:84px;
-      --header-h:72px;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Smigdricks Dual Infodose — PWA</title>
+<!-- Meta para PWA e tema -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1e2235" />
+<style>
+  /*
+    Smigdricks Dual Infodose
+    -----------------------
+    Esta página é uma variação do Dual Hub otimizada para mobile.
+    Ela traz um rodapé com dock de entrada refinado, um painel
+    para Arte ASCII, integração com presets de Arte ASCII e um
+    carregador de apps que consome apps.json. A prioridade é
+    mobile-first e safe‑area para iOS, com degrade suave no fundo.
+  */
 
-    html,body{height:100%;margin:0}
-    html{background: linear-gradient(42deg, #f0f, #0ff)}
-    body{
-      color:var(--fg);
-      font-family:ui-rounded,system-ui,-apple-system,Inter,Segoe UI,Roboto,Arial;
-      background: linear-gradient(42deg, #f0f, #0ff);
-      min-height:100vh;
-      -webkit-tap-highlight-color: transparent;
-    }
+  :root {
+    /* Gradiente de fundo inspirado em nebulosas */
+    --grad-a: #ff52e5;
+    --grad-b: #00c5e5;
+    /* Cores base */
+    --text: #f5f7ff;
+    --muted: rgba(245, 247, 255, .65);
+    --surface: rgba(15, 17, 32, .45);
+    --surface-strong: rgba(15, 17, 32, .85);
+    --border: rgba(255, 255, 255, .12);
+    /* Raio e sombra para elementos flutuantes */
+    --radius: 24px;
+    --radius-lg: 28px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    /* Alturas padrão de header e safe-area */
+    --header-h: 78px;
+  }
+  @supports not (padding: env(safe-area-inset-bottom)) {
+    :root { --safe: 0px; }
+  }
+  @supports (padding: env(safe-area-inset-bottom)) {
+    :root { --safe: env(safe-area-inset-bottom); }
+  }
 
-    /* Header */
-    .header {
-      position:sticky;
-      top:0;
-      z-index:100;
-      backdrop-filter:blur(var(--blur)) saturate(150%);
-      background:rgba(0,0,0,.4);
-      border-bottom:1px solid var(--stroke);
-      box-shadow:0 12px 34px rgba(0,0,0,.42);
-      padding-top:env(safe-area-inset-top);
-    }
-    .inner {
-      max-width:980px;margin:0 auto;padding:14px;
-      display:flex;gap:14px;align-items:center;
-    }
-    .logo {width:46px;height:46px;border-radius:50%;display:inline-grid;place-items:center;position:relative;background:rgba(0,0,0,.25)}
-    .ring{position:absolute;inset:0;border:2px solid var(--acc);border-radius:50%;animation:spin 6s linear infinite}
-    .bar{position:absolute;left:50%;top:50%;width:60%;height:2px;background:var(--acc);transform:translate(-50%,-50%);border-radius:999px;animation:breathe 2.4s ease-in-out infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes breathe{0%,100%{opacity:.8}50%{opacity:1}}
-    h1{font-size:1.2rem;margin:.12rem 0 0;font-weight:800}
-    .kicker{font-size:.72rem;letter-spacing:.16em;color:#e0e0e0;text-transform:uppercase}
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(42deg, var(--grad-a), var(--grad-b)) fixed;
+    color: var(--text);
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    min-height: 100dvh;
+  }
 
-    /* Grid/cards */
-    .grid{max-width:980px;margin:18px auto 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:0 14px;
-      padding-bottom:calc(var(--dock-space) + env(safe-area-inset-bottom) + 12px)}
-    @media(max-width:560px){.grid{grid-template-columns:1fr}}
-    .card{background:rgba(0,0,0,.3);border:1px solid var(--stroke-soft);border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45)}
-    .icon{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;overflow:hidden;background:#0f1320;border:1px solid var(--stroke-soft)}
-    .btn{appearance:none;border:1px solid var(--stroke-soft);cursor:pointer;background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.72rem 1.05rem;border-radius:999px;font-weight:700}
+  /* ---------- Header ---------- */
+  header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--header-h);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(16px) saturate(120%);
+    z-index: 100;
+  }
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+  .icon-btn:active { transform: scale(.96); }
+  .title {
+    flex: 1;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .title h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: .05em;
+  }
+  .title small {
+    display: block;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
 
-    /* Bottom Dock — stays ABOVE any iframe */
-    .dock{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:block}
-    .dock-inner{
-      max-width:980px;margin:0 auto;
-      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
-      display:flex;gap:8px;justify-content:space-between;align-items:center;
-      backdrop-filter:blur(18px) saturate(140%);
-      background:rgba(0,0,0,.45);
-      border-top:1px solid var(--stroke);
-      box-shadow:0 -10px 30px rgba(0,0,0,.45);
-    }
-    .dbtn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(42deg,#f0f,#0ff);color:#fff;padding:.64rem .9rem;border-radius:12px;font-weight:700}
-    .dbtn.small{padding:.5rem .7rem;font-size:.9rem}
+  /* ---------- Main ---------- */
+  main {
+    padding-top: calc(var(--header-h) + 12px);
+    /* Espaço reservado para tabbar + dock + safe‑area */
+    padding-bottom: calc(118px + var(--safe));
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+  }
+  section { display: none; }
+  section.active { display: block; }
 
-    footer{color:#fff;font-size:.8rem;text-align:center;margin:18px 0;opacity:.9}
+  /* ---------- Grid de Apps ---------- */
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 14px;
+    padding: 0 16px;
+  }
+  .app-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    height: 84px;
+    cursor: pointer;
+  }
+  .app-icon span {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+  }
+  .app-icon img {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    object-fit: contain;
+  }
 
-    /* REVO viewer (iframe overlay UNDER the dock) */
-    .viewer{
-      position:fixed;left:0;right:0;z-index:900;
-      /* dynamic top/bottom set via JS to respect header and dock */
-      background:rgba(0,0,0,.18);
-      backdrop-filter: blur(6px);
-      box-shadow:0 -10px 30px rgba(0,0,0,.35) inset;
-      border-top:1px solid var(--stroke-soft);
-      display:none; /* hidden by default */
-    }
-    .viewer.active{display:block}
-    .viewer-head{
-      position:sticky;top:0;z-index:1;
-      display:flex;gap:8px;align-items:center;justify-content:space-between;
-      padding:8px 10px;
-      background:rgba(0,0,0,.55);
-      border-bottom:1px solid var(--stroke);
-      backdrop-filter: blur(10px) saturate(140%);
-    }
-    .viewer-title{font-weight:800}
-    .viewer-actions{display:flex;gap:8px;align-items:center}
-    .viewer-iframe{
-      display:block;width:100%;height:100%;
-      border:0;outline:0;background:#0b0b0b;
-      -webkit-overflow-scrolling: touch;
-      transform: translateZ(0); /* iOS z-index fix */
-    }
-    .reopen{
-      position:fixed;right:12px;bottom:calc(var(--dock-space) + env(safe-area-inset-bottom) + 12px);
-      z-index:950;display:none;
-    }
-    .reopen.active{display:block}
-  </style>
+  /* ---------- Tabbar & Dock ---------- */
+  footer.tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
+    padding: 6px 14px calc(6px + var(--safe));
+  }
+  .tabbar .container {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 10px;
+    padding: 10px 12px calc(10px + var(--safe));
+  }
+  /* Linha de tabs */
+  .tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 6px;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+    border-radius: 16px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tab.active {
+    color: var(--text);
+    background: rgba(255, 255, 255, .10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+  }
+  .tab svg { width: 22px; height: 22px; }
+
+  /* Dock refinado */
+  .dock {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto auto;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 16px;
+    padding: 8px;
+  }
+  .dock.hidden-icons .dock-btn { display: none; }
+  .dock.hidden-icons .dock-input { grid-column: 1 / -1; }
+  .dock-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, .22);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 12px;
+    padding: 6px 10px;
+  }
+  .dock-input input {
+    appearance: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    width: 100%;
+    font-size: 14px;
+  }
+  .dock-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .14);
+  }
+  .dock-btn:active { transform: scale(.96); }
+  .dock-btn img,
+  .dock-btn svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+  }
+
+  /* Botão frase (toggle) */
+  .mantra {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    padding: 10px 12px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .06));
+    border: 1px solid rgba(255, 255, 255, .14);
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+  }
+  .mantra strong { font-weight: 800; }
+
+  /* Painel de ações & ASCII */
+  .actions {
+    display: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .actions.open { display: grid; }
+  .pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .14);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .ascii-panel {
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    background: rgba(0, 0, 0, .18);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 14px;
+    padding: 10px;
+  }
+  .ascii-panel.open { display: grid; }
+  .ascii-row { display: flex; gap: 8px; }
+  .ascii-row .pill { flex: 1; }
+  .ascii-box {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .18);
+    background: rgba(0, 0, 0, .25);
+    color: #fff;
+    padding: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Esconde chat-cards globais quando toggled */
+  .hide-cards .chat-card {
+    display: none !important;
+  }
+  /* Estiliza lista do menu brain */
+  .brain-list li {
+    padding: 10px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .brain-list li:hover { background: rgba(255, 255, 255, .08); }
+
+</style>
 </head>
 <body>
-  <header class="header" id="mainHeader">
-    <div class="inner">
-      <span class="logo" aria-hidden="true">
-        <span class="ring"></span><span class="bar"></span>
-      </span>
-      <div style="flex:1">
-        <div class="kicker">Infodose • Hub Principal</div>
-        <h1>Infodose Hub Ultra</h1>
-      </div>
-      <nav aria-label="Instalar">
-        <button class="btn" id="btnInstall" type="button">⬇️ Instalar</button>
-      </nav>
-    </div>
-  </header>
 
-  <main class="grid" id="cards" aria-live="polite"></main>
-  <footer>Infodose Hub Ultra • PWA</footer>
+<!-- ======= Header ======= -->
+<header>
+  <button class="icon-btn" id="backBtn" aria-label="Voltar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+  </button>
+  <div class="title">
+    <!-- Título e subtítulo customizados para Smigdricks -->
+    <h1>Smigdricks Dual</h1>
+    <small>Seu Espelho Vivo</small>
+  </div>
+  <button class="icon-btn" id="brainBtn" aria-haspopup="true" aria-expanded="false" aria-label="Infodose Brain">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 1 0-16 0" /><circle cx="12" cy="7" r="4" /></svg>
+  </button>
 
-  <!-- REVO: iframe viewer overlay (sits UNDER the dock) -->
-  <section class="viewer" id="revo">
-    <div class="viewer-head">
-      <div class="viewer-title" id="revoTitle">Revo</div>
-      <div class="viewer-actions">
-        <button class="dbtn small" id="revoBack" type="button">← Hub</button>
-        <button class="dbtn small" id="revoMin" type="button">— Minimizar</button>
-        <a class="dbtn small" id="revoOpen" target="_blank" rel="noopener">↗ Abrir</a>
-      </div>
+  <!-- Brain menu -->
+  <div class="brain-menu" id="brainMenu" style="display:none; position:absolute; top:calc(100% + 6px); right:16px; width:min(92vw, 340px); padding:12px; background:var(--surface-strong); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); z-index:150;">
+    <h3 style="margin:4px 0 10px; font-size:16px; font-weight:800; letter-spacing:.05em;">Infodose Brain</h3>
+    <ul class="brain-list" style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;">
+      <li onclick="exportBackup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg><span>Exportar</span></li>
+      <li onclick="promptKey()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2" /><path d="M7.5 13.5L2 19v3h3l5.5-5.5" /><circle cx="16" cy="8" r="5" /></svg><span>SK Key</span></li>
+      <li onclick="toast('Testar TTS')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" /></svg><span>TTS</span></li>
+      <li onclick="clearLogs()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18" /><path d="M3 8h18" /><path d="M3 13h18" /><path d="M3 18h18" /></svg><span>Logs</span></li>
+    </ul>
+  </div>
+</header>
+
+<!-- ======= Main ======= -->
+<main>
+  <section id="page-home" class="active">
+    <div style="padding:20px; text-align:center;">
+      <p>Bem-vindo ao Smigdricks Dual Infodose! Toque em <strong>Apps</strong> para explorar.</p>
     </div>
-    <iframe id="revoFrame" class="viewer-iframe" sandbox="allow-scripts allow-forms allow-modals allow-same-origin allow-popups allow-downloads" referrerpolicy="no-referrer"></iframe>
   </section>
-  <button class="dbtn reopen" id="btnReopen">◐ Reabrir App</button>
+  <section id="page-apps">
+    <div class="apps-grid" id="appsGrid"></div>
+  </section>
+  <section id="page-stack">
+    <div style="padding:20px; text-align:center;"><p>Nenhum app aberto no momento.</p></div>
+  </section>
+</main>
 
-  <!-- Bottom dock -->
-  <div class="dock" role="navigation" aria-label="Dock">
-    <div class="dock-inner">
-      <div style="display:flex;gap:8px">
-        <button class="dbtn" id="dockHome" type="button">Home</button>
-        <button class="dbtn" id="dockInfodose" type="button">Infodose</button>
-        <button class="dbtn" id="dockInstall" type="button">Instalar</button>
+<!-- ======= Tabbar & Dock ======= -->
+<footer class="tabbar">
+  <div class="container" id="tabbarContainer">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" id="tab-home" onclick="navigate('home')">
+        <svg><use href="#hub_home"></use></svg><span>Home</span>
       </div>
-      <div style="display:flex;gap:8px">
-        <input id="localHtmlInput" type="file" accept=".html,.htm,text/html" hidden>
-        <button class="dbtn" id="btnLocalOpen" type="button">📁 Abrir HTML Local</button>
+      <div class="tab" id="tab-apps" onclick="navigate('apps')">
+        <svg><use href="#hub_apps"></use></svg><span>Apps</span>
+      </div>
+      <div class="tab" id="tab-stack" onclick="navigate('stack')">
+        <svg><use href="#hub_stack"></use></svg><span>Stack</span>
+      </div>
+    </div>
+
+    <!-- Dock -->
+    <div class="dock" id="dock">
+      <div class="dock-input">
+        <input id="promptInput" placeholder="Digite aqui sua intenção…" autocomplete="off" />
+      </div>
+      <button class="dock-btn" id="btn-ascii"   title="Arte ASCII"></button>
+      <button class="dock-btn" id="btn-arteask" title="Arteask"></button>
+      <button class="dock-btn" id="btn-voice"   title="Voz"></button>
+      <button class="dock-btn" id="btn-send"    title="Enviar"></button>
+      <button class="dock-btn" id="btn-cards"   title="Cards"></button>
+    </div>
+
+    <!-- Botão frase toggle -->
+    <button class="mantra" id="mantraBtn" onclick="toggleActions()">
+      do seu jeito.&nbsp;<strong>Sempre</strong>&nbsp;único,&nbsp;<strong>sempre</strong>&nbsp;seu.
+    </button>
+
+    <!-- Painel de ações -->
+    <div class="actions" id="actionsPanel">
+      <button class="pill" onclick="copyPrompt()">⎘ Copiar</button>
+      <button class="pill" onclick="pastePrompt()">📎 Colar</button>
+      <button class="pill" onclick="toggleIcons()">🙈 Ocultar</button>
+      <button class="pill" onclick="toggleActions()">✕ Fechar</button>
+    </div>
+
+    <!-- Painel Arte ASCII -->
+    <div class="ascii-panel" id="asciiPanel">
+      <div class="ascii-row">
+        <button class="pill" onclick="asciiGenerate('369')">Fractal 369</button>
+        <button class="pill" onclick="asciiGenerate('portal')">Portal</button>
+        <button class="pill" onclick="asciiGenerate('heptagrama')">Heptagrama</button>
+      </div>
+      <textarea class="ascii-box" id="asciiBox" placeholder="Sua Arte ASCII aparece aqui…"></textarea>
+      <div class="ascii-row">
+        <button class="pill" onclick="asciiToPrompt()">➕ Inserir no prompt</button>
+        <button class="pill" onclick="asciiCopy()">⎘ Copiar ASCII</button>
+        <button class="pill" onclick="toggleAscii()">✕ Fechar ASCII</button>
       </div>
     </div>
   </div>
+</footer>
 
-  <script>
-  const $ = (q,root=document) => root.querySelector(q);
+<!-- ======= SVG Sprite Fallback ======= -->
+<svg style="display:none" aria-hidden="true">
+  <defs id="icon-defs">
+    <symbol id="hub_home" viewBox="0 0 24 24">
+      <path d="M3 12l9-9 9 9" stroke="currentColor" stroke-width="2" fill="none" />
+      <path d="M9 21V9h6v12" stroke="currentColor" stroke-width="2" fill="none" />
+    </symbol>
+    <symbol id="hub_apps" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+      <rect x="14" y="3" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+      <rect x="14" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+      <rect x="3" y="14" width="7" height="7" rx="2" stroke="currentColor" stroke-width="2" fill="none" />
+    </symbol>
+    <symbol id="hub_stack" viewBox="0 0 24 24">
+      <path d="M12 2l9 4.5-9 4.5L3 6.5 12 2z" stroke="currentColor" stroke-width="2" fill="none" />
+      <path d="M3 13l9 4.5 9-4.5" stroke="currentColor" stroke-width="2" fill="none" />
+    </symbol>
+  </defs>
+</svg>
 
-  // Revo geometry: keeps dock visible on top and header space at top
-  function fitRevo(){
-    const header = $('#mainHeader');
-    const revo   = $('#revo');
-    const rect   = header.getBoundingClientRect();
-    const headerH = rect.height;
-    document.documentElement.style.setProperty('--header-h', headerH + 'px');
-    // Respect safe-areas and leave space for dock
-    const bottomSpace = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--dock-space')) || 84;
-    revo.style.top = headerH + 'px';
-    revo.style.bottom = 'calc(' + bottomSpace + 'px + env(safe-area-inset-bottom))';
+<!-- ======= Scripts ======= -->
+<script>
+/* ===== Helpers ===== */
+const qs = (s) => document.querySelector(s);
+const toast = (...m) => console.log('[Smigdricks]', ...m);
+
+/* LocalStorage util para persistência */
+const ls = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const UI_STATE = 'smig.dricks.ui';
+
+/* ===== Navegação ===== */
+function navigate(target) {
+  ['home', 'apps', 'stack'].forEach(pg => {
+    qs('#page-' + pg).classList.toggle('active', pg === target);
+    qs('#tab-' + pg).classList.toggle('active', pg === target);
+  });
+  if (target === 'apps' && !navigate._loaded) {
+    loadApps();
+    navigate._loaded = true;
   }
-  window.addEventListener('resize', fitRevo);
-  window.addEventListener('orientationchange', fitRevo);
+}
 
-  // Load cards from apps.json but open inside Revo (iframe), not a new tab
-  async function loadApps(){
-    try{
-      const res  = await fetch('./apps/apps.json', {cache:'no-store'});
-      const data = await res.json();
-      const root = $('#cards');
-      root.innerHTML='';
-      (data.apps || []).forEach(app => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const icon = app.icon || 'icons/icon-192.png';
-        const title = app.title || app.key || 'App';
-        const desc  = app.desc || '';
-        const url   = app.url;
-        const onclick = url ? `openInRevo('${encodeURI(url)}','${(title+'').replace(/'/g,"\\'")}')` : '';
-        card.innerHTML = `
-          <div class="icon">
-            <img src="${icon}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>
-          </div>
-          <div style="flex:1">
-            <div class="title" style="font-weight:800">${title}</div>
-            <div class="muted" style="opacity:.9">${desc}</div>
-            <div class="row" style="margin-top:8px">
-              <button class="btn" type="button" ${onclick ? `onclick="${onclick}"` : 'disabled'}>Abrir</button>
-            </div>
-          </div>`;
-        root.appendChild(card);
+/* ===== Menu do Brain ===== */
+const brainBtn = qs('#brainBtn');
+const brainMenu = qs('#brainMenu');
+brainBtn.addEventListener('click', (e) => {
+  const opened = brainMenu.style.display === 'block';
+  brainMenu.style.display = opened ? 'none' : 'block';
+  e.stopPropagation();
+});
+document.addEventListener('click', (e) => {
+  if (!brainMenu.contains(e.target) && e.target !== brainBtn) {
+    brainMenu.style.display = 'none';
+  }
+});
+
+function exportBackup() {
+  const data = { when: Date.now(), storage: localStorage };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'smig.backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exportado');
+}
+function promptKey() {
+  const key = prompt('Cole sua SK (salva localmente)');
+  if (key) {
+    localStorage.setItem('smig.keys.openrouter', key);
+    toast('Chave armazenada');
+  }
+}
+function clearLogs() { console.clear(); toast('Logs limpos'); }
+
+/* ===== Carregamento de apps (apps.json) ===== */
+async function loadApps() {
+  const grid = qs('#appsGrid');
+  grid.innerHTML = '';
+  async function getJSON(p) {
+    try {
+      const r = await fetch(p);
+      if (r.ok) return r.json();
+    } catch (e) {}
+    return null;
+  }
+  let data = await getJSON('apps.json') || await getJSON('apps/apps.json');
+  if (data?.groups) {
+    Object.values(data.groups).forEach(group => {
+      group.forEach(app => {
+        const div = document.createElement('div');
+        div.className = 'app-icon';
+        div.onclick = () => window.open(app.url, '_blank');
+        const img = document.createElement('img');
+        img.src = app.icon || (data.defaultIcons?.base || '/icons/icon-192.png');
+        img.alt = '';
+        const span = document.createElement('span');
+        span.textContent = app.title;
+        div.appendChild(img);
+        div.appendChild(span);
+        grid.appendChild(div);
       });
-    } catch(e) {
-      $('#cards').innerHTML =
-        '<div class="card">' +
-        '<div class="icon">⚠️</div>' +
-        '<div><div class="title" style="font-weight:800">Falha ao carregar</div><div class="muted">' +
-        'apps/apps.json não encontrado.' +
-        '</div></div></div>';
-    }
-  }
-  loadApps();
-
-  // REVO controls
-  let currentObjectURL = null;
-  function openInRevo(url, title='App'){
-    fitRevo();
-    const frame = $('#revoFrame');
-    const v = $('#revo');
-    const t = $('#revoTitle');
-    const openA = $('#revoOpen');
-    t.textContent = title;
-    frame.src = url;
-    openA.href = url;
-    v.classList.add('active');
-    $('#btnReopen').classList.remove('active');
-    // Prevent body scroll when viewer is open (better iOS behavior)
-    document.body.style.overflow = 'hidden';
-  }
-  function closeRevo(){
-    const frame = $('#revoFrame');
-    const v = $('#revo');
-    v.classList.remove('active');
-    // revoke previous object URL from local uploads
-    if(currentObjectURL){
-      URL.revokeObjectURL(currentObjectURL);
-      currentObjectURL = null;
-    }
-    frame.src = 'about:blank';
-    document.body.style.overflow = '';
-  }
-  function minRevo(){
-    $('#revo').classList.remove('active');
-    $('#btnReopen').classList.add('active');
-    document.body.style.overflow = '';
-  }
-  $('#revoBack').addEventListener('click', closeRevo);
-  $('#revoMin').addEventListener('click', minRevo);
-  $('#btnReopen').addEventListener('click', () => {
-    $('#btnReopen').classList.remove('active');
-    $('#revo').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  });
-
-  // Dock actions
-  $('#dockHome').addEventListener('click', () => {
-    closeRevo();
-    window.scrollTo({top:0, behavior:'smooth'});
-    history.pushState('', document.title, window.location.pathname + window.location.search);
-  });
-  $('#dockInfodose').addEventListener('click', () => {
-    openInRevo('https://infodose.com.br','Infodose');
-  });
-
-  // PWA install
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  } else {
+    // fallback simples
+    const examples = ['Chat', 'Editor', 'Livros'];
+    examples.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'app-icon';
+      el.innerHTML = `<img src="/icons/icon-192.png" alt=""><span>${t}</span>`;
+      el.onclick = () => toast('Abrindo ' + t);
+      grid.appendChild(el);
     });
   }
-  let deferredPrompt = null;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-  async function doInstall(){
-    if(deferredPrompt){
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    } else {
-      alert('Use “Adicionar à Tela de Início”.');
-    }
+}
+
+/* ===== Ações da Dock ===== */
+function onSend() {
+  const v = qs('#promptInput').value.trim();
+  if (!v) return toast('Prompt vazio');
+  toast('Enviar:', v);
+  qs('#promptInput').value = '';
+}
+function onVoz() { toast('Gravando voz...'); }
+function onArteask() { toast('Abrir presets Arteask...'); }
+function toggleCards() {
+  document.body.classList.toggle('hide-cards');
+  saveUI();
+}
+
+/* ===== Painel de ações (frase) ===== */
+function toggleActions() {
+  qs('#actionsPanel').classList.toggle('open');
+  saveUI();
+}
+function copyPrompt() {
+  const v = qs('#promptInput').value || '';
+  navigator.clipboard?.writeText(v).then(() => toast('Copiado'));
+}
+async function pastePrompt() {
+  try {
+    const txt = await navigator.clipboard.readText();
+    if (txt) qs('#promptInput').value = txt;
+  } catch (e) {
+    toast('Permita acesso à área de transferência');
   }
-  $('#btnInstall').addEventListener('click', doInstall);
-  $('#dockInstall').addEventListener('click', doInstall);
+}
+function toggleIcons() {
+  qs('#dock').classList.toggle('hidden-icons');
+  saveUI();
+}
 
-  // Local HTML upload → open in Revo
-  const inputLocal = $('#localHtmlInput');
-  $('#btnLocalOpen').addEventListener('click', () => inputLocal.click());
-  inputLocal.addEventListener('change', (ev) => {
-    const f = ev.target.files && ev.target.files[0];
-    if(!f) return;
-    // revoke any previous object URL
-    if(currentObjectURL) URL.revokeObjectURL(currentObjectURL);
-    currentObjectURL = URL.createObjectURL(f);
-    openInRevo(currentObjectURL, f.name || 'HTML Local');
-    // reset input so same file can be picked again later
-    inputLocal.value = '';
+/* ===== Arte ASCII ===== */
+function toggleAscii() {
+  qs('#asciiPanel').classList.toggle('open');
+  saveUI();
+}
+function onAscii() { toggleAscii(); }
+function asciiToPrompt() {
+  const box = qs('#asciiBox');
+  const p = qs('#promptInput');
+  p.value = (p.value ? (p.value + '\n') : '') + box.value;
+  toast('ASCII inserido no prompt');
+}
+function asciiCopy() {
+  const v = qs('#asciiBox').value || '';
+  navigator.clipboard?.writeText(v);
+  toast('ASCII copiado');
+}
+function asciiGenerate(kind) {
+  let a = '';
+  if (kind === '369') {
+    a =
+`    3   6   9
+   ◐   ◐   ◐
+  ◐◐◐ ◐◐◐ ◐◐◐
+   ◐   ◐   ◐
+    3   6   9`;
+  } else if (kind === 'portal') {
+    a =
+`╔════🌌════╗
+║  ⭕ ⭕ ⭕  ║
+║   ◐ ◐    ║
+║    ●     ║
+╚════🌌════╝`;
+  } else {
+    a =
+`   /\\
+  /  \\
+ / /\\ \\
+ \\ \\/ /
+  \\  /
+   \\/   ★7`;
+  }
+  qs('#asciiBox').value = a;
+}
+
+/* ===== Persistência de UI ===== */
+function saveUI() {
+  ls.set(UI_STATE, {
+    actionsOpen: qs('#actionsPanel').classList.contains('open'),
+    asciiOpen: qs('#asciiPanel').classList.contains('open'),
+    iconsHidden: qs('#dock').classList.contains('hidden-icons'),
+    cardsHidden: document.body.classList.contains('hide-cards')
   });
+}
+(function restoreUI() {
+  const st = ls.get(UI_STATE) || {};
+  if (st.actionsOpen) qs('#actionsPanel').classList.add('open');
+  if (st.asciiOpen) qs('#asciiPanel').classList.add('open');
+  if (st.iconsHidden) qs('#dock').classList.add('hidden-icons');
+  if (st.cardsHidden) document.body.classList.add('hide-cards');
+})();
 
-  // First layout
-  fitRevo();
-  </script>
+/* ===== Carregamento de ícones nos botões ===== */
+async function setBtnIcon(btnId, name, inlineFallback) {
+  const btn = qs(btnId);
+  const paths = [
+    `orders/${name}.svg`,
+    `docs/icons/others/${name}.svg`,
+    `/icons/others/${name}.svg`
+  ];
+  for (const p of paths) {
+    try {
+      const r = await fetch(p, { cache: 'no-store' });
+      if (r.ok) {
+        btn.innerHTML = await r.text();
+        return;
+      }
+    } catch (e) {}
+  }
+  // fallback inline
+  btn.innerHTML = inlineFallback;
+}
+const inline = {
+  ascii:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>',
+  arteask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 3"/></svg>',
+  voice:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><path d="M12 19v2"/></svg>',
+  send:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  cards:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>',
+};
+setBtnIcon('#btn-ascii',  'ascii',  inline.ascii);
+setBtnIcon('#btn-arteask','arteask', inline.arteask);
+setBtnIcon('#btn-voice',  'mic',   inline.voice);
+setBtnIcon('#btn-send',   'send',  inline.send);
+setBtnIcon('#btn-cards',  'cards', inline.cards);
+
+/* ===== Liga botões ===== */
+qs('#btn-send').onclick   = onSend;
+qs('#btn-voice').onclick  = onVoz;
+qs('#btn-arteask').onclick= onArteask;
+qs('#btn-cards').onclick  = toggleCards;
+qs('#btn-ascii').onclick  = onAscii;
+
+/* ===== Service Worker (opcional) ===== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}
+</script>
 </body>
 </html>
