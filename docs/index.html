@@ -163,5 +163,57 @@ $('#btnApps').addEventListener('click',()=>{const y=$('#groupsWrap').getBounding
 $('#btnLogs').addEventListener('click',()=>{$('#brain').classList.remove('hide'); $('#brain').scrollIntoView({behavior:'smooth',block:'nearest'})})
 loadApps(); loadProfileUI(); log('Hub iniciado');
 </script>
+  <script>
+    async function loadApps(){
+  try {
+    const res  = await fetch('./apps/apps.json', {cache:'no-store'});
+    const data = await res.json();
+    const groups = data.groups || {};
+    groupsWrap.innerHTML = '';
+
+    for (const [n, items] of Object.entries(groups)) {
+      // ... código para montar os cards …
+
+      items.forEach(app => {
+        const row  = document.createElement('div');
+        row.className = 'appRow';
+        const icon = app.icon || 'icons/others/hub_apps.svg';
+
+        // Título completo e título truncado em até 3 palavras
+        const fullTitle    = (app.title || app.key).trim();
+        const words        = fullTitle.split(/\s+/);
+        const truncated    = words.slice(0, 3).join(' ');
+        const displayTitle = words.length > 3 ? truncated + '…' : truncated;
+
+        row.innerHTML = `
+          <img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt="">
+          <div style="flex:1;min-width:0">
+            <!-- aplica ellipsis e coloca o título completo no atributo title -->
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${fullTitle}">
+              ${displayTitle}
+            </div>
+            <div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${app.desc || ''}">
+              ${app.desc || ''}
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button>
+            <button class="btn pri" onclick="openSession('${app.key}','${fullTitle.replace(/['\"<>&]/g,'')}', '${app.url || ''}', '${icon}')">Abrir</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      groupsWrap.appendChild(card);
+    }
+
+    renderFavorites();
+    log('apps.json carregado');
+  } catch(e) {
+    groupsWrap.innerHTML = '<div class=muted>Falha ao carregar apps/apps.json</div>';
+    log('Erro apps.json');
+  }
+}
+  </script>
 </body>
 </html>
