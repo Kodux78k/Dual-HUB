@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>HUB Dual — Variante B</title>
+<title>HUB Dual — Variante B (Truncado)</title>
 <link rel="icon" href="icons/others/favicon.svg" type="image/svg+xml"/>
 <meta name="theme-color" content="#00ffff"/>
 <style>
@@ -145,9 +145,16 @@ function loadProfileUI(){ $('#inpName').value=state.profile.name||''; $('#inpDua
 $('#btnSaveSK').addEventListener('click',()=>{state.sk=$('#inpSK').value.trim();localStorage.setItem('hub.sk',state.sk);log('SK salva')})
 $('#btnPerf').addEventListener('click',()=>{state.perf=$('#selPerf').value;localStorage.setItem('hub.perf',state.perf);$('#perfLabel').textContent=state.perf.toUpperCase();log('Performance: '+state.perf)})
 $('#btnVoice').addEventListener('click',()=>{state.voice=$('#selVoice').value;localStorage.setItem('hub.voice',state.voice);log('Voz setada: '+state.voice)})
-$('#btnDownload').addEventListener('click',()=>{fetch(location.href).then(r=>r.text()).then(t=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.download='HUB_Dual_VarB.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado')}).catch(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'}));a.download='HUB_Dual_VarB_runtime.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado (runtime)')})})
+$('#btnDownload').addEventListener('click',()=>{fetch(location.href).then(r=>r.text()).then(t=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/html'}));a.download='HUB_Dual_VarB_Truncado.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado')}).catch(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'}));a.download='HUB_Dual_VarB_Truncado_runtime.html';a.click();URL.revokeObjectURL(a.href);log('HTML baixado (runtime)')})})
 const groupsWrap=$('#groupsWrap'), favoritesWrap=$('#favoritesWrap'), favoritesList=$('#favoritesList');
-async function loadApps(){ try{ const res=await fetch('./apps/apps.json',{cache:'no-store'}); const data=await res.json(); const groups=data.groups||{}; groupsWrap.innerHTML=''; for(const [n,items] of Object.entries(groups)){ const card=document.createElement('div'); card.className='card'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${n.replaceAll('_',' ')}</div><div class=muted>${items.length} apps</div></div><div class=appsGrid></div>`; const list=card.querySelector('.appsGrid'); items.forEach(app=>{ const row=document.createElement('div'); row.className='appRow'; const icon=app.icon||'icons/others/hub_apps.svg'; row.innerHTML=`<img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt=""><div style="flex:1;min-width:0"><div style="font-weight:700">${app.title||app.key}</div><div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${app.desc||''}">${app.desc||''}</div></div><div style="display:flex;gap:10px"><button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button><button class="btn pri" onclick="openSession('${app.key}','${(app.title||app.key).replace(/['\"<>&]/g,'')}', '${app.url||''}', '${icon}')">Abrir</button></div>`; list.appendChild(row)}); groupsWrap.appendChild(card);} renderFavorites(); log('apps.json carregado') }catch(e){ groupsWrap.innerHTML='<div class=muted>Falha ao carregar apps/apps.json</div>'; log('Erro apps.json') } }
+// Função carregadora de apps com truncamento automático de títulos. Limita a exibição a 3 palavras e adiciona reticências quando necessário.
+async function loadApps(){ try{ const res=await fetch('./apps/apps.json',{cache:'no-store'}); const data=await res.json(); const groups=data.groups||{}; groupsWrap.innerHTML=''; for(const [n,items] of Object.entries(groups)){ const card=document.createElement('div'); card.className='card'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${n.replaceAll('_',' ')}</div><div class=muted>${items.length} apps</div></div><div class=appsGrid></div>`; const list=card.querySelector('.appsGrid'); items.forEach(app=>{ const row=document.createElement('div'); row.className='appRow'; const icon=app.icon||'icons/others/hub_apps.svg'; // Prepara título completo e truncado
+            const fullTitle=(app.title||app.key||'').trim();
+            const words=fullTitle.split(/\s+/);
+            const truncated=words.slice(0,3).join(' ');
+            const displayTitle=words.length>3?truncated+'…':truncated;
+            const safeFullTitle=fullTitle.replace(/['"<>&]/g,'');
+            row.innerHTML=`<img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt=""><div style="flex:1;min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${fullTitle}">${displayTitle}</div><div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${app.desc||''}">${app.desc||''}</div></div><div style="display:flex;gap:10px"><button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button><button class="btn pri" onclick="openSession('${app.key}','${safeFullTitle}', '${app.url||''}', '${icon}')">Abrir</button></div>`; list.appendChild(row)}); groupsWrap.appendChild(card);} renderFavorites(); log('apps.json carregado') }catch(e){ groupsWrap.innerHTML='<div class=muted>Falha ao carregar apps/apps.json</div>'; log('Erro apps.json') } }
 document.addEventListener('click',e=>{const star=e.target.closest('.btn.star'); if(!star)return; const key=star.dataset.key; const on=star.getAttribute('data-on')==='true'; if(on)state.favorites.delete(key); else state.favorites.add(key); star.setAttribute('data-on', String(!on)); localStorage.setItem('hub.favs', JSON.stringify([...state.favorites])); renderFavorites(); });
 function renderFavorites(){ favoritesList.innerHTML=''; const favs=[...state.favorites]; favoritesWrap.classList.toggle('hide',favs.length===0); if(!favs.length) return; const all=groupsWrap.querySelectorAll('.appRow'); favs.forEach(k=>{ const row=[...all].find(r=>r.querySelector('.btn.star')?.dataset.key===k); if(row){ const c=row.cloneNode(true); c.querySelector('.btn.star').remove(); favoritesList.appendChild(c);} }); }
 const sessionsAnchor=$('#sessionsAnchor'), miniWrap=$('#miniWrap'), miniCount=$('#miniCount'), quickBadges=$('#quickBadges');
@@ -163,57 +170,5 @@ $('#btnApps').addEventListener('click',()=>{const y=$('#groupsWrap').getBounding
 $('#btnLogs').addEventListener('click',()=>{$('#brain').classList.remove('hide'); $('#brain').scrollIntoView({behavior:'smooth',block:'nearest'})})
 loadApps(); loadProfileUI(); log('Hub iniciado');
 </script>
-  <script>
-    async function loadApps(){
-  try {
-    const res  = await fetch('./apps/apps.json', {cache:'no-store'});
-    const data = await res.json();
-    const groups = data.groups || {};
-    groupsWrap.innerHTML = '';
-
-    for (const [n, items] of Object.entries(groups)) {
-      // ... código para montar os cards …
-
-      items.forEach(app => {
-        const row  = document.createElement('div');
-        row.className = 'appRow';
-        const icon = app.icon || 'icons/others/hub_apps.svg';
-
-        // Título completo e título truncado em até 3 palavras
-        const fullTitle    = (app.title || app.key).trim();
-        const words        = fullTitle.split(/\s+/);
-        const truncated    = words.slice(0, 3).join(' ');
-        const displayTitle = words.length > 3 ? truncated + '…' : truncated;
-
-        row.innerHTML = `
-          <img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt="">
-          <div style="flex:1;min-width:0">
-            <!-- aplica ellipsis e coloca o título completo no atributo title -->
-            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${fullTitle}">
-              ${displayTitle}
-            </div>
-            <div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${app.desc || ''}">
-              ${app.desc || ''}
-            </div>
-          </div>
-          <div style="display:flex;gap:10px">
-            <button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button>
-            <button class="btn pri" onclick="openSession('${app.key}','${fullTitle.replace(/['\"<>&]/g,'')}', '${app.url || ''}', '${icon}')">Abrir</button>
-          </div>
-        `;
-        list.appendChild(row);
-      });
-
-      groupsWrap.appendChild(card);
-    }
-
-    renderFavorites();
-    log('apps.json carregado');
-  } catch(e) {
-    groupsWrap.innerHTML = '<div class=muted>Falha ao carregar apps/apps.json</div>';
-    log('Erro apps.json');
-  }
-}
-  </script>
 </body>
 </html>
