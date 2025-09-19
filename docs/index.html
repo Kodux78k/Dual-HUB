@@ -76,6 +76,18 @@
   -webkit-line-clamp: 3;
 }
 
+
+/* === Global clamp utilities ======================================= */
+.clamp{
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.clamp-1{ -webkit-line-clamp:1; }
+.clamp-2{ -webkit-line-clamp:2; }
+.clamp-3{ -webkit-line-clamp:3; }
+
 </style>
 </head>
 <body>
@@ -156,6 +168,56 @@ function truncateChars(str, max, suffix='…'){
   return s.length > max ? s.slice(0, Math.max(0, max-1)) + suffix : s;
 }
 function safe(s){
+// === Global clamp config & helpers =================================
+window.CLAMP = { title: 2, desc: 2, hud: 2 };
+
+function clampClass(n){
+  const val = Math.max(1, Math.min(3, parseInt(n||2,10)));
+  return 'clamp clamp-' + val;
+}
+
+function applyClampTo(root=document){
+  const tLines = CLAMP.title||2;
+  const dLines = CLAMP.desc||2;
+  const hLines = CLAMP.hud||2;
+
+  // app-specific known classes
+  root.querySelectorAll('.appTitle').forEach(el=>{
+    el.classList.remove('clamp-1','clamp-2','clamp-3');
+    el.classList.add('clamp','clamp-'+tLines);
+  });
+  root.querySelectorAll('.appDesc').forEach(el=>{
+    el.classList.remove('clamp-1','clamp-2','clamp-3');
+    el.classList.add('clamp','clamp-'+dLines);
+  });
+
+  // generic attributes (opt-in): data-clamp="1|2|3" or named: "title|desc|hud"
+  root.querySelectorAll('[data-clamp]').forEach(el=>{
+    const v = el.getAttribute('data-clamp');
+    let lines = parseInt(v,10);
+    if(isNaN(lines)){
+      lines = v==='title' ? tLines : v==='desc' ? dLines : hLines;
+    }
+    el.classList.remove('clamp-1','clamp-2','clamp-3');
+    el.classList.add('clamp','clamp-'+Math.max(1,Math.min(3,lines)));
+  });
+}
+
+// Observe dynamic DOM to re-apply automatically
+const _clampObserver = new MutationObserver(muts=>{
+  for(const m of muts){
+    if(m.addedNodes && m.addedNodes.length){
+      m.addedNodes.forEach(n=>{
+        if(n.nodeType===1){ applyClampTo(n); }
+      });
+    }
+  }
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+  applyClampTo(document);
+  _clampObserver.observe(document.body, {childList:true, subtree:true});
+});
+
   return String(s||'').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 }
 
@@ -218,8 +280,8 @@ async function loadApps(){
         
         row.innerHTML = `<img src="${icon}" onerror="this.replaceWith(svgApps(32))" alt="">
           <div style="flex:1;min-width:0">
-            <div class="appTitle" style="font-weight:700;" title="${safeTitle}">${safe(displayTitle)}</div>
-            <div class="appDesc muted" title="${safeDesc}">${safe(displayDesc)}</div>
+            <div class="appTitle" data-clamp="title" style="font-weight:700;" title="${safeTitle}">${safe(displayTitle)}</div>
+            <div class="appDesc muted" data-clamp="desc" title="${safeDesc}">${safe(displayDesc)}</div>
           </div>
           <div style="display:flex;gap:10px">
             <button class="btn star" data-key="${app.key}" data-on="${state.favorites.has(app.key)}">★</button>
@@ -228,7 +290,8 @@ async function loadApps(){
         list.appendChild(row) 
       }); 
       groupsWrap.appendChild(card);
-    } 
+    }
+    applyClampTo(groupsWrap);
     renderFavorites(); 
     log('apps.json carregado') 
   }catch(e){ 
