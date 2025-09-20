@@ -59,7 +59,7 @@
     html, body { height: 100% }
 
     body {
-      margin: 10;
+      margin: 0;
       color: var(--fg);
       background: linear-gradient(42deg, var(--grad-a), var(--grad-b)) fixed;
       font: 14px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
@@ -472,37 +472,103 @@
     /* Remove default padding for the new Revo section and ensure the iframe fills the space */
     #v-revo { padding: 0; }
     #v-revo iframe { width: 100%; height: 100%; border: 0; background: transparent; }
-  
-/* === Dual adjustments (Kodux request) === */
-/* Feed no topo do portal e com tamanho máximo */
-#v-home #iaFeed{
-  max-height: 260px;
-  overflow: auto;
-  margin: 8px auto 10px;
-  z-index: 90;
-}
-/* Quando body.nav-right: barra de navegação vertical à direita */
-body.nav-right .tabbar{
-  position: fixed;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 56px;
-  height: auto;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  padding: 0;
-}
-body.nav-right .tabbar .inner{
-  display: grid;
-  gap: 10px;
-}
-body.nav-right .tabbar .tab{
-  width: 56px; height: 56px; border-radius: 16px;
-  display: grid; place-items: center;
-}
-</style>
+    /* ===== Dual Chat enhancements ===== */
+    /* Estilos para tornar mensagens da IA interativas, inspirados no DualChat. Estas regras aplicam-se apenas a mensagens de IA (classe .rich) dentro do iaFeed. */
+    #iaFeed .msg.rich .action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 4px 0 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(41,211,255,.16);
+      border: 1px solid rgba(41,211,255,.35);
+      color: var(--fg);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #iaFeed .msg.rich .action:hover {
+      background: rgba(41,211,255,.25);
+    }
+    #iaFeed .msg.rich .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 4px 0 0;
+      padding: 6px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--fg);
+    }
+    #iaFeed .msg.rich .chip:hover {
+      background: rgba(255,255,255,.12);
+    }
+    #iaFeed .msg.rich .link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 4px 4px 0 0;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(41,211,255,.35);
+      background: rgba(41,211,255,.12);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    #iaFeed .msg.rich .link:hover {
+      background: rgba(41,211,255,.22);
+    }
+    /* Blocos de código dentro do feed. Inspirado no DualChat, mas adaptado para a paleta do HUB UNO. */
+    #iaFeed .msg.rich pre.code {
+      position: relative;
+      background: rgba(0,0,0,.15);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 6px 0;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    #iaFeed .msg.rich pre.code code { white-space: pre-wrap; }
+    #iaFeed .msg.rich pre.code .copy {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 11px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      cursor: pointer;
+      color: var(--fg);
+    }
+    #iaFeed .msg.rich pre.code .lang {
+      position: absolute;
+      bottom: 4px;
+      right: 8px;
+      font-size: 10px;
+      opacity: .6;
+      color: var(--fg);
+    }
+    /* Tokens de sintaxe para destaque de código */
+    #iaFeed .msg.rich .tok-k  { color: #c792ea; }
+    #iaFeed .msg.rich .tok-op { color: #89ddff; }
+    #iaFeed .msg.rich .tok-str{ color: #ecc48d; }
+    #iaFeed .msg.rich .tok-num{ color: #f78c6c; }
+    #iaFeed .msg.rich .tok-cmt{ color: #5c6773; }
+    #iaFeed .msg.rich .tok-tag{ color: #7fdbff; }
+    #iaFeed .msg.rich .tok-attr{ color: #ffcb6b; }
+    #iaFeed .msg.rich .tok-val{ color: #c3e88d; }
+    #iaFeed .msg.rich .tok-sel{ color: #82aaff; }
+    #iaFeed .msg.rich .tok-prop{ color: #c3e88d; }
+  </style>
 </head>
 <body>
   <!-- ===== Header ===== -->
@@ -1392,6 +1458,176 @@ body.nav-right .tabbar .tab{
       }
       box.scrollTop = box.scrollHeight;
     }
+    // ===== Dual Chat enhancements =====
+    // This function escapes HTML special characters to prevent injection.
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"]/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;'
+      })[c]);
+    }
+    // Escape quotes in attribute values.
+    function attr(str) {
+      return String(str).replace(/"/g, '&quot;');
+    }
+    /**
+     * Realiza destaque de sintaxe simples para blocos de código. Suporta
+     * linguagens JavaScript/TypeScript, HTML e CSS básicas.
+     * @param {Element} el Elemento <code> contendo o código
+     * @param {string} lang Indicador de linguagem (ex. "js", "html", "css")
+     */
+    function highlightCode(el, lang) {
+      const src = el.textContent;
+      let out = escapeHtml(src);
+      const jsLike = /^(js|jsx|ts|tsx|javascript|typescript)$/i.test(lang || '');
+      const isHTML = /^(html|xml)$/i.test(lang || '');
+      const isCSS  = /^(css|scss)$/i.test(lang || '');
+      if (jsLike) {
+        // Comentários
+        out = out.replace(/(\/\/.*?$|\/\*[\s\S]*?\*\/)/gm, '<span class="tok-cmt">$1</span>');
+        // Strings
+        out = out.replace(/([`'\"])(?:\\.|(?!\1).)*\1/gm, '<span class="tok-str">$&</span>');
+        // Números
+        out = out.replace(/\b(\d+(\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+        // Palavras-chave básicas
+        const kw = /\b(async|await|break|case|catch|class|const|continue|default|delete|do|else|enum|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|null|of|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|interface|type)\b/g;
+        out = out.replace(kw, '<span class="tok-k">$1</span>');
+        // Operadores e pontuação
+        out = out.replace(/([{}()\[\].,;:+\-*/%=&|^!<>?])/g, '<span class="tok-op">$1</span>');
+      } else if (isHTML) {
+        // Tags e atributos
+        out = out
+          .replace(/&lt;!--[\s\S]*?--&gt;/g, (m) => `<span class="tok-cmt">${m}</span>`)
+          .replace(/&lt;\/?([a-zA-Z0-9-]+)([^>]*)&gt;/g, (m, tag, attrs) => {
+            const a = attrs.replace(/([a-zA-Z-:]+)(=)("[^"]*"|'[^']*')/g, '<span class="tok-attr">$1</span>$2<span class="tok-val">$3</span>');
+            return `&lt;<span class="tok-tag">${tag}</span>${a}&gt;`;
+          });
+      } else if (isCSS) {
+        out = out
+          .replace(/\/\*[\s\S]*?\*\//g, (m) => `<span class="tok-cmt">${m}</span>`)
+          .replace(/([^\{\s][^\{]+)\s*\{/g, (m, sel) => `<span class="tok-sel">${escapeHtml(sel)}</span>{`)
+          .replace(/([a-z-]+)\s*:\s*([^;]+);/g, (m, prop, val) => `<span class="tok-prop">${prop}</span>: <span class="tok-val">${escapeHtml(val)}</span>;`);
+      }
+      el.innerHTML = out;
+    }
+    /**
+     * Enriquecer mensagens de IA com elementos interativos.
+     * Converte parenteses em botões de ação, emojis em chips clicáveis,
+     * links em botões que abrem em nova guia e blocos de código em áreas
+     * com destaque e botão de copiar.
+     * @param {HTMLElement} node Elemento a ser enriquecido
+     */
+    function dualEnrich(node) {
+      const raw = node.textContent || '';
+      let html = escapeHtml(raw);
+      // Parênteses -> ações.  Captura parênteses superficiais (não aninhados).
+      html = html.replace(/\(([^()]+)\)/g, (m, inner) => {
+        const label = inner.trim().replace(/\s*->\s*/g, ' → ');
+        return `<button class="action" data-send="${attr(label)}">${escapeHtml(label)}</button>`;
+      });
+      // Emojis -> chips.  Usa intervalo Unicode de emojis + alguns símbolos adicionais.
+      const emoRE = /(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[⚡⭕✦☆★✧✩◆◇▶️◀️⏯️⏵⏸️⏹️🎛️🎚️🎙️🎧️🎼️🎹️🗂️📎🧩🔥🌙✨💡💾🧪⭐️])/gu;
+      html = html.replace(emoRE, (m) => `<span class="chip" data-send="${attr(m)}">${escapeHtml(m)}</span>`);
+      // Links markdown [label](url)
+      html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, label, url) => {
+        return `<button class="link" data-url="${attr(url)}">${escapeHtml(label)} ↗</button>`;
+      });
+      // URLs isoladas
+      html = html.replace(/(https?:\/\/[^\s]+)/g, (m, url) => {
+        return `<button class="link" data-url="${attr(url)}">${escapeHtml(url)} ↗</button>`;
+      });
+      // Blocos de código ```lang\n...\n```
+      html = html.replace(/```([a-z0-9_\-.+#]*)\n([\s\S]*?)```/g, (m, lang, body) => {
+        const safe = escapeHtml(body);
+        return `<pre class="code"><button class="copy" data-code="${attr(body)}">Copiar</button><code data-lang="${attr(lang || 'text')}">${safe}</code><span class="lang">${escapeHtml(lang || 'text')}</span></pre>`;
+      });
+      node.innerHTML = html;
+      // Bind actions & chips
+      node.querySelectorAll('.action, .chip').forEach((el) => {
+        const txt = el.getAttribute('data-send');
+        el.addEventListener('click', () => {
+          sendMessageFromSuggestion(txt);
+        });
+      });
+      // Bind links -> abrir em nova aba
+      node.querySelectorAll('.link').forEach((el) => {
+        const url = el.getAttribute('data-url');
+        el.addEventListener('click', () => {
+          try { window.open(url, '_blank'); } catch (e) {}
+        });
+      });
+      // Bind copy buttons
+      node.querySelectorAll('.code .copy').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(btn.getAttribute('data-code') || '');
+            // Exibe notificação simples de cópia (poderíamos usar showArchMessage)
+            showArchMessage('Código copiado!', 'ok');
+          } catch (e) {
+            showArchMessage('Falha ao copiar código.', 'err');
+          }
+        });
+      });
+      // Aplica highlight
+      node.querySelectorAll('code[data-lang]').forEach((codeEl) => {
+        highlightCode(codeEl, codeEl.getAttribute('data-lang') || 'text');
+      });
+    }
+    /**
+     * Insere mensagens no feed de IA utilizando enriquecimento Dual.
+     * Similar ao feedPush tradicional, mas adiciona a classe .rich e
+     * aplica dualEnrich em mensagens de IA para criar botões/links.
+     * @param {string} type Tipo de mensagem: 'ai', 'user' ou 'status'
+     * @param {string} text Conteúdo da mensagem
+     */
+    function feedPushDual(type, text) {
+      const box = document.getElementById('iaFeed');
+      if (!box) return;
+      const div = document.createElement('div');
+      // Adiciona classe .rich para IA para aplicar estilos
+      div.className = 'msg ' + (type || 'status') + (type === 'ai' ? ' rich' : '');
+      // Cria contêiner interno para texto
+      const textDiv = document.createElement('div');
+      if (type === 'ai') {
+        // Define texto bruto para processar
+        textDiv.textContent = text;
+        dualEnrich(textDiv);
+      } else {
+        textDiv.textContent = text;
+      }
+      div.appendChild(textDiv);
+      box.appendChild(div);
+      // Mantém somente as 10 últimas mensagens
+      const msgs = box.querySelectorAll('.msg');
+      const limit = 10;
+      if (msgs.length > limit) {
+        box.removeChild(msgs[0]);
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+    /**
+     * Envia uma mensagem gerada a partir de um botão sugestão/ação.
+     * Consulta as preferências salvas do usuário (nome, chave e modelo) e
+     * chama handleUserMessage, seguindo o mesmo fluxo do reconhecimento de fala.
+     * @param {string} text Texto da mensagem a enviar à IA
+     */
+    function sendMessageFromSuggestion(text) {
+      const sk = localStorage.getItem('dual.keys.openrouter') || '';
+      const userName = (localStorage.getItem('infodose:userName') || '').trim();
+      const model = (LS && typeof LS.get === 'function') ? LS.get('dual.openrouter.model') : null;
+      if (!sk || !userName || !model) {
+        showArchMessage('Configure nome, chave e modelo no Brain para conversar.', 'warn');
+        return;
+      }
+      // Mostra mensagem do usuário no feed
+      feedPush('user', 'Você: ' + text);
+      showArchMessage('Pulso enviado. Recebendo intenção…', 'ok');
+      feedPush('status', '⚡ Pulso enviado · recebendo intenção…');
+      // Processa como se viesse do reconhecimento de voz
+      handleUserMessage(text, userName, sk, model);
+    }
     function startSpeechConversation(userName, sk, model) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
@@ -1452,7 +1688,8 @@ body.nav-right .tabbar .tab{
           let base = (select?.value || '').replace(/\.html$/i, '');
           archName = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
         } catch (e) {}
-        feedPush('ai', archName + ': ' + reply);
+        // Use feedPushDual para que a mensagem de IA seja enriquecida
+        feedPushDual('ai', archName + ': ' + reply);
         showArchMessage(reply, 'ok');
         try { speakWithActiveArch(reply); } catch {}
       }
@@ -2126,186 +2363,6 @@ body.nav-right .tabbar .tab{
       }
     })();
     $$('button').forEach(addRipple);
-  
-// === Dual adjustments: move feed to top ===
-document.addEventListener('DOMContentLoaded', () => {
-  try{
-    const feed = document.getElementById('iaFeed');
-    const archContainer = document.querySelector('#v-home .arch-container');
-    if(feed && archContainer && archContainer.parentNode){
-      archContainer.parentNode.insertBefore(feed, archContainer);
-    }
-  }catch(e){}
-});
-
-// === Dual Voices: mapping por arquétipo com micro variações (pitch/rate) ===
-const ARCH_GENDER = {
-  "Atlas":"m","Kaion":"m","Kaos":"m","Horus":"m","Genus":"m","Aion":"m",
-  "Nova":"f","Elysha":"f","Luxara":"f","Serena":"f","Rhea":"f","Artemis":"f"
-};
-function loadVoiceMap(){
-  try{ return JSON.parse(localStorage.getItem('dual.voices.map'))||{} }catch(_){ return {} }
-}
-function saveVoiceMap(map){
-  localStorage.setItem('dual.voices.map', JSON.stringify(map||{}));
-}
-function pickVoiceByGender(voices, gender){
-  const langPref = v => /pt\-BR|Portugu[eê]s/i.test(v.lang||v.name||'');
-  const femHint = v => /(female|feminina|mulher)/i.test(v.name||'');
-  const mascHint = v => /(male|masculina|homem)/i.test(v.name||'');
-  const choose = (preds) => voices.find(v => preds.every(p=>p(v)));
-  if(gender==='f'){
-    return choose([langPref, femHint]) || choose([femHint]) || choose([langPref]) || voices[0];
-  }else{
-    return choose([langPref, mascHint]) || choose([mascHint]) || choose([langPref]) || voices[0];
-  }
-}
-function microVarFor(name){
-  // micro variação determinística por arquétipo
-  let h=0; for(const c of name) h=(h*31 + c.charCodeAt(0)) & 0xffffffff;
-  const rnd = (seed)=>((seed%1000)/1000);
-  const r = rnd(Math.abs(h));
-  const pitch = 0.95 + (r*0.2); // 0.95..1.15
-  const rate  = 0.96 + ((1-r)*0.18); // 0.96..1.14
-  return {pitch: +pitch.toFixed(2), rate: +rate.toFixed(2)};
-}
-// Override speakWithActiveArch to use mapping if available
-(function(){
-  const _orig = window.speakWithActiveArch;
-  window.speakWithActiveArch = function(text){
-    const synth = window.speechSynthesis;
-    if(!synth){ try{ _orig && _orig(text) }catch(_){}; return; }
-    const voices = synth.getVoices();
-    const select = document.getElementById('arch-select');
-    let base = (select?.value||'').replace(/\.html$/i,'');
-    const arch = base ? (base[0].toUpperCase()+base.slice(1).toLowerCase()) : 'Atlas';
-    const map = loadVoiceMap();
-    const conf = map[arch] || {};
-    const u = new SpeechSynthesisUtterance(String(text||''));
-    let v = voices.find(v=>v.name===conf.name) || pickVoiceByGender(voices, ARCH_GENDER[arch]||'m');
-    u.voice = v;
-    const mv = conf.pitch && conf.rate ? conf : microVarFor(arch);
-    u.pitch = mv.pitch; u.rate = mv.rate;
-    u.lang = (v && v.lang) || 'pt-BR';
-    synth.speak(u);
-  };
-})();
-// UI: construir painel por arquétipo no #voicesWrap (se existir)
-document.addEventListener('DOMContentLoaded', ()=>{
-  const wrap = document.getElementById('voicesWrap');
-  if(!wrap) return;
-  const synth = window.speechSynthesis;
-  function rebuild(){
-    const voices = synth.getVoices();
-    if(!voices || !voices.length){ setTimeout(rebuild, 200); return; }
-    const map = loadVoiceMap();
-    wrap.innerHTML = '';
-    const ARCHS = Object.keys(ARCH_GENDER);
-    ARCHS.forEach(arch=>{
-      const row = document.createElement('div');
-      row.style.display='grid'; row.style.gridTemplateColumns='120px 1fr auto'; row.style.gap='8px'; row.style.alignItems='center';
-      const label = document.createElement('div'); label.textContent = arch; label.style.fontWeight='800';
-      const sel = document.createElement('select'); sel.className='input ring'; sel.dataset.arch=arch;
-      voices.forEach(v=>{
-        const opt = document.createElement('option');
-        opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`;
-        sel.appendChild(opt);
-      });
-      const save = document.createElement('button'); save.className='btn fx-trans fx-press ring'; save.textContent='Salvar';
-      const test = document.createElement('button'); test.className='btn fx-trans fx-press ring'; test.style.marginLeft='6px'; test.textContent='Testar';
-      const btnBox = document.createElement('div'); btnBox.appendChild(save); btnBox.appendChild(test);
-      // defaults
-      const conf = map[arch] || {};
-      const defVoice = voices.find(v=>v.name===conf.name) || pickVoiceByGender(voices, ARCH_GENDER[arch]);
-      sel.value = (defVoice && defVoice.name) || voices[0].name;
-      row.appendChild(label); row.appendChild(sel); row.appendChild(btnBox);
-      wrap.appendChild(row);
-      save.onclick = ()=>{
-        const m = loadVoiceMap();
-        const mv = microVarFor(arch);
-        m[arch] = { name: sel.value, pitch: (conf.pitch||mv.pitch), rate: (conf.rate||mv.rate) };
-        saveVoiceMap(m);
-        toast('Voz salva', 'ok');
-      };
-      test.onclick = ()=>{
-        const m = loadVoiceMap();
-        const mv = m[arch] || microVarFor(arch);
-        const u = new SpeechSynthesisUtterance(`${arch} conectado. Teste de voz.`);
-        u.voice = voices.find(v=>v.name===sel.value) || voices[0];
-        u.pitch = mv.pitch; u.rate = mv.rate; u.lang = u.voice.lang || 'pt-BR';
-        synth.speak(u);
-      };
-    });
-  }
-  rebuild();
-  // Botão global de atualizar lista
-  const perfCard = document.getElementById('voicesWrap'); // reusar card
-  const updateBtn = document.createElement('button');
-  updateBtn.id='btnVoicesUpdate'; updateBtn.className='btn fx-trans fx-press ring';
-  updateBtn.textContent='Atualizar Vozes';
-  updateBtn.style.marginTop='6px';
-  perfCard.parentNode.appendChild(updateBtn);
-  updateBtn.onclick = ()=>{ window.speechSynthesis.onvoiceschanged = null; rebuild(); toast('Lista de vozes atualizada', 'ok'); };
-  // re-popular quando o navegador carregar as vozes
-  window.speechSynthesis.onvoiceschanged = rebuild;
-});
-
-// === Enriquecimento no feed (ações, chips, links, code) ===
-function feedPushDual(type, text){
-  const box = document.getElementById('iaFeed');
-  if(!box) return;
-  const div = document.createElement('div');
-  div.className = 'msg ' + (type||'ai');
-  div.textContent = text;
-  box.appendChild(div);
-  // Limitar quantidade
-  const msgs = box.querySelectorAll('.msg');
-  const limit = 10; if (msgs.length>limit) box.removeChild(msgs[0]);
-  // Tornar interativo
-  div.classList.add('rich');
-  dualEnrich(div);
-  box.scrollTop = box.scrollHeight;
-}
-function sendMessageFromSuggestion(txt){
-  if(!txt) return;
-  // Reusar pipeline de voz → IA
-  const sk = localStorage.getItem('dual.keys.openrouter') || '';
-  const userName = (localStorage.getItem('infodose:userName') || '').trim();
-  const model = LS.get('dual.openrouter.model');
-  feedPush('user','Você: '+txt);
-  handleUserMessage(txt, userName, sk, model);
-}
-// Html → elementos interativos (simplificado)
-function dualEnrich(node){
-  const escapeHtml = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const attr = s => String(s).replace(/"/g,'&quot;');
-  let raw = node.textContent||'';
-  let html = escapeHtml(raw);
-  // ( ... ) → ação
-  html = html.replace(/\(([^()]+)\)/g, (m,inner)=>{
-    const lab = inner.trim().replace(/\s*->\s*/g,' → ');
-    return `<button class="action" data-send="${attr(lab)}">${escapeHtml(lab)}</button>`;
-  });
-  // Emojis → chip
-  html = html.replace(/(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[⚡⭕✦☆★✧✩◆◇▶️◀️⏯️⏵⏸️⏹️🎛️🎚️🎙️🎧️🎼️🎹️🗂️📎🧩🔥🌙✨💡💾🧪⭐️])/gu,
-    (m)=>`<span class="chip" data-send="${attr(m)}">${escapeHtml(m)}</span>`);
-  // Links
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m,label,url)=>`<button class="link" data-url="${attr(url)}">${escapeHtml(label)} ↗</button>`);
-  html = html.replace(/(https?:\/\/[^\s]+)/g, (m,url)=>`<button class="link" data-url="${attr(url)}">${escapeHtml(url)} ↗</button>`);
-  // Code fence
-  html = html.replace(/```([a-z0-9_\-.+#]*)\n([\s\S]*?)```/gi, (m,lang,body)=>{
-    return `<pre class="code"><button class="copy" data-code="${attr(body)}">Copiar</button><code data-lang="${attr(lang||'text')}">${escapeHtml(body)}</code><span class="lang">${escapeHtml(lang||'text')}</span></pre>`;
-  });
-  node.innerHTML = html;
-  // binds
-  node.querySelectorAll('.action,.chip').forEach(el=>el.addEventListener('click',()=>sendMessageFromSuggestion(el.getAttribute('data-send'))));
-  node.querySelectorAll('.link').forEach(el=>el.addEventListener('click',()=>{ const url=el.getAttribute('data-url'); try{ window.open(url,'_blank') }catch(e){} }));
-  node.querySelectorAll('.code .copy').forEach(btn=>btn.addEventListener('click', async ()=>{ try{ await navigator.clipboard.writeText(btn.getAttribute('data-code')||''); toast('Código copiado','ok') }catch(e){ toast('Falha ao copiar','err') } }));
-  // highlight
-  node.querySelectorAll('code[data-lang]').forEach(codeEl=>{
-    try{ highlightCode(codeEl, codeEl.getAttribute('data-lang')||'text'); }catch(_){}
-  });
-}
-</script>
+  </script>
 </body>
 </html>
