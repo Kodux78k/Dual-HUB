@@ -2937,18 +2937,7 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
 </svg>
 
 <!-- Panel -->
-<div id="ls-panel" role="dialog" aria-label="LocalStorage Viewer">
-  <header>
-    <strong id="ls-title">LocalStorage • Brain</strong>
-    <input id="ls-search" placeholder="buscar chave/valor…"><span id="ls-count" class="mut" style="font-size:11px;margin-left:6px"></span>
-    <div id="ls-actions">
-      <button id="ls-export"><svg><use href="#ic-download"/></svg>Exportar</button>
-      <button id="ls-import-btn"><svg><use href="#ic-upload"/></svg>Importar</button>
-      <input id="ls-import" type="file" accept="application/json" style="display:none">
-      <button id="ls-clear-all"><svg><use href="#ic-broom"/></svg>Limpar LS</button>
-      <button id="ls-clear-idb"><svg><use href="#ic-trash"/></svg>Limpar IDB</button>
-      <button id="ls-hide"><svg><use href="#ic-close"/></svg>Fechar</button>
-    </div>
+
   </header>
   <div id="ls-body">
     <div id="ls-stats">
@@ -2963,7 +2952,7 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
       <textarea id="ls-new-v" placeholder="valor (texto ou JSON)"></textarea>
       <button id="ls-add"><svg><use href="#ic-save"/></svg>Salvar novo</button>
     </div>
-    <div id="ls-grid"></div>
+    
   </div>
 </div>
 
@@ -3106,6 +3095,338 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
     window.addEventListener('hashchange', toggle); toggle();
   })();
 })();</script>
+<style id="dual-unified-css">
+/* ====== Unified Fixes (LS + Icons) ====== */
+/* 1) LocalStorage Panel containment & layout */
+#ls-panel{
+  box-sizing:border-box;
+  max-width:min(96vw, 1080px);
+  max-height:90vh;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  position:fixed;
+  inset:auto auto 16px 16px;
+  background:var(--glass, rgba(0,0,0,.4));
+  backdrop-filter: blur(var(--blur, 20px));
+  border:1px solid var(--glass-bd, rgba(255,255,255,.12));
+  border-radius:16px;
+  padding:12px;
+}
+body.nav-right #ls-panel{ right:calc(78px + 16px); left:auto; }
+#ls-panel .ls-head,
+#ls-panel .ls-row{ display:grid; gap:.5rem; align-items:start;
+  grid-template-columns:minmax(160px,240px) minmax(0,1fr) 170px; }
+#ls-grid .ls-row{ grid-template-columns:minmax(160px,240px) minmax(0,1fr) 170px; }
+#ls-grid .ls-key, #ls-grid .ls-val, #ls-grid .ls-actions{ min-width:0; }
+#ls-panel .ls-preview{ overflow:auto; max-height:40vh; overflow-wrap:anywhere; }
+#ls-panel input[type="text"], #ls-panel textarea{ width:100%; min-width:0; }
+#ls-panel .ls-actions{ display:flex; flex-wrap:wrap; gap:.35rem; justify-content:flex-end; }
+@media (max-width:640px){
+  #ls-panel .ls-head, #ls-panel .ls-row{ grid-template-columns:1fr; }
+  #ls-panel{ inset:auto 8px 8px 8px; max-width:calc(100vw - 16px); }
+}
+/* 2) Header icon area normalizer */
+header, .header, #header{ --iconSize: 18px; }
+header .icons, #header .icons, .header .icons,
+header .hdr-actions, #header .hdr-actions, .header .hdr-actions,
+header .btns, #header .btns, .header .btns{
+  display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; min-height:28px; min-width:0;
+}
+button.icon, .btn.icon, .icon-btn, [data-icon-btn],
+a.icon, [data-icon-link]{ position:relative; width:var(--iconSize); height:var(--iconSize);
+  padding:0; margin:0; flex:0 0 auto; line-height:0; }
+button.icon::after, .btn.icon::after, .icon-btn::after, [data-icon-btn]::after,
+a.icon::after, [data-icon-link]::after{ content:""; position:absolute; inset:-6px; }
+button.icon svg, .btn.icon svg, .icon-btn svg, [data-icon-btn] svg,
+a.icon svg, [data-icon-link] svg{ display:block; width:100%; height:100%; max-width:100%; max-height:100%; }
+header svg{ max-width:100%; height:auto; flex:0 0 auto; }
+</style>
+<style id="dual-hotfix-ls-v2">
+/* ===== LS Panel + Header Icons Hotfix v2 ===== */
+
+/* A) Header icons: smaller, consistent, no overlap */
+header, .header, #header { --iconSize: 18px; }
+header .icons, #header .icons, .header .icons,
+header .hdr-actions, #header .hdr-actions, .header .hdr-actions,
+header .btns, #header .btns, .header .btns{
+  display:flex; align-items:center; gap:.4rem; flex-wrap:wrap;
+  min-height:28px; /* keeps area stable */
+}
+button.icon, .btn.icon, .icon-btn, [data-icon-btn],
+a.icon, [data-icon-link]{
+  position:relative; /* isolate hitbox */
+  width:var(--iconSize); height:var(--iconSize);
+  padding:0; margin:0; flex:0 0 auto;
+  line-height:0;
+}
+/* Prevent double-click-through: ensure nothing overlaps */
+button.icon::after, .btn.icon::after, .icon-btn::after, [data-icon-btn]::after,
+a.icon::after, [data-icon-link]::after{
+  content:""; position:absolute; inset:-6px; /* comfy hitbox around icon */
+}
+
+/* B) Generic icon svg sizing */
+button.icon svg, .btn.icon svg, .icon-btn svg, [data-icon-btn] svg,
+a.icon svg, [data-icon-link] svg{
+  display:block; width:100%; height:100%; max-width:100%; max-height:100%;
+}
+
+/* C) LS Panel containment + stacking */
+#ls-panel{
+  position:fixed;
+  z-index: 9999; /* above nav/toolbars */
+  max-width:min(96vw, 1040px);
+  max-height:88vh;
+  overflow:auto;
+  inset:auto 12px 12px 12px;
+  border-radius:14px;
+  padding:10px;
+}
+body.nav-right #ls-panel{ left:auto; right:calc(72px + 12px); }
+
+/* D) LS grid: no squeeze on value column */
+#ls-panel .ls-head,
+#ls-panel .ls-row { 
+  display:grid; gap:.5rem; align-items:start;
+  grid-template-columns:minmax(150px,220px) minmax(0,1fr) 150px;
+}
+#ls-grid .ls-row{ grid-template-columns:minmax(150px,220px) minmax(0,1fr) 150px; }
+#ls-grid .ls-actions{ display:flex; gap:.35rem; flex-wrap:wrap; justify-content:flex-end; }
+#ls-panel .ls-preview{ overflow:auto; max-height:38vh; overflow-wrap:anywhere; }
+
+/* E) No “botão em cima de botão”:
+   - remove accidental negative margins
+   - ensure siblings have separation
+*/
+#ls-panel .ls-actions > *{ margin:0; }
+#ls-panel .ls-row > *{ min-width:0; }
+#ls-panel .ls-row button{ position:relative; z-index:0; }
+#ls-panel .ls-row a, #ls-panel .ls-row label{ position:relative; z-index:0; }
+#ls-panel .ls-row [class*="btn"], #ls-panel .ls-row button, #ls-panel .ls-row a{
+  pointer-events:auto;
+}
+
+/* F) Mobile stacking */
+@media (max-width:640px){
+  #ls-panel{ inset:auto 8px 8px 8px; max-width:calc(100vw - 16px); }
+  #ls-panel .ls-head, #ls-panel .ls-row{ grid-template-columns:1fr; }
+  #ls-grid .ls-row{ grid-template-columns:1fr; }
+}
+</style>
+<script id="dual-unified-js">
+(function(){
+  function onReady(fn){
+    if(document.readyState === 'complete' || document.readyState === 'interactive'){ setTimeout(fn,0); }
+    else{ document.addEventListener('DOMContentLoaded', fn, {once:true}); }
+  }
+  function trydo(fn){ try{ fn(); }catch(e){} }
+  function speak(t){ try{ if(typeof speakWithActiveArch==='function') speakWithActiveArch(String(t)); }catch(e){} }
+  function bubble(text, type){ try{ if(typeof showArchMessage==='function') showArchMessage(String(text), type||'ok'); }catch(e){} }
+  function $(q, r){ return (r||document).querySelector(q); }
+
+  onReady(function(){
+    // Upload de HTML → feedback
+    trydo(function(){
+      var btnImport = $('#btnImport');
+      btnImport && btnImport.addEventListener('click', function(){
+        setTimeout(function(){
+          var input = $('#fileLocal');
+          var files = (input && input.files) ? input.files.length : 0;
+          if(files>0){ speak('Adicionei ' + files + ' arquivo' + (files>1?'s':'') + ' local' + (files>1?'s':'') + '.'); bubble('Locais adicionados.', 'ok'); }
+        }, 800);
+      });
+    });
+
+    // Nome → replica em dual.name
+    trydo(function(){
+      var saveName = $('#saveName');
+      var userName = $('#userName');
+      saveName && userName && saveName.addEventListener('click', function(){
+        var name = (userName.value||'').trim();
+        if(name){
+          try{ localStorage.setItem('dual.name', name); }catch(e){}
+          speak('Salvo. Bem-vindo, ' + name + '.');
+          bubble('Nome salvo.', 'ok');
+        }
+      });
+    });
+
+    // OpenRouter
+    trydo(function(){
+      var saveSK = $('#saveSK');
+      saveSK && saveSK.addEventListener('click', function(){ speak('Chave e modelo salvos.'); bubble('Configurações do OpenRouter salvas.', 'ok'); });
+    });
+
+    // Tema / BG / CSS
+    trydo(function(){
+      var theme = $('#themeSelect');
+      theme && theme.addEventListener('change', function(){
+        var map={default:'padrão', medium:'cinza', custom:'personalizado'};
+        speak('Tema ' + (map[theme.value]||theme.value) + ' aplicado.');
+      });
+      var bg = $('#bgUpload');
+      bg && bg.addEventListener('change', function(e){
+        var f = e && e.target && e.target.files && e.target.files[0];
+        if(f){ speak('Fundo personalizado salvo.'); bubble('Fundo salvo.', 'ok'); }
+      });
+      var applyCSS = $('#applyCSS');
+      applyCSS && applyCSS.addEventListener('click', function(){ speak('CSS personalizado aplicado.'); });
+      var clearCSS = $('#clearCSS');
+      clearCSS && clearCSS.addEventListener('click', function(){ speak('CSS personalizado removido.'); });
+    });
+
+    // Performance / Voz
+    trydo(function(){
+      var btnPerf = $('#btnPerf'); btnPerf && btnPerf.addEventListener('click', function(){ speak('Performance atualizada.'); });
+      var btnVoice = $('#btnVoice'); btnVoice && btnVoice.addEventListener('click', function(){ speak('Voz preferida salva.'); });
+    });
+
+    // LS Panel controls
+    trydo(function(){
+      var exp  = $('#ls-export');
+      var imp  = $('#ls-import-btn');
+      var add  = $('#ls-add');
+      var clr  = $('#ls-clear-all');
+      var cidb = $('#ls-clear-idb');
+      exp  && exp.addEventListener('click', function(){ speak('Backup do LocalStorage exportado.'); });
+      imp  && imp.addEventListener('click', function(){ speak('Importar backup do LocalStorage.'); });
+      add  && add.addEventListener('click', function(){ setTimeout(function(){ speak('Chave salva no LocalStorage.'); }, 300); });
+      clr  && clr.addEventListener('click', function(){ setTimeout(function(){ speak('LocalStorage limpo.'); }, 600); });
+      cidb && cidb.addEventListener('click', function(){ setTimeout(function(){ speak('IndexedDB limpo.'); }, 600); });
+    });
+
+    // Abrir painel via botão LS
+    trydo(function(){
+      var btnLS = $('#btnLS');
+      btnLS && btnLS.addEventListener('click', function(){
+        setTimeout(function(){ bubble('Painel de LocalStorage aberto.', 'ok'); speak('Abrindo painel do LocalStorage.'); }, 120);
+      });
+    });
+
+    // Sincronizar dual.name na carga
+    trydo(function(){
+      var nm = (localStorage.getItem('infodose:userName')||'').trim();
+      if(nm && localStorage.getItem('dual.name')!==nm){ localStorage.setItem('dual.name', nm); }
+    });
+  });
+})();
+</script>
+
+
+<style id="dual-ls-minifix">
+/* ===== Scoped LS Panel Controls (no bleed from header/global btn styles) ===== */
+#ls-panel{ --ls-font: var(--text, #d7d7d7); --ls-bg: var(--glass, rgba(255,255,255,.06)); --ls-bd: var(--glass-bd, rgba(255,255,255,.12)); }
+#ls-panel *{ box-sizing:border-box; }
+
+/* Hard scope: any button/link/input inside #ls-panel becomes compact and clean */
+#ls-panel button,
+#ls-panel .btn,
+#ls-panel [role="button"],
+#ls-panel input[type="button"],
+#ls-panel input[type="submit"],
+#ls-panel a.ls-btn {
+  all: revert; /* wipe global button styles while keeping UA defaults */
+  font: 600 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--ls-font);
+  background: var(--ls-bg);
+  border: 1px solid var(--ls-bd);
+  border-radius: 10px;
+  padding: 6px 8px;
+  min-height: 28px;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none;
+}
+#ls-panel button svg,
+#ls-panel .btn svg,
+#ls-panel a.ls-btn svg{
+  width: 14px; height: 14px; display: inline-block;
+}
+
+/* Inputs/Selects compact */
+#ls-panel input[type="text"],
+#ls-panel input[type="search"],
+#ls-panel input[type="number"],
+#ls-panel textarea,
+#ls-panel select {
+  font: 500 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--ls-font);
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--ls-bd);
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-height: 28px;
+}
+
+/* Action group tidy */
+#ls-panel .ls-actions{ display:flex; flex-wrap:wrap; gap:.35rem; justify-content:flex-end; }
+#ls-panel .ls-actions > *{ margin:0; }
+
+/* Remove/compact typical "expand/show" toggles that estão bugando o layout */
+#ls-panel .ls-expand,
+#ls-panel .ls-toggle,
+#ls-panel .expander,
+#ls-panel [data-ls="expand"],
+#ls-panel [data-action="expand"],
+#ls-panel summary{ 
+  display:none !important;
+}
+
+/* In case there are "mostrar/expandir" buttons by text only, shrink them aggressively */
+#ls-panel button, #ls-panel .btn {
+  max-height: 30px;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Prevent header icon rules from leaking */
+header .btn, .header .btn, #header .btn{ /* leave header buttons alone */ }
+#ls-panel .btn{ /* LS-specific btn wins within panel */
+  all: revert;
+  font: 600 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--ls-font);
+  background: var(--ls-bg);
+  border: 1px solid var(--ls-bd);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+/* Extra: smaller header icons globally if still big somewhere */
+header, .header, #header{ --iconSize: 16px; }
+</style>
+
+
+<script id="dual-ls-minifix-js">
+(function(){
+  // Post-DOM tweak: find ambiguous "expandir/mostrar/ver" buttons inside LS and hide or shrink them
+  function onReady(fn){
+    if(document.readyState === 'complete' || document.readyState === 'interactive'){ setTimeout(fn,0); }
+    else{ document.addEventListener('DOMContentLoaded', fn, {once:true}); }
+  }
+  onReady(function(){
+    var panel = document.getElementById('ls-panel');
+    if(!panel) return;
+    var qs = panel.querySelectorAll('button, .btn, [role="button"], a.ls-btn');
+    qs.forEach(function(el){
+      var t = (el.textContent||'').toLowerCase().trim();
+      if(/expand|expandir|mostrar|mostrar mais|ver mais|detalhe|detalhes/.test(t)){
+        el.style.display = 'none';
+      }else{
+        // make sure header/global classes don't push sizes
+        el.style.minHeight = '28px';
+        el.style.padding = '6px 8px';
+        el.style.borderRadius = '10px';
+      }
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
