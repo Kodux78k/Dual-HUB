@@ -90,6 +90,7 @@ body::after {
   background: var(--arch-overlay);
   pointer-events: none;
   z-index: 0;
+  transition: none; !important
  
 }
 
@@ -488,9 +489,9 @@ body::after {
       background: var(--bg, #0b0f14);
       opacity: 0;
       pointer-events: none;
-
+  transition: none; !important
     }
-    #arch-fadeCover.show { opacity: 1; }
+    #arch-fadeCover.show { opacity: 0.4; }
 
     /* Camada para ripples de áudio: fica sobre o conteúdo do círculo e ajusta a opacidade
        conforme a intensidade capturada pelo microfone. Utilizamos mix-blend-mode
@@ -957,6 +958,9 @@ body::after {
                 <input id="bgUpload" type="file" accept="image/*,video/*" class="input ring" style="max-width:260px" />
               </label>
               <div class="mut" style="font-size:11px">Envie uma imagem ou vídeo para usar como plano de fundo quando o tema personalizado estiver selecionado. O fundo será salvo automaticamente no seu navegador.</div>
+              <!-- Viewer dos fundos salvos -->
+<div style="font-weight:800; margin-top:10px">Backgrounds salvos</div>
+<div id="bgViewer" class="bg-viewer"></div>
             </div>
           </div>
 
@@ -2493,7 +2497,70 @@ body::after {
         setTimeout(() => URL.revokeObjectURL(a.href), 500);
       });
     }
+/* ===================== BACKGROUND VIEWER (Brain) ===================== */
+// Guardar histórico dos fundos: 'uno:bg:list' como array de {id,type,data,ts}
+function bgListGet(){ try{ return JSON.parse(localStorage.getItem('uno:bg:list')||'[]') }catch(_){ return [] } }
+function bgListSet(arr){ localStorage.setItem('uno:bg:list', JSON.stringify(arr||[])); }
 
+function renderBgViewer(){
+  const box = document.getElementById('bgViewer'); if(!box) return;
+  const list = bgListGet();
+  box.innerHTML = '';
+  // Também exponha o atual 'uno:bg' se não estiver no histórico
+  const cur = LS.get('uno:bg','');
+  if(cur && !list.find(x=>x.data===cur)){
+    list.unshift({id:'current', type: /^data:video\//.test(cur)?'video':'image', data: cur, ts: Date.now()});
+  }
+  if(!list.length){
+    box.innerHTML = '<div class="mut">Nenhum background salvo ainda.</div>';
+    return;
+  }
+  list.forEach((item,i)=>{
+    const card = document.createElement('div'); card.className='bg-item';
+    let el;
+    if(/^data:video\//.test(item.data)){
+      el = document.createElement('video'); el.src=item.data; el.muted=true; el.loop=true; el.autoplay=true; el.playsInline=true; el.className='thumb';
+    } else {
+      el = document.createElement('img'); el.src=item.data; el.alt=''; el.className='thumb';
+    }
+    const actions = document.createElement('div'); actions.className='actions';
+    const bApply = document.createElement('button'); bApply.className='btn fx-trans fx-press ring'; bApply.textContent='Aplicar';
+    const bDel   = document.createElement('button'); bDel.className='btn fx-trans fx-press ring';  bDel.textContent='Excluir';
+    actions.appendChild(bApply); actions.appendChild(bDel);
+    const meta = document.createElement('small'); meta.textContent = new Date(item.ts||Date.now()).toLocaleString();
+    card.appendChild(el); card.appendChild(actions); card.appendChild(meta);
+    box.appendChild(card);
+
+    bApply.onclick = ()=>{ LS.set('uno:bg', item.data); LS.set('uno:theme','custom'); try{ document.getElementById('themeSelect').value='custom' }catch(_){};
+      applyTheme(); toast('Fundo aplicado','ok'); };
+    bDel.onclick = ()=>{ const arr = bgListGet().filter(x=>x!==item && x.data!==item.data); bgListSet(arr); renderBgViewer(); toast('Fundo removido','warn'); };
+  });
+}
+renderBgViewer();
+
+/* Hook no upload existente para salvar no histórico também */
+(function hookBgUpload(){
+  const upload = document.getElementById('bgUpload');
+  if(!upload) return;
+  const old = upload.onchange;
+  upload.onchange = (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f){ old && old(e); return; }
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const data = reader.result;
+        const list = bgListGet(); 
+        list.unshift({ id: 'bg_'+Date.now().toString(36), type: /^data:video\//.test(data)?'video':'image', data, ts: Date.now() });
+        bgListSet(list.slice(0,50)); // limita histórico
+        renderBgViewer();
+      }catch(_){}
+    };
+    reader.readAsDataURL(f);
+    // chama o handler original (que já salva uno:bg e aplica)
+    if(typeof old === 'function'){ try{ old.call(upload, e) }catch(_){ } }
+  };
+})();
     /* ===================== Init ===================== */
     // Inicialize preferências de performance e voz e associe botões no Brain
     (function initDualPrefs(){
