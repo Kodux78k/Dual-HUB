@@ -90,7 +90,6 @@ body::after {
   background: var(--arch-overlay);
   pointer-events: none;
   z-index: 0;
-  transition: none; !important
  
 }
 
@@ -489,9 +488,9 @@ body::after {
       background: var(--bg, #0b0f14);
       opacity: 0;
       pointer-events: none;
-  transition: none; !important
+
     }
-    #arch-fadeCover.show { opacity: 0.4; }
+    #arch-fadeCover.show { opacity: 1; }
 
     /* Camada para ripples de áudio: fica sobre o conteúdo do círculo e ajusta a opacidade
        conforme a intensidade capturada pelo microfone. Utilizamos mix-blend-mode
@@ -958,9 +957,6 @@ body::after {
                 <input id="bgUpload" type="file" accept="image/*,video/*" class="input ring" style="max-width:260px" />
               </label>
               <div class="mut" style="font-size:11px">Envie uma imagem ou vídeo para usar como plano de fundo quando o tema personalizado estiver selecionado. O fundo será salvo automaticamente no seu navegador.</div>
-              <!-- Viewer dos fundos salvos -->
-<div style="font-weight:800; margin-top:10px">Backgrounds salvos</div>
-<div id="bgViewer" class="bg-viewer"></div>
             </div>
           </div>
 
@@ -2497,70 +2493,7 @@ body::after {
         setTimeout(() => URL.revokeObjectURL(a.href), 500);
       });
     }
-/* ===================== BACKGROUND VIEWER (Brain) ===================== */
-// Guardar histórico dos fundos: 'uno:bg:list' como array de {id,type,data,ts}
-function bgListGet(){ try{ return JSON.parse(localStorage.getItem('uno:bg:list')||'[]') }catch(_){ return [] } }
-function bgListSet(arr){ localStorage.setItem('uno:bg:list', JSON.stringify(arr||[])); }
 
-function renderBgViewer(){
-  const box = document.getElementById('bgViewer'); if(!box) return;
-  const list = bgListGet();
-  box.innerHTML = '';
-  // Também exponha o atual 'uno:bg' se não estiver no histórico
-  const cur = LS.get('uno:bg','');
-  if(cur && !list.find(x=>x.data===cur)){
-    list.unshift({id:'current', type: /^data:video\//.test(cur)?'video':'image', data: cur, ts: Date.now()});
-  }
-  if(!list.length){
-    box.innerHTML = '<div class="mut">Nenhum background salvo ainda.</div>';
-    return;
-  }
-  list.forEach((item,i)=>{
-    const card = document.createElement('div'); card.className='bg-item';
-    let el;
-    if(/^data:video\//.test(item.data)){
-      el = document.createElement('video'); el.src=item.data; el.muted=true; el.loop=true; el.autoplay=true; el.playsInline=true; el.className='thumb';
-    } else {
-      el = document.createElement('img'); el.src=item.data; el.alt=''; el.className='thumb';
-    }
-    const actions = document.createElement('div'); actions.className='actions';
-    const bApply = document.createElement('button'); bApply.className='btn fx-trans fx-press ring'; bApply.textContent='Aplicar';
-    const bDel   = document.createElement('button'); bDel.className='btn fx-trans fx-press ring';  bDel.textContent='Excluir';
-    actions.appendChild(bApply); actions.appendChild(bDel);
-    const meta = document.createElement('small'); meta.textContent = new Date(item.ts||Date.now()).toLocaleString();
-    card.appendChild(el); card.appendChild(actions); card.appendChild(meta);
-    box.appendChild(card);
-
-    bApply.onclick = ()=>{ LS.set('uno:bg', item.data); LS.set('uno:theme','custom'); try{ document.getElementById('themeSelect').value='custom' }catch(_){};
-      applyTheme(); toast('Fundo aplicado','ok'); };
-    bDel.onclick = ()=>{ const arr = bgListGet().filter(x=>x!==item && x.data!==item.data); bgListSet(arr); renderBgViewer(); toast('Fundo removido','warn'); };
-  });
-}
-renderBgViewer();
-
-/* Hook no upload existente para salvar no histórico também */
-(function hookBgUpload(){
-  const upload = document.getElementById('bgUpload');
-  if(!upload) return;
-  const old = upload.onchange;
-  upload.onchange = (e)=>{
-    const f = e.target.files && e.target.files[0];
-    if(!f){ old && old(e); return; }
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const data = reader.result;
-        const list = bgListGet(); 
-        list.unshift({ id: 'bg_'+Date.now().toString(36), type: /^data:video\//.test(data)?'video':'image', data, ts: Date.now() });
-        bgListSet(list.slice(0,50)); // limita histórico
-        renderBgViewer();
-      }catch(_){}
-    };
-    reader.readAsDataURL(f);
-    // chama o handler original (que já salva uno:bg e aplica)
-    if(typeof old === 'function'){ try{ old.call(upload, e) }catch(_){ } }
-  };
-})();
     /* ===================== Init ===================== */
     // Inicialize preferências de performance e voz e associe botões no Brain
     (function initDualPrefs(){
@@ -2589,5 +2522,147 @@ renderBgViewer();
     })();
     $$('button').forEach(addRipple);
   </script>
+
+<!-- ===== Dual • Upgrade Kit v1 (Archetypes + BG storage fix) ===== -->
+<script>
+(function(){
+  const $ = (q,r=document)=>r.querySelector(q);
+  const LS = {
+    get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+    set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+    raw:(k)=>localStorage.getItem(k)||''
+  };
+
+  // Migrate old keys → canonical
+  try{
+    const themeKeys=['uno:theme','theme','infodose:theme','dual:theme'];
+    let theme=null;
+    for(const k of themeKeys){ const v=localStorage.getItem(k); if(v && !theme){ theme=v; } }
+    if(theme){ localStorage.setItem('uno:theme', theme); }
+    const bgKeys=['uno:bg','bg','background','infodose:bg','dual:bg'];
+    let bg=null;
+    for(const k of bgKeys){ const v=localStorage.getItem(k); if(v && !bg){ bg=v; } }
+    if(bg){ localStorage.setItem('uno:bg', bg); }
+  }catch{}
+
+  // Ensure BG container
+  (function(){
+    let bg=document.getElementById('custom-bg');
+    if(!bg){
+      bg=document.createElement('div');
+      bg.id='custom-bg';
+      bg.style.cssText='position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none';
+      document.body.prepend(bg);
+    }
+  })();
+
+  // No-flicker theme/bg applier
+  function applyTheme_NoFlicker(forceSrc){
+    const theme = LS.get('uno:theme','medium');
+    if(theme==='default') delete document.body.dataset.theme;
+    else document.body.dataset.theme = theme;
+
+    const bgContainer = document.getElementById('custom-bg');
+    if(!bgContainer) return;
+
+    if(theme!=='custom'){
+      if(bgContainer.firstChild) bgContainer.innerHTML='';
+      return;
+    }
+    const data = forceSrc || LS.get('uno:bg','');
+    if(!data){
+      document.body.dataset.theme='medium';
+      if(bgContainer.firstChild) bgContainer.innerHTML='';
+      return;
+    }
+    const isVid = data.startsWith('data:video/');
+    const cur = bgContainer.firstChild;
+    if(cur){
+      const sameType = (cur.tagName==='VIDEO' && isVid) || (cur.tagName==='IMG' && !isVid);
+      if(sameType){
+        if(cur.src !== data){ cur.src = data; }
+        return;
+      }
+    }
+    const el = document.createElement(isVid?'video':'img');
+    el.src = data;
+    if(isVid){ el.autoplay=true; el.loop=true; el.muted=true; el.playsInline=true; }
+    el.style.width='100%'; el.style.height='100%'; el.style.objectFit='cover';
+    if(cur){
+      el.style.opacity='0';
+      bgContainer.appendChild(el);
+      requestAnimationFrame(()=>{
+        el.style.transition='opacity .36s ease';
+        el.style.opacity='1';
+        setTimeout(()=>cur.remove(), 360);
+      });
+    }else{
+      bgContainer.appendChild(el);
+    }
+  }
+
+  // Wire Brain inputs if present
+  document.addEventListener('DOMContentLoaded', ()=>{
+    applyTheme_NoFlicker();
+    const sel = document.getElementById('themeSelect');
+    if(sel){
+      sel.value = LS.get('uno:theme','medium');
+      sel.addEventListener('change', ()=>{ LS.set('uno:theme', sel.value); applyTheme_NoFlicker(); });
+    }
+    const up = document.getElementById('bgUpload');
+    if(up){
+      up.addEventListener('change', (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if(!f) return;
+        const r = new FileReader();
+        r.onload = ()=>{
+          try{
+            LS.set('uno:bg', r.result);
+            LS.set('uno:theme','custom');
+            if(sel) sel.value='custom';
+            applyTheme_NoFlicker(r.result);
+          }catch{}
+        };
+        r.readAsDataURL(f);
+      });
+    }
+  });
+
+  // ---- Archetype iframe fix (sandbox + path) ----
+  (function(){
+    const frame = document.getElementById('arch-frame') || document.querySelector('iframe#archetype, iframe[data-arch]');
+    if(!frame) return;
+    // ensure sandbox allows same-origin (for CSS, fonts, and localStorage used by archetypes)
+    const want = 'allow-scripts allow-same-origin';
+    try{
+      const cur = (frame.getAttribute('sandbox')||'').toLowerCase();
+      if(!/allow-same-origin/.test(cur)){
+        frame.setAttribute('sandbox', (cur + ' ' + want).trim());
+      }
+    }catch{}
+    // If src is only a filename (e.g., atlas.html), prefix with ./archetypes/
+    try{
+      const src = frame.getAttribute('src')||'';
+      if(src && !/^\w+:|^\//.test(src) && !src.startsWith('./archetypes/')){
+        frame.setAttribute('src', './archetypes/' + src.replace(/^\.\/?/,'').replace(/^archetypes\//,''));
+      }
+    }catch{}
+    // Hook a select#arch-select if exists
+    const sel = document.getElementById('arch-select');
+    if(sel){
+      sel.addEventListener('change', ()=>{
+        const file = sel.value || '';
+        if(!file) return;
+        const clean = file.replace(/\.html$/i,'') + '.html';
+        const newSrc = './archetypes/' + clean;
+        const cur = frame.getAttribute('src')||'';
+        if(cur!==newSrc){
+          frame.src = newSrc;
+        }
+      });
+    }
+  })();
+})();
+</script>
 </body>
 </html>
