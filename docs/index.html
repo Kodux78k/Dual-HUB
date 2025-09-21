@@ -37,14 +37,14 @@
   /* Deslocamento opcional para o cabeçalho.  Ajuste este valor para
      empurrar o cabeçalho (header.mast) alguns pixels para baixo.  O
      padding superior do main será ajustado automaticamente. */
-  --hdrOffset: 0px;
+  --hdrOffset: 8px;
 
   /* Cor de overlay por arquétipo (gradiente sólido).  Esta variável
      será atualizada dinamicamente via script conforme o arquétipo
      ativo.  O valor padrão é transparente para não interferir na
      estética quando nenhum arquétipo estiver selecionado. */
-  --arch-overlay: rgba(0,0,0,0);
-      --ease: cubic-bezier(.22, .61, .36, 1);
+ /* --arch-overlay: rgba(0,0,0,0); */
+  /*    --ease: cubic-bezier(.22, .61, .36, 1); */
     }
 
     /* Tema alternativo: medium gray / glasmorfismo. Quando body[data-theme="medium"] estiver definido, estas variáveis substituem as originais. */
@@ -62,7 +62,7 @@
       --ok: #68d391;
       --warn: #f6ad55;
       --err: #fc8181;
-      --blur: 24px;
+      --blur: 36px;
     }
 
     * { box-sizing: border-box }
@@ -89,7 +89,8 @@ body::after {
   inset: 0;
   background: var(--arch-overlay);
   pointer-events: none;
-  z-index: 0;
+  z-index: -3;
+ 
 }
 
     /* ===== Micro-interações base ===== */
