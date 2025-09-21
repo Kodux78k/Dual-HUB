@@ -833,6 +833,70 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
 </style>
 <!-- ===== /LS Panel Compact UI Styles ===== -->
 
+
+<!-- ===== LS Panel Compact • Small Typography & Icons ===== -->
+<style>
+/* Scope: only inside LS panels */
+#ls-panel, #lsx-panel{
+  --ls-font: 12.5px;
+  --ls-font-sm: 11.5px;
+  --ls-icon: 14px;
+  --ls-pad: 6px;
+  --ls-gap: 6px;
+  font-size: var(--ls-font);
+}
+
+#ls-panel *, #lsx-panel *{
+  font-size: inherit;
+}
+
+#ls-panel .muted, #lsx-panel .muted{ font-size: var(--ls-font-sm); opacity:.85; }
+
+/* Buttons more compact */
+#ls-actions button, #lsx-actions button{
+  padding: calc(var(--ls-pad) - 2px) calc(var(--ls-pad) + 2px);
+  margin: 2px;
+  border-radius: 10px;
+  line-height: 1.15;
+}
+
+/* Inputs smaller */
+#ls-panel input, #lsx-panel input,
+#ls-panel select, #lsx-panel select,
+#ls-panel textarea, #lsx-panel textarea{
+  padding: 6px 8px;
+  font-size: var(--ls-font);
+  border-radius: 8px;
+}
+
+/* Icon size (for inline SVGs inside buttons) */
+#ls-panel svg, #lsx-panel svg{
+  width: var(--ls-icon);
+  height: var(--ls-icon);
+}
+
+/* List rows tighter, but readable */
+#ls-panel .ls-row, #lsx-panel .ls-row,
+#ls-panel .ls-item, #lsx-panel .ls-item{
+  padding: 6px 8px;
+  border-radius: 8px;
+  margin: 2px 0;
+}
+
+#ls-panel code, #lsx-panel code,
+#ls-panel pre, #lsx-panel pre{
+  font-size: var(--ls-font-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* If there is a grid/table implementation */
+#ls-panel table, #lsx-panel table{ font-size: var(--ls-font); }
+#ls-panel th, #lsx-panel th{ font-weight: 600; }
+#ls-panel td, #lsx-panel td{ padding: 6px 8px; }
+</style>
+<!-- ===== /LS Panel Compact • Small Typography & Icons ===== -->
+
 </head>
 <body>
   <!-- ===== Header ===== -->
@@ -3313,10 +3377,7 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
       actions.appendChild(btn);
     }
 
-    // Initial state: compact ON (to liberar espaço)
-    if(!panel.classList.contains('ls-compact')){
-      panel.classList.add('ls-compact');
-    }
+    // Initial state: expanded (do nothing)
 
     // Toggle logic
     btn.addEventListener('click', ()=>{
@@ -3368,6 +3429,123 @@ mark.ls-hit{background:#3b82f6; color:#0b0f14; border-radius:4px; padding:0 2px}
 })();
 </script>
 <!-- ===== /LS Panel Compact UI Script ===== -->
+
+
+<!-- ===== LS Panel • Extra Interactivity & Cleanup ===== -->
+<script>
+(function(){
+  const $ = (q,r=document)=>r.querySelector(q);
+  const $$ = (q,r=document)=>Array.from(r.querySelectorAll(q));
+
+  function sayLS(text){
+    try{
+      if(typeof speakWithActiveArch === 'function'){
+        speakWithActiveArch(text);
+      }else if(window.speechSynthesis){
+        const u = new SpeechSynthesisUtterance(text);
+        const vs = speechSynthesis.getVoices();
+        const v = vs.find(v=>v.lang && (v.lang.startsWith('pt')||v.lang.startsWith('en'))) || vs[0];
+        if(v) u.voice = v;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }
+    }catch(e){}
+  }
+
+  // 1) Extra TTS: search typing pause, list selection, copy actions, expand/collapse
+  function wireExtraInteractivity(){
+    // Search announce on pause
+    const search = $('#lsx-search') || $('#ls-search');
+    if(search){
+      let t = null;
+      search.addEventListener('input', ()=>{
+        clearTimeout(t);
+        t = setTimeout(()=>{
+          const q = (search.value||'').trim();
+          if(q) sayLS(`Buscando por ${q}`);
+          else  sayLS('Busca limpa');
+        }, 420);
+      }, {passive:true});
+    }
+
+    // Delegate clicks in list for rows/buttons
+    const list = $('#lsx-list') || $('#ls-list') || $('.ls-list') || $('.ls-keys') || $('.ls-data');
+    if(list){
+      list.addEventListener('click', (ev)=>{
+        const el = ev.target.closest('[data-action], .ls-row, .ls-item, button, summary, details');
+        if(!el) return;
+        // common patterns
+        if(el.matches('summary')){
+          const open = el.parentElement?.open;
+          sayLS(open ? 'Grupo aberto' : 'Grupo fechado');
+          return;
+        }
+        if(el.matches('[data-action="copy"]')){
+          sayLS('Valor copiado para a área de transferência');
+          return;
+        }
+        if(el.matches('[data-action="delete"]')){
+          sayLS('Item removido');
+          return;
+        }
+        if(el.matches('[data-action="save"]')){
+          sayLS('Item atualizado');
+          return;
+        }
+        if(el.classList.contains('ls-row') || el.classList.contains('ls-item')){
+          // Try to read key name if present
+          const keyEl = el.querySelector('[data-key], .key, .ls-key, [data-ls-key]');
+          const key = (keyEl?.textContent || '').trim();
+          sayLS(key ? `Selecionado ${key}` : 'Item selecionado');
+          return;
+        }
+      });
+    }
+
+    // Count announce (after refresh)
+    const refresh = $('#lsx-refresh') || $('#ls-refresh');
+    if(refresh && list){
+      refresh.addEventListener('click', ()=>{
+        setTimeout(()=>{
+          const rows = list.querySelectorAll('.ls-row,.ls-item,tr');
+          const n = rows.length;
+          if(n) sayLS(`${n} registros listados`);
+          else  sayLS('Nenhum registro encontrado');
+        }, 250);
+      }, {passive:true});
+    }
+  }
+
+  // 2) Cleanup: remove stray LS nodes outside panels
+  function cleanupStrayLS(){
+    const lsPanels = ['#ls-panel','#lsx-panel'].map(s=>$(s)).filter(Boolean);
+    const isInsidePanel = (node)=> lsPanels.some(p => p.contains(node));
+
+    const strayCandidates = $$('[id^="ls-"], [id^="lsx-"]')
+      .filter(el => !isInsidePanel(el) && !el.closest('template,[hidden]'));
+
+    strayCandidates.forEach(el => {
+      // If it's clearly a container fragment (common dev leftover), remove
+      if(el.tagName === 'DIV' || el.tagName === 'SECTION' || el.tagName === 'ASIDE'){
+        el.remove();
+      }else{
+        // Otherwise hide it to be safe
+        el.setAttribute('hidden','');
+        el.style.display = 'none';
+      }
+    });
+    if(strayCandidates.length){
+      sayLS('Elementos soltos do Local Storage foram removidos do layout');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    wireExtraInteractivity();
+    cleanupStrayLS();
+  });
+})();
+</script>
+<!-- ===== /LS Panel • Extra Interactivity & Cleanup ===== -->
 
 </body>
 </html>
