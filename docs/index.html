@@ -3312,7 +3312,6 @@ body.nav-right #ls-panel{ left:auto; right:calc(72px + 12px); }
 })();
 </script>
 
-
 <style id="dual-ls-minifix">
 /* ===== Scoped LS Panel Controls (no bleed from header/global btn styles) ===== */
 #ls-panel{ --ls-font: var(--text, #d7d7d7); --ls-bg: var(--glass, rgba(255,255,255,.06)); --ls-bd: var(--glass-bd, rgba(255,255,255,.12)); }
@@ -3400,8 +3399,6 @@ header .btn, .header .btn, #header .btn{ /* leave header buttons alone */ }
 /* Extra: smaller header icons globally if still big somewhere */
 header, .header, #header{ --iconSize: 16px; }
 </style>
-
-
 <script id="dual-ls-minifix-js">
 (function(){
   // Post-DOM tweak: find ambiguous "expandir/mostrar/ver" buttons inside LS and hide or shrink them
@@ -3423,6 +3420,215 @@ header, .header, #header{ --iconSize: 16px; }
         el.style.padding = '6px 8px';
         el.style.borderRadius = '10px';
       }
+    });
+  });
+})();
+</script>
+
+
+<style id="dual-ls-v3">
+/* ===== LS v3: scoped controls & expander hygiene ===== */
+#ls-panel *{ box-sizing:border-box; }
+#ls-actions{ display:flex; flex-wrap:wrap; gap:.35rem; justify-content:flex-end; }
+
+/* Compact buttons inside LS */
+#ls-panel button,
+#ls-panel .btn,
+#ls-panel [role="button"],
+#ls-panel input[type="button"],
+#ls-panel input[type="submit"],
+#ls-panel a.ls-btn{
+  all: revert;
+  font: 600 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--text, #d7d7d7);
+  background: var(--glass, rgba(255,255,255,.06));
+  border: 1px solid var(--glass-bd, rgba(255,255,255,.12));
+  border-radius: 10px;
+  padding: 6px 8px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items:center;
+  gap:.35rem;
+  text-decoration:none;
+}
+#ls-panel button svg, #ls-panel .btn svg, #ls-panel a.ls-btn svg{ width:14px; height:14px; }
+
+/* Inputs compact */
+#ls-panel input[type="text"],
+#ls-panel input[type="search"],
+#ls-panel input[type="number"],
+#ls-panel textarea,
+#ls-panel select{
+  font: 500 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+  color: var(--text, #d7d7d7);
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--glass-bd, rgba(255,255,255,.12));
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-height:28px;
+  min-width:0;
+}
+
+/* Expansores: tornar minimalistas ou ocultar */
+#ic-expand,
+#ls-panel .ls-expand,
+#ls-panel .ls-toggle,
+#ls-panel .expander{ 
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:18px; height:18px;
+  padding:0; margin:0;
+  border:none;
+  background:transparent;
+  opacity:.7;
+}
+#ic-expand svg{ width:12px; height:12px; }
+#ls-panel summary{ display:none !important; }
+
+/* Text-only expanders (triggers by text) will be force-hidden via JS */
+</style>
+
+
+<script id="dual-ls-v3-js">
+(function(){
+  function onReady(fn){
+    if(document.readyState === 'complete' || document.readyState === 'interactive'){ setTimeout(fn,0); }
+    else{ document.addEventListener('DOMContentLoaded', fn, {once:true}); }
+  }
+  function $(q, r){ return (r||document).querySelector(q); }
+  function $all(q, r){ return Array.from((r||document).querySelectorAll(q)); }
+  function trydo(fn){ try{ fn(); }catch(e){} }
+  function speak(t){ try{ if(typeof speakWithActiveArch==='function') speakWithActiveArch(String(t)); }catch(e){} }
+  function bubble(text, type){ try{ if(typeof showArchMessage==='function') showArchMessage(String(text), type||'ok'); }catch(e){} }
+
+  // Rough LS size calculator
+  function getLocalStorageBytes(){
+    try{
+      let total = 0;
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        const v = localStorage.getItem(k)||"";
+        total += k.length + v.length;
+      }
+      return total;
+    }catch(e){ return 0; }
+  }
+  function fmtBytes(n){
+    if(!n) return '0 B';
+    const units = ['B','KB','MB','GB']; let i=0; let x=n;
+    while(x>=1024 && i<units.length-1){ x/=1024; i++; }
+    return x.toFixed(x<10?2:(x<100?1:0)) + ' ' + units[i];
+  }
+
+  onReady(function(){
+    // Hide text-only expanders inside #ls-panel
+    trydo(function(){
+      const panel = $('#ls-panel');
+      if(!panel) return;
+      $all('button, .btn, [role="button"], a', panel).forEach(function(el){
+        const t = (el.textContent||'').toLowerCase().trim();
+        if(/^(expand(ir)?|mostrar(\s+mais)?|ver(\s+mais)?|detalhe(s)?)$/.test(t)){
+          el.style.display = 'none';
+        }
+      });
+    });
+
+    // Bind selectors provided by the user
+    trydo(function(){
+      // Header / toggles
+      const btnLS = $('#btnLS');
+      const btnToggleLocal = $('#btnToggleLocal');
+      if(btnLS){
+        btnLS.addEventListener('click', function(){
+          setTimeout(function(){ bubble('Painel de LocalStorage aberto.', 'ok'); speak('Abrindo painel do LocalStorage.'); }, 120);
+        });
+      }
+      if(btnToggleLocal){
+        btnToggleLocal.addEventListener('click', function(){
+          const p = $('#ls-panel');
+          if(!p) return;
+          const v = getComputedStyle(p).display;
+          p.style.display = (v==='none'?'block':'none');
+          speak(v==='none'?'LS visível.':'LS oculto.');
+        });
+      }
+
+      // Upload / prefs
+      const btnImport = $('#btnImport');
+      const fileLocal = $('#fileLocal');
+      btnImport && btnImport.addEventListener('click', function(){
+        setTimeout(function(){
+          const files = (fileLocal && fileLocal.files) ? fileLocal.files.length : 0;
+          if(files>0){ speak('Adicionei ' + files + ' arquivo' + (files>1?'s':'') + ' local' + (files>1?'s':'') + '.'); bubble('Locais adicionados.', 'ok'); }
+        }, 800);
+      });
+
+      const saveName = $('#saveName'), userName = $('#userName');
+      saveName && userName && saveName.addEventListener('click', function(){
+        const name = (userName.value||'').trim();
+        if(name){
+          try{ localStorage.setItem('dual.name', name); }catch(e){}
+          speak('Salvo. Bem-vindo, ' + name + '.');
+          bubble('Nome salvo.', 'ok');
+        }
+      });
+
+      const saveSK = $('#saveSK');
+      saveSK && saveSK.addEventListener('click', function(){
+        speak('Chave e modelo salvos.');
+        bubble('Configurações do OpenRouter salvas.', 'ok');
+      });
+
+      const applyCSS = $('#applyCSS');      applyCSS && applyCSS.addEventListener('click', function(){ speak('CSS personalizado aplicado.'); });
+      const clearCSS  = $('#clearCSS');     clearCSS  && clearCSS.addEventListener('click', function(){ speak('CSS personalizado removido.'); });
+      const themeSelect = $('#themeSelect'); themeSelect && themeSelect.addEventListener('change', function(){
+        const map={default:'padrão', medium:'cinza', custom:'personalizado'};
+        speak('Tema ' + (map[themeSelect.value]||themeSelect.value) + ' aplicado.');
+      });
+      const bgUpload = $('#bgUpload');      bgUpload && bgUpload.addEventListener('change', function(e){
+        const f = e && e.target && e.target.files && e.target.files[0];
+        if(f){ speak('Fundo personalizado salvo.'); bubble('Fundo salvo.', 'ok'); }
+      });
+
+      // Perf / Voice (both button and select variants)
+      const btnPerf = $('#btnPerf'), selPerf = $('#selPerf');
+      btnPerf && btnPerf.addEventListener('click', function(){ speak('Performance atualizada.'); });
+      selPerf && selPerf.addEventListener('change', function(){ speak('Performance ajustada: ' + selPerf.value); });
+
+      const btnVoice = $('#btnVoice'), selVoice = $('#selVoice');
+      btnVoice && btnVoice.addEventListener('click', function(){ speak('Voz preferida salva.'); });
+      selVoice && selVoice.addEventListener('change', function(){ speak('Voz ajustada: ' + selVoice.value); });
+
+      // LS panel actions (including new ones)
+      const lsRefresh = $('#ls-refresh');
+      const lsSearch  = $('#ls-search');
+      const lsStats   = $('#ls-stats');
+      const lsTitle   = $('#ls-title'); // no action, but could be used if needed
+
+      const lsExport  = $('#ls-export');
+      const lsImport  = $('#ls-import-btn');
+      const lsAdd     = $('#ls-add');
+      const lsClear   = $('#ls-clear-all');
+      const lsClearIDB= $('#ls-clear-idb');
+
+      lsExport   && lsExport.addEventListener('click', function(){ speak('Backup do LocalStorage exportado.'); });
+      lsImport   && lsImport.addEventListener('click', function(){ speak('Importar backup do LocalStorage.'); });
+      lsAdd      && lsAdd.addEventListener('click',   function(){ setTimeout(function(){ speak('Chave salva no LocalStorage.'); }, 300); });
+      lsClear    && lsClear.addEventListener('click', function(){ setTimeout(function(){ speak('LocalStorage limpo.'); }, 600); });
+      lsClearIDB && lsClearIDB.addEventListener('click', function(){ setTimeout(function(){ speak('IndexedDB limpo.'); }, 600); });
+
+      lsRefresh  && lsRefresh.addEventListener('click', function(){ speak('Painel do LocalStorage atualizado.'); });
+      lsSearch   && lsSearch.addEventListener('input', function(){
+        // Only verbalize when user pauses
+        clearTimeout(lsSearch._t);
+        lsSearch._t = setTimeout(function(){ bubble('Buscando: ' + (lsSearch.value||'').trim(), 'ok'); }, 300);
+      });
+      lsStats    && lsStats.addEventListener('click', function(){
+        const bytes = getLocalStorageBytes();
+        bubble('Uso do LocalStorage: ~' + fmtBytes(bytes), 'ok');
+        speak('Uso do LocalStorage aproximado: ' + fmtBytes(bytes) + '.');
+      });
     });
   });
 })();
