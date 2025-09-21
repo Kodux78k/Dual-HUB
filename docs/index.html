@@ -2909,29 +2909,6 @@ ${training}` : '';
   });
 })();
 </script>
-    <script>
-(function(){
-  const $ = (q,r=document)=>r.querySelector(q);
-  function keepOpen(ev){
-    ev?.preventDefault?.();
-    ev?.stopPropagation?.();
-    const p = $('#lsx-panel') || $('#ls-panel');
-    if(p) p.style.display = 'block';
-  }
-  function bindSafe(sel){
-    const el = $(sel);
-    if(!el) return;
-    // Usa capture:true pra segurar antes de qualquer outro handler
-    el.addEventListener('click', keepOpen, true);
-  }
-  // LSX (novo painel)
-  ['#lsx-refresh','#lsx-export','#lsx-import-btn','#lsx-clear-all','#lsx-clear-idb','#lsx-hide']
-    .forEach(bindSafe);
-  // LS (legado), se existir no seu HTML
-  ['#ls-refresh','#ls-export','#ls-import-btn','#ls-clear-all','#ls-clear-idb','#ls-hide']
-    .forEach(bindSafe);
-})();
-</script>
 <script>
 // === TTS Navegação: toggle no Brain (sem editar código existente) ======================
 (function(){
@@ -3042,6 +3019,114 @@ ${training}` : '';
     document.addEventListener('DOMContentLoaded', init);
   else
     init();
+})();
+</script>
+    <script>
+// Ajuste do painel LS/LSX para corrigir botões e layout
+(function() {
+  // encontra o painel (novo ou legado)
+  const panel = document.getElementById('lsx-panel') || document.getElementById('ls-panel');
+  if (!panel) return;
+
+  // cria/conecta uma barra de acções no topo
+  let actionsBar = panel.querySelector('.ls-actions');
+  if (!actionsBar) {
+    actionsBar = document.createElement('div');
+    actionsBar.className = 'ls-actions';
+    Object.assign(actionsBar.style, {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px',
+      marginBottom: '8px'
+    });
+    panel.prepend(actionsBar);
+  }
+
+  // mapeamento de handlers por ID
+  const handlers = {
+    '#lsx-refresh': () => {
+      if (window.DualLS?.refresh) return DualLS.refresh();
+      if (window.renderLocalStorageList) return renderLocalStorageList();
+      console.warn('Nenhuma função de refresh encontrada');
+    },
+    '#lsx-export': () => {
+      if (window.DualLS?.export) return DualLS.export();
+      // fallback de exportação simples
+      const json = JSON.stringify(Object.fromEntries(Object.entries(localStorage)), null, 2);
+      const blob = new Blob([json], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'localStorage_backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    '#lsx-import-btn': () => {
+      if (window.DualLS?.importDialog) return DualLS.importDialog();
+      // fallback: abre um file input e carrega JSON para localStorage
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      input.onchange = (ev) => {
+        const file = ev.target.files?.[0];
+        if (!file) return;
+        const fr = new FileReader();
+        fr.onload = () => {
+          try {
+            const data = JSON.parse(fr.result);
+            Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+            alert('Importação concluída');
+          } catch (e) {
+            alert('JSON inválido');
+          }
+        };
+        fr.readAsText(file);
+      };
+      input.click();
+    },
+    '#lsx-clear-all': () => {
+      if (!confirm('Tem certeza de que deseja limpar TODO o localStorage?')) return;
+      localStorage.clear();
+      handlers['#lsx-refresh']?.();
+    },
+    '#lsx-clear-idb': () => {
+      // tenta apagar IndexedDB via API interna
+      if (window.DualLS?.clearIDB) return DualLS.clearIDB();
+      console.warn('Função para limpar IndexedDB não encontrada.');
+    },
+    '#lsx-hide': () => {
+      panel.style.display = 'none';
+    }
+  };
+
+  // lista de IDs que queremos normalizar/mover
+  const ids = [
+    '#lsx-refresh','#lsx-export','#lsx-import-btn','#lsx-clear-all',
+    '#lsx-clear-idb','#lsx-hide',
+    '#ls-refresh','#ls-export','#ls-import-btn','#ls-clear-all',
+    '#ls-clear-idb','#ls-hide'
+  ];
+
+  ids.forEach(id => {
+    const el = document.querySelector(id);
+    if (!el) return;
+    // normaliza: força type=button e remove href
+    if (el.tagName === 'BUTTON') el.type = 'button';
+    if (el.tagName === 'A') el.removeAttribute('href');
+
+    // move para a actionsBar se ainda não estiver
+    if (!actionsBar.contains(el)) {
+      actionsBar.appendChild(el);
+    }
+
+    // intercepta click: impede fecho automático, executa handler
+    el.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      panel.style.display = 'block'; // garante aberto
+      handlers['#' + el.id]?.();
+    }, true);
+  });
 })();
 </script>
 </body></html>
