@@ -12,7 +12,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+ 
   <title>HUB UNO</title>
   <meta name="theme-color" content="#0b0f14" />
   <style>
@@ -1075,17 +1078,18 @@ body::after {
 
   <!-- Controles de texto e voz empilhados acima da barra de navegação -->
   <div id="homeButtons" class="home-btns">
+   <!-- Botão inferior: envio de texto.  Usa o ícone fornecido (PNG) como
+         indicador de digitação. -->
+    <button id="homeTextBtn" class="home-btn">
+      <img src="icons/hub_chat.png" alt="Texto" width="20" height="20" onerror="this.onerror=null;this.src='icons/pen-to-square.svg'">
+    </button>
     <!-- Botão superior: voz/arquetipo.  Utilizamos um iframe miniatura para
          renderizar o círculo do arquétipo ativo.  Ao clicar este botão,
          iniciamos a captura de voz (startSpeechConversation). -->
     <button id="homeVoiceBtn" class="home-btn">
       <iframe id="miniArchFrame" title="Arquétipo ativo" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
     </button>
-    <!-- Botão inferior: envio de texto.  Usa o ícone fornecido (PNG) como
-         indicador de digitação. -->
-    <button id="homeTextBtn" class="home-btn">
-      <img src="HubAdlineChat.png" alt="Texto" width="20" height="20" onerror="this.onerror=null;this.src='icons/pen-to-square.svg'">
-    </button>
+    
   </div>
   <!-- Overlay de input para envio rápido de mensagens na Home -->
   <div id="homeInputOverlay">
