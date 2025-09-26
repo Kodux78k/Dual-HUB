@@ -45,6 +45,7 @@
      estética quando nenhum arquétipo estiver selecionado. */
   --arch-overlay: rgba(0,0,0,0);
       --ease: cubic-bezier(.22, .61, .36, 1);
+  /* Oculta a aba Stack e sua view na versão sem Stacks */
     }
 
     /* Tema alternativo: medium gray / glasmorfismo. Quando body[data-theme="medium"] estiver definido, estas variáveis substituem as originais. */
@@ -157,6 +158,21 @@ body::after {
     /* O feed de IA na Home foi substituído pelo preview laranja; esconda o feed original */
     #v-home #iaFeed {
       display: none !important;
+    }
+
+    /* ===== Estilos para ícones fixados na barra (versão sem Stack) ===== */
+    .pin-letter {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(255,255,255,0.15);
+      color: var(--fg);
+      line-height: 1;
     }
 
     /* Estiliza o feed de mensagens da IA em formato de conversa */
@@ -325,7 +341,7 @@ body::after {
     .dock { position: fixed; left: 10px; right: 10px; bottom: calc(var(--tabsH) + 8px + env(safe-area-inset-bottom)); display: flex; gap: 8px; flex-wrap: wrap; z-index: 80 }
     .badge { display: inline-flex; gap: 6px; align-items: center; padding: .38rem .65rem; border: 1px solid #ffffff18; background: #0f1428; border-radius: 999px; font-weight: 800; position: relative }
     .badge.fx-trans:hover { box-shadow: 0 10px 24px rgba(0,0,0,.5) }
-    nav.tabbar { position: fixed; left: 0; right: 0; bottom: env(safe-area-inset-bottom, 0); height: var(--tabsH); z-index: 90; display: flex; justify-content: center; padding: 6px 14px }
+    nav.tabbar { position: fixed; left: 0; right: 0; bottom: env(safe-area-inset-bottom, 0); height: var(--tabsH); z-index: 1500; display: flex; justify-content: center; padding: 6px 14px }
     .tabbar .inner { width: 100%; max-width: 820px; display: flex; justify-content: space-around; align-items: center; background: var(--surface); border: var(--bd); border-radius: 22px; box-shadow: var(--shadow); padding: 10px 14px }
     .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--mut); font-size: 11px; font-weight: 800; padding: 8px; border-radius: 14px; cursor: pointer; position: relative }
     .tab.fx-trans:hover { background: rgba(255,255,255,.06) }
@@ -854,7 +870,9 @@ body::after {
       padding-right: calc(78px + 14px);
       padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
     }
-  </style>
+/* Versão sem Stack: esconda a aba e a view */
+button[data-nav="stack"], .tab[data-nav="stack"], #v-stack { display: none !important; }
+</style>
 </head>
 <body>
   <!-- Splash screen displayed on initial load -->
@@ -2037,7 +2055,13 @@ body::after {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#appSearch')?.focus(); return; }
       if (e.key.toLowerCase() === 'g') { gPressed = true; setTimeout(() => gPressed = false, 600); return; }
       if (!gPressed) return; const k = e.key.toLowerCase();
-      if (k === 'h') nav('home'); if (k === 'a') nav('apps'); if (k === 's') nav('stack'); if (k === 'b') nav('brain'); if (k === 'r') nav('chat'); gPressed = false;
+      if (k === 'h') nav('home');
+      if (k === 'a') nav('apps');
+      // Na versão sem Stack, ignore a tecla de atalho para 's'.
+      // if (k === 's') nav('stack');
+      if (k === 'b') nav('brain');
+      if (k === 'r') nav('chat');
+      gPressed = false;
     });
 
     // Ajuda modal
@@ -2444,9 +2468,13 @@ body::after {
       try { updateHomeStatus(); } catch {}
     }
     function openApp(a) {
-      const sid = 's_' + Math.random().toString(36).slice(2);
+      // Permite fornecer um SID e flag pinned para restaurar sessões; gera novos se não especificado
+      const sid = a.sid || ('s_' + Math.random().toString(36).slice(2));
       const isLocal = String(a.url || '').startsWith('local:'); const lr = isLocal ? getLocal(String(a.url).slice(6)) : null; const url = lr ? blobURL(lr) : a.url;
-      const card = document.createElement('div'); card.className = 'session fx-trans fx-lift'; card.dataset.sid = sid; card.dataset.meta = JSON.stringify({ title: a.title || 'App', url: a.url || '' });
+      const card = document.createElement('div'); card.className = 'session fx-trans fx-lift';
+      card.dataset.sid = sid;
+      // Armazene metadados no dataset.meta
+      card.dataset.meta = JSON.stringify({ title: a.title || 'App', url: a.url || '' });
       card.innerHTML = `
         <div class="hdr">
           <div class="title">${(a.title || 'App')}</div>
@@ -2457,6 +2485,11 @@ body::after {
             </button>
             <button class="btn ring fx-trans fx-press" data-act="ref" title="Recarregar">
               <span style="font-size:16px;line-height:1">&#8635;</span>
+              <span class="ripple"></span>
+            </button>
+            <!-- Botão para fixar/desafixar na navegação -->
+            <button class="btn ring fx-trans fx-press" data-act="pin" title="Fixar na barra">
+              <span class="pin-icon" style="font-size:16px;line-height:1">☆</span>
               <span class="ripple"></span>
             </button>
             <button class="btn ring fx-trans fx-press" data-act="close" title="Fechar">
@@ -2505,13 +2538,43 @@ body::after {
       };
       card.querySelector('[data-act=ref]').onclick = () => { const fr = card.querySelector('iframe'); try { fr.contentWindow.location.reload() } catch { fr.src = fr.src } };
       card.querySelector('[data-act=close]').onclick = () => {
+        // Se estiver fixado, remova da lista de fixados
+        const meta = JSON.parse(card.dataset.meta || '{}');
+        if (card.classList.contains('pinned')) {
+          removePinnedByMeta(meta);
+        }
         card.remove();
         updateDock();
+        updatePinnedNav();
         dualLog('Sessão fechada: ' + (a.title || 'App'));
       };
-      // Navegue para a view Stack apenas quando não estiver abrindo dentro da página.
-      if (!$('#openInside').checked) nav('stack');
+      // Botão fixar/desafixar
+      const pinBtn = card.querySelector('[data-act=pin]');
+      if (pinBtn) {
+        if (a.pinned) {
+          card.classList.add('pinned');
+          pinBtn.querySelector('.pin-icon').textContent = '★';
+        }
+        pinBtn.onclick = () => {
+          const meta = JSON.parse(card.dataset.meta || '{}');
+          if (card.classList.contains('pinned')) {
+            card.classList.remove('pinned');
+            pinBtn.querySelector('.pin-icon').textContent = '☆';
+            removePinnedByMeta(meta);
+            toast('App desafixado', 'warn');
+          } else {
+            card.classList.add('pinned');
+            pinBtn.querySelector('.pin-icon').textContent = '★';
+            addPinned(meta);
+            toast('App fixado na barra', 'ok');
+          }
+        };
+      }
+      // Na versão sem Stack, não navegue automaticamente para a view de stack.
+      // if (!$('#openInside').checked) nav('stack');
       updateDock();
+      // Atualize apps fixados na barra após abrir
+      updatePinnedNav();
       toast('App aberto: ' + (a.title || 'App'), 'ok');
       dualLog('Sessão aberta: ' + (a.title || 'App'));
     }
@@ -2702,11 +2765,18 @@ body::after {
       <button id="lsClose" class="btn fx-trans fx-press ring">Fechar<span class="ripple"></span></button>
     </div>
     <div class="mut" id="lsStats" style="margin-top:8px;font-size:12px">–</div>
+    <!-- Informações rápidas do usuário, assistente e arquétipo ativo -->
+    <div id="lsInfo" style="margin-top:8px;font-size:12px;line-height:1.4">
+      <div><strong>Usuário:</strong> <span id="lsUserDisplay">–</span></div>
+      <div><strong>Assistente:</strong> <span id="lsAssistantDisplay">–</span></div>
+      <div><strong>Arquétipo ativo:</strong> <span id="lsArchDisplay">–</span></div>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
       <button id="lsExport" class="btn fx-trans fx-press ring">Exportar<span class="ripple"></span></button>
       <button id="lsImport" class="btn fx-trans fx-press ring">Importar<span class="ripple"></span></button>
       <button id="lsClear" class="btn fx-trans fx-press ring">Limpar LS<span class="ripple"></span></button>
       <button id="lsClearIDB" class="btn fx-trans fx-press ring">Limpar IndexDB<span class="ripple"></span></button>
+      <button id="lsReloadPage" class="btn fx-trans fx-press ring">Atualizar página<span class="ripple"></span></button>
     </div>
     <!-- Lista dinâmica de itens armazenados no LocalStorage -->
     <div id="lsList" style="margin-top:12px; max-height:200px; overflow:auto; font-size:12px; color:var(--fg);"></div>
@@ -2820,7 +2890,26 @@ body::after {
 
   // Ao abrir o modal, também carregue a lista de itens atuais
   const _openModalRef = openModal;
-  function openModalLS(){ _openModalRef(); renderLS(); }
+  function openModalLS(){
+    _openModalRef();
+    renderLS();
+    // Atualize informações de usuário, assistente e arquétipo ativo
+    try {
+      const uDisplay = document.getElementById('lsUserDisplay');
+      const aDisplay = document.getElementById('lsAssistantDisplay');
+      const archDisplay = document.getElementById('lsArchDisplay');
+      const userName = (localStorage.getItem('dual.name') || localStorage.getItem('infodose:userName') || '').trim();
+      const assistantName = (localStorage.getItem('dual.assistantName') || localStorage.getItem('infodose:assistantName') || 'Dual').trim();
+      let arch = '';
+      const archSel = document.getElementById('arch-select');
+      if (archSel && archSel.value) arch = archSel.value.replace(/\.html$/i, '');
+      if (uDisplay) uDisplay.textContent = userName || '–';
+      if (aDisplay) aDisplay.textContent = assistantName || '–';
+      if (archDisplay) archDisplay.textContent = arch || '–';
+    } catch{}
+    const btnReload = document.getElementById('lsReloadPage');
+    if (btnReload) btnReload.onclick = () => { location.reload(); };
+  }
   // Redefina o evento para usar a nova função
   if (btn) btn.addEventListener('click', openModalLS);
 
@@ -2923,6 +3012,77 @@ body::after {
       }
       toast('IndexDB limpo', 'warn');
     } catch(e){ alert('Falha no IndexDB: ' + e.message) }
+  });
+})();
+</script>
+
+<!-- Script para gerenciar apps fixados na versão sem Stack -->
+<script>
+(() => {
+  /**
+   * Retorna a lista de apps fixados do LocalStorage.
+   * @returns {Array<{title:string,url:string}>}
+   */
+  function getPinnedList() {
+    try { return JSON.parse(localStorage.getItem('unoPinnedApps') || '[]') || []; } catch { return []; }
+  }
+
+  /**
+   * Adiciona um item à lista de apps fixados, evitando duplicatas.
+   * @param {{title:string,url:string}} meta
+   */
+  function addPinned(meta) {
+    if (!meta || !meta.title) return;
+    const list = getPinnedList();
+    const exists = list.some(item => item.title === meta.title && item.url === meta.url);
+    if (!exists) {
+      list.push({ title: meta.title, url: meta.url });
+      localStorage.setItem('unoPinnedApps', JSON.stringify(list));
+    }
+    updatePinnedNav();
+  }
+  window.addPinned = addPinned;
+
+  /**
+   * Remove um item fixado com base no título e URL.
+   * @param {{title:string,url:string}} meta
+   */
+  function removePinnedByMeta(meta) {
+    if (!meta) return;
+    let list = getPinnedList();
+    list = list.filter(item => !(item.title === meta.title && item.url === meta.url));
+    localStorage.setItem('unoPinnedApps', JSON.stringify(list));
+    updatePinnedNav();
+  }
+  window.removePinnedByMeta = removePinnedByMeta;
+
+  /**
+   * Atualiza a barra de navegação com os apps fixados.
+   */
+  function updatePinnedNav() {
+    const navInner = document.querySelector('.tabbar .inner');
+    if (!navInner) return;
+    // Remova botões fixados existentes
+    navInner.querySelectorAll('button.tab[data-pinned]').forEach(btn => btn.remove());
+    const list = getPinnedList();
+    list.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'tab fx-trans fx-press ring';
+      btn.setAttribute('data-pinned', 'true');
+      btn.title = item.title;
+      const letter = (item.title || '?').trim().charAt(0).toUpperCase();
+      btn.innerHTML = `<span class="pin-letter">${letter}</span><span class="ripple"></span>`;
+      btn.onclick = () => {
+        openApp({ title: item.title, url: item.url });
+      };
+      navInner.appendChild(btn);
+    });
+  }
+  window.updatePinnedNav = updatePinnedNav;
+
+  // Carregue apps fixados ao inicializar
+  document.addEventListener('DOMContentLoaded', () => {
+    updatePinnedNav();
   });
 })();
 </script>
