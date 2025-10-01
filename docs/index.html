@@ -913,14 +913,6 @@ body::after{content:'';position:fixed;inset:0;background:none !important;pointer
     body.session-full .tabs-wrap,
     body.session-full .fab { display: none !important; }
 
-
-/* --- Blue‑1 typing indicator (helper) --- */
-.kb-typing{display:inline-flex;gap:6px;align-items:center}
-.kb-typing i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6;animation:kbblink 1.2s infinite ease-in-out}
-.kb-typing i:nth-child(2){animation-delay:.15s}
-.kb-typing i:nth-child(3){animation-delay:.3s}
-@keyframes kbblink{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-4px);opacity:1}}
-
 </style>
 <style id="blue1Theme">
 /* === Blue‑1 Theme (UI) === */
@@ -1179,8 +1171,9 @@ body[data-theme="blue1"] #chatFeed .msg.ai { background: rgba(77, 148, 255, 0.14
 body[data-theme="blue1"] #chatFeed .msg.user { background: rgba(232,240,255,0.10); }
 
 </style>
+<link rel="stylesheet" href="blue-1.css">
 </head>
-<body data-theme="blue1">
+<body>
   <!-- Splash screen displayed on initial load -->
   
   <!-- Som do splash: coloque seu arquivo de áudio na pasta especificada e ajuste o caminho abaixo.
@@ -1262,7 +1255,7 @@ body[data-theme="blue1"] #chatFeed .msg.user { background: rgba(232,240,255,0.10
             <div id="arch-fadeCover"></div>
             <!-- Camada de ripple auditivo fica sobre o conteúdo do círculo -->
             <div id="audioRipple" class="audio-ripple"></div>
-            <iframe id="arch-frame" title="Archetype Core" sandbox="allow-scripts" referrerpolicy="no-referrer" src="./archetypes/atlas.html"></iframe>
+            <iframe id="arch-frame" title="Archetype Core" sandbox="allow-scripts" referrerpolicy="no-referrer" src="./archetypes/atlas.html" src="archetypes/center.html?preset=blue1"></iframe>
           </div>
           <!-- Mensagem de feedback aparece fora da bolinha, logo abaixo dela -->
           <div id="archMsg" class="arch-msg show" style="background: rgba(57, 255, 182, 0.75); color: rgb(11, 15, 20);">Bem-vindo de volta, KODUX. UNO está ao seu lado.</div>
@@ -4482,12 +4475,7 @@ window.addEventListener('load', () => {
 
 })(); // end ChatPlus
 </script>
-  <script src="dual_multiagent_v1.js"></script>
-  <script src="dual_multiagent_v12_locked.js"></script>
-  <script src="openrouter_hardlock_model_v1.js" defer=""></script>
-
-
-<style>
+  <style>
 /* --------------------------------------------
    KOBLLUX • Compact Mode — Mobile-first Vertical
    Colar após o CSS atual
@@ -4894,113 +4882,34 @@ main .row > * + * { margin-top: .5rem; }
 })();
 </script>
 
+<script src="dual_multiagent_v12_locked_fixed.js"></script>
+<script src="UNO_patch_arch3d_particles.js"></script>
+<script src="blue-1.js"></script>
 
-  <!-- Blue‑1 skin & helpers -->
-  <link rel="stylesheet" href="blue-1.css">
-  <script src="blue-1.js" defer></script>
-
-  <!-- 3D overlay for Archetypes (Platonic solids + particles) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r155/three.min.js" defer></script>
-  <script src="UNO_patch_arch3d_particles.js" defer></script>
-
-  <!-- Horus Dual (multi‑agente) — dispara com prefixo @horus -->
-  <script src="dual_multiagent_v12_locked_fixed.js" defer></script>
-
-  <!-- Glue layer (feed/chat + archetype pulse + overlay toggle) -->
-  <script>
-  (function(){
-    const $ = (q,r=document)=>r.querySelector(q);
-    const feed = $('#chatFeed');
-    const archCircle = document.querySelector('.arch-circle');
-    const msgPreview = $('#msgPreview');
-    const archMsg = $('#archMsg');
-    const archFrame = $('#arch-frame');
-
-    // Simple feed appender used by Blue‑1 & Horus plugin
-    window.feedPush = function(kind, text){
-      try {
-        if(!feed) return;
-        const el = document.createElement('div');
-        el.className = kind === 'user' ? 'msg user' : (kind === 'status' ? 'msg status' : 'msg ai');
-        el.textContent = String(text||'');
-        feed.appendChild(el);
-        feed.scrollTop = feed.scrollHeight;
-        // Animate archetype bubble on every message
-        if (archCircle){
-          archCircle.classList.add('pressed');
-          setTimeout(()=>archCircle.classList.remove('pressed'), 180);
-        }
-        // Preview on home
-        if (msgPreview && kind!=='status'){
-          msgPreview.textContent = (kind==='user' ? 'Você: ' : 'Dual: ') + text;
-          msgPreview.style.display = 'block';
-          setTimeout(()=>{ msgPreview.style.display = 'none' }, 3000);
-        }
-      } catch {}
-    };
-    // AI renderer used by Blue‑1 (rich blocks already handled inside blue-1.js)
-    window.renderAssistantReply = function(markdownText){
-      window.feedPush('ai', markdownText);
-    };
-
-    // Minimal sender (can be wrapped by Horus plugin)
-    window.sendUserMessage = function(message){
-      const msg = String(message||'').trim();
-      if (!msg) return;
-      window.feedPush('user', msg);
-      // Default: if not intercepted, ping Blue-1 to try Gemini on KOBLLUX or fallback
-      try {
-        if (typeof window.__blue1_sendAsAssistant === 'function'){
-          window.__blue1_sendAsAssistant(msg);
-        }
-      } catch {}
-    };
-
-    // Overlay (tint) toggle — off by default; respects UNO_ARCH3D.disableTint
-    try {
-      const disableTint = (window.UNO_ARCH3D && window.UNO_ARCH3D.disableTint) || true;
-      if (disableTint){
-        document.body.style.setProperty('--arch-overlay', 'rgba(0,0,0,0)');
-        const a = document.querySelector('body::after');
-      }
-    } catch {}
-
-    // Open Home input overlay to send message quickly
-    const homeTextBtn = $('#homeTextBtn');
-    const homeVoiceBtn = $('#homeVoiceBtn');
-    const homeInputOverlay = $('#homeInputOverlay');
-    const homeInputForm = $('#homeInputForm');
-    const homeInput = $('#homeInput');
-    if (homeTextBtn && homeInputOverlay && homeInputForm && homeInput){
-      homeTextBtn.addEventListener('click', ()=>{
-        homeInputOverlay.style.display = 'block';
-        homeInput.focus();
-      });
-      homeInputForm.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const v = (homeInput.value||'').trim();
-        if (v){ window.sendUserMessage(v); homeInput.value=''; homeInputOverlay.style.display='none'; }
-      });
-    }
-    if (homeVoiceBtn){
-      homeVoiceBtn.addEventListener('click', ()=>{
-        if (archMsg){
-          archMsg.textContent = '🎙️ Áudio reativo ligado — use @horus para orquestrar os 12.';
-          archMsg.classList.add('show');
-          setTimeout(()=>archMsg.classList.remove('show'), 2600);
-        }
-      });
-    }
-
-    // Make sure the SELECT gets rebuilt by the patcher even if the original populated it
-    window.addEventListener('load', ()=>{
-      try{
-        if (typeof window.UNO_ARCH3D !== 'undefined'){
-          // nothing to do; patch scripts rebuild on load
-        }
-      }catch{}
-    });
-  })();
-  </script>
+<script>
+(function(){
+  const selArch   = document.getElementById('arch-select');
+  const selPreset = document.getElementById('arch-preset');
+  const frame     = document.getElementById('arch-frame');
+  if (!selArch || !frame || !selPreset) return;
+  const LS = { get:(k,d)=>{ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d }catch{ return d } },
+               set:(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} } };
+  // Load saved preset
+  const saved = (LS.get('uno:arch:preset')||'blue1').toLowerCase();
+  if (['blue1','strong','cinematic','off'].includes(saved)) selPreset.value = saved;
+  function apply(){
+    if (!selArch.value) return;
+    const url = new URL(selArch.value, location.href);
+    const preset = selPreset.value || 'blue1';
+    if (preset==='off') { url.searchParams.delete('preset'); } else { url.searchParams.set('preset', preset); }
+    frame.src = url.toString();
+    LS.set('uno:arch:preset', preset);
+  }
+  selPreset.addEventListener('change', apply);
+  selArch.addEventListener('change', apply);
+  // Initial apply if iframe empty
+  if (!frame.getAttribute('src')) apply();
+})();
+</script>
 
 </body></html>
