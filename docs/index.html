@@ -1,673 +1,379 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Dual Atom v11 — Monólito Inline (Orb + Shaders + Partículas + 4 Módulos)</title>
-<meta name="theme-color" content="#0a0b10">
-<style>
-  /* =================== MOBILE-FIRST VERTICAL HARD-LOCK =================== */
-  :root {
-    --bg0: #07080d;
-    --bg1: #0d1020;
-    --nebula-a: #7a3cff;
-    --nebula-b: #00e5ff;
-    --txt: #eaf2ff;
-    --muted: #a6b0c0;
-    --ring: rgba(255,255,255,0.15);
-    --glass: rgba(255,255,255,0.06);
-    --glass-2: rgba(255,255,255,0.10);
-    --blur: blur(12px);
-    --radius: 18px;
-    --shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 0 80px rgba(255,255,255,.04);
-    --size-orb: min(62vw, 420px);
-    --hud-size: 64px;
-    --hud-gap: 18px;
-    --anim: 18s;
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    background: radial-gradient(140% 120% at 50% 0%, #14183a 0%, #0c0f22 55%, #07080d 100%);
-    color: var(--txt);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow: hidden;
-  }
-  .stage {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Brava Master Blaster — UNO → DUAL → TRINITY</title>
+  <meta name="theme-color" content="#0a0b10" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* =================== MOBILE-FIRST VERTICAL HARD-LOCK =================== */
+    :root{
+      --bg0:#07080d; --bg1:#0d1020;
+      --nebA:#7a3cff; --nebB:#00e5ff; /* Nebula roxo→ciano */
+      --txt:#eaf2ff; --muted:#a6b0c0;
+      --ringC:rgba(255,255,255,.16);
+      --glass:rgba(255,255,255,.06);
+      --glass2:rgba(255,255,255,.10);
+      --blur:blur(12px);
+      --radius:18px;
+      --shadow:0 18px 60px rgba(0,0,0,.55), inset 0 0 80px rgba(255,255,255,.04);
+      --size-orb:min(62vw, 420px);
+      --ease:cubic-bezier(.2,.8,.2,1);
+      --ok:#33e08a; --warn:#ffd35a; --err:#ff6b6b;
+      --line:1px solid rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Montserrat,Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--txt);
+      background: radial-gradient(140% 120% at 50% 0%, #14183a 0%, #0c0f22 55%, #07080d 100%);
+      -webkit-font-smoothing:antialiased; overflow:hidden;
+    }
 
-  /* =================== ORBE (canvases sobrepostos) =================== */
-  .orb-wrap {
-    position: relative;
-    width: var(--size-orb);
-    height: var(--size-orb);
-    display: grid;
-    place-items: center;
-    filter: drop-shadow(0 30px 60px rgba(0,0,0,.65));
-  }
-  canvas#orb, canvas#particles {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    display: block;
-  }
-  /* pseudo-bloom (camada CSS adicional) */
-  .orb-glow {
-    position: absolute;
-    inset: -10%;
-    border-radius: 50%;
-    pointer-events: none;
-    background: radial-gradient(60% 60% at 50% 50%, rgba(122,60,255,.18), rgba(0,229,255,.14) 45%, rgba(0,0,0,0) 70%);
-    filter: blur(18px);
-    opacity: .9;
-    transition: opacity .6s ease;
-  }
-  .ring {
-    position: absolute;
-    inset: -8%;
-    border-radius: 50%;
-    background: radial-gradient(80% 80% at 50% 50%, rgba(255,255,255,.12), rgba(255,255,255,0) 42%);
-    pointer-events: none;
-  }
+    /* =========== HUD mini (cena ativa) =========== */
+    .scene-indicator{position:fixed; top:8px; left:50%; transform:translateX(-50%);
+      display:flex; gap:8px; align-items:center; z-index:1200;
+      background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.22);
+      padding:6px 10px; border-radius:999px; backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+      box-shadow:var(--shadow); font-size:12px; letter-spacing:.3px; opacity:.0; pointer-events:none; transition:opacity .25s var(--ease), transform .25s var(--ease)}
+    .scene-indicator.show{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) }
+    .scene-indicator .label{ color:#eaf2ff }
+    .scene-indicator .reset{ appearance:none; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:var(--txt); padding:4px 8px; border-radius:999px; cursor:pointer; }
+    .scene-indicator .reset:active{ transform:scale(.97) }
 
-  .call {
-    position: absolute;
-    bottom: 26px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--muted);
-    font-size: 12px;
-    letter-spacing: .3px;
-    opacity: .9;
-    text-align: center;
-    white-space: nowrap;
-    pointer-events: none;
-  }
+    /* =========== Stage / Orb =========== */
+    .stage{position:relative; width:100%; height:100%; display:grid; place-items:center; padding:20px}
+    .orb-scene{position:relative; width:min(680px,88vw); height:min(680px,88vw); display:grid; place-items:center; z-index:10}
+    .orb-wrap{position:relative; width:var(--size-orb); height:var(--size-orb); display:grid; place-items:center; filter:drop-shadow(0 30px 60px rgba(0,0,0,.65)); z-index:40; cursor:pointer}
 
-  /* =================== OPÇÕES EM VOLTA DO ORBE =================== */
-  .options {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .opt {
-    position: absolute;
-    width: var(--hud-size);
-    height: var(--hud-size);
-    border-radius: 16px;
-    border: 1px solid var(--ring);
-    background: var(--glass);
-    box-shadow: var(--shadow);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
-    display: grid;
-    place-items: center;
-    transition: transform .18s ease, opacity .4s ease;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .opt svg {
-    width: 28px; height: 28px;
-    stroke: #deebff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;
-  }
-  .opt .lab {
-    position: absolute;
-    bottom: -20px;
-    font-size: 11px; color: var(--muted);
-  }
-  /* posições relativas ao centro do contêiner */
-  .opt.fenda    { top:  calc(50% - var(--size-orb)/2 - var(--hud-gap) - var(--hud-size)); left: calc(50% - var(--hud-size) - var(--hud-gap)); }
-  .opt.sigilo   { top:  calc(50% - var(--size-orb)/2 - var(--hud-gap) - var(--hud-size)); left: calc(50% + var(--hud-gap)); }
-  .opt.chaves   { top:  calc(50% + var(--size-orb)/2 + var(--hud-gap)); left: calc(50% - var(--hud-size) - var(--hud-gap)); }
-  .opt.playlist { top:  calc(50% + var(--size-orb)/2 + var(--hud-gap)); left: calc(50% + var(--hud-gap)); }
-  /* estado visível após ativação */
-  .options.active .opt { opacity: 1; pointer-events: auto; }
-  .opt:active { transform: scale(.98); }
+    /* ORBE — versão leve (CSS layers) */
+    .orb{position:absolute; inset:0; border-radius:50%;
+      background:
+        radial-gradient(32% 32% at 36% 34%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.25) 36%, rgba(255,255,255,0) 68%),
+        radial-gradient(70% 70% at 62% 64%, var(--nebB) 0%, rgba(0,0,0,0) 70%),
+        radial-gradient(72% 72% at 45% 55%, var(--nebA) 0%, rgba(0,0,0,0) 72%);
+      box-shadow:0 0 40px 12px rgba(0,229,255,.22) inset, 0 0 32px 12px rgba(122,60,255,.20);
+      animation:pulse 3.6s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+    .orb-glow{position:absolute; inset:-10%; border-radius:50%; pointer-events:none;
+      background:radial-gradient(60% 60% at 50% 50%, rgba(122,60,255,.18), rgba(0,229,255,.14) 45%, rgba(0,0,0,0) 70%);
+      filter:blur(18px); opacity:.95; transition:opacity .6s var(--ease), transform .6s var(--ease)}
+    .orbe-label{position:absolute;bottom:-42px;font-weight:800;opacity:.9;letter-spacing:.6px;color:#eaf2ff;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+    .call{position:absolute; bottom:26px; left:50%; transform:translateX(-50%); color:var(--muted); font-size:12px; letter-spacing:.3px; opacity:.9; white-space:nowrap; pointer-events:none; transition:opacity .35s var(--ease)}
 
-  /* =================== MODAL / MÓDULOS INTERNOS =================== */
-  .backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(4,6,10,.25);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    display: none;
-    z-index: 9;
-  }
-  .backdrop.active { display: block; }
-  .card {
-    position: fixed;
-    inset: 24px 16px;
-    border-radius: var(--radius);
-    border: 1px solid var(--ring);
-    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    box-shadow: 0 30px 80px rgba(0,0,0,.6), inset 0 0 80px rgba(255,255,255,.04);
-    display: none;
-    z-index: 10;
-    transform: translateY(10px);
-    opacity: 0;
-    transition: transform .25s ease, opacity .25s ease;
-    overflow: hidden;
-  }
-  .card.active { display: block; transform: translateY(0); opacity: 1; }
-  .card header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08);
-    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
-  }
-  .card header h3 { margin: 0; font-size: 14px; letter-spacing: .3px; color: #eaf2ff; }
-  .card header .act { display: flex; gap: 8px; }
-  .btn {
-    appearance: none;
-    border: 1px solid rgba(255,255,255,.18);
-    background: rgba(255,255,255,.06);
-    color: var(--txt);
-    padding: 6px 10px;
-    border-radius: 10px;
-    font-size: 12px; letter-spacing: .2px;
-    display: inline-flex; align-items: center; gap: 8px;
-    cursor: pointer;
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
-  }
-  .btn:hover { background: rgba(255,255,255,.10); }
-  .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; }
+    /* =========== HUD v11->v12 (opções ao redor do orbe) =========== */
+    .options { position:absolute; inset:0; pointer-events:none; z-index:50; }
+    .opt{ position:absolute; width:64px; height:64px; border-radius:16px; border:1px solid var(--ringC);
+      background:var(--glass); box-shadow:var(--shadow); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+      display:grid; place-items:center; transition:transform .18s ease, opacity .4s ease; opacity:0; pointer-events:none }
+    .opt svg{ width:28px; height:28px; stroke:#deebff; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round }
+    .opt .lab{ position:absolute; bottom:-20px; font-size:11px; color:var(--muted) }
+    .options.active .opt{ opacity:1; pointer-events:auto }
+    .opt:active{ transform:scale(.98) }
+    /* posições iguais às usadas nas v11→v12 */
+    .opt.fenda    { top:  calc(50% - (var(--size-orb))/2 - 18px - 64px); left: calc(50% - 64px - 18px) }
+    .opt.sigilo   { top:  calc(50% - (var(--size-orb))/2 - 18px - 64px); left: calc(50% + 18px) }
+    .opt.chaves   { top:  calc(50% + (var(--size-orb))/2 + 18px);        left: calc(50% - 64px - 18px) }
+    .opt.playlist { top:  calc(50% + (var(--size-orb))/2 + 18px);        left: calc(50% + 18px) }
+    @media(min-width:768px){ .opt{width:72px;height:72px} .opt svg{width:30px;height:30px}
+      .opt.fenda{top:calc(50% - (var(--size-orb))/2 - 22px - 72px); left:calc(50% - 72px - 22px)}
+      .opt.sigilo{top:calc(50% - (var(--size-orb))/2 - 22px - 72px); left:calc(50% + 22px)}
+      .opt.chaves{top:calc(50% + (var(--size-orb))/2 + 22px); left:calc(50% - 72px - 22px)}
+      .opt.playlist{top:calc(50% + (var(--size-orb))/2 + 22px); left:calc(50% + 22px)} }
 
-  .card .content { position: absolute; inset: 48px 12px 12px 12px; overflow: auto; border-radius: 12px; }
+    /* =========== Backdrop + Card (módulos) =========== */
+    .backdrop{position:fixed; inset:0; background:rgba(4,6,10,.25); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); display:none; z-index:9; opacity:0; transition:opacity .25s var(--ease)}
+    .backdrop.active{display:block; opacity:1}
+    .card{position:fixed; inset:24px 16px; border-radius:var(--radius); border:var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 80px rgba(255,255,255,.04);
+      display:none; z-index:10; transform:translateY(12px) scale(.985); opacity:0; transition:transform .28s var(--ease), opacity .28s var(--ease); overflow:hidden }
+    .card.active{display:block; transform:translateY(0) scale(1); opacity:1}
+    .card.min .content{display:none}
+    .card header{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0))}
+    .title{display:flex; align-items:center; gap:8px}
+    .dot{width:10px; height:10px; border-radius:50%; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset}
+    .ok{background:var(--ok)} .warn{background:var(--warn)} .err{background:var(--err)} .lock{background:#8b93a6}
+    .card header h3{margin:0; font-size:14px; letter-spacing:.3px}
+    .act{display:flex; gap:8px}
+    .iconbtn{appearance:none; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:var(--txt);
+      padding:6px 10px; border-radius:10px; font-size:12px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+      transition:transform .15s var(--ease), background .2s var(--ease)}
+    .iconbtn:active{ transform:scale(.98) }
+    .iconbtn svg{width:16px; height:16px; stroke:currentColor; fill:none}
+    .content{position:absolute; inset:48px 12px 12px 12px; overflow:auto; border-radius:12px}
+    .mod-section{display:grid; gap:12px; background:rgba(5,8,14,.6); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px; animation: rise .35s var(--ease) both}
+    .row{display:grid; gap:8px}
+    label{font-size:12px; color:var(--muted)}
+    input,textarea,select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:var(--txt); outline:none}
+    @keyframes rise{from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1}}
 
-  /* conteúdo interno básico para cada módulo */
-  .mod-section {
-    display: grid; gap: 12px;
-    background: rgba(5,8,14,.6);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 12px;
-    padding: 12px;
-  }
-  .row { display: grid; gap: 8px; }
-  label { font-size: 12px; color: var(--muted); }
-  input, textarea, select {
-    width: 100%; padding: 10px 12px; border-radius: 10px;
-    border: 1px solid rgba(255,255,255,.16);
-    background: rgba(255,255,255,.05); color: var(--txt);
-    outline: none;
-  }
-  .pill { padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); font-size: 12px; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; }
+    /* =========== LOJA / ESTOJO (gaveta) =========== */
+    #panelConfigCenter{ position:fixed; inset:auto 0 0 0; transform: translateY(100%); transition: transform .5s ease; z-index:20 }
+    #panelConfigCenter[data-open="true"]{ transform: translateY(0) }
+    .config-inner{ padding:16px; background: linear-gradient(180deg, rgba(12,18,30,.35), rgba(12,18,30,.75)); border-top:1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(20px); border-top-left-radius:24px; border-top-right-radius:24px }
+    .tabs{ display:flex; gap:8px; overflow:auto; padding-bottom:6px }
+    .tab{ flex:0 0 auto; padding:.5rem .8rem; border:1px solid rgba(255,255,255,.14); border-radius:999px; font-weight:700; background:rgba(255,255,255,.03) }
+    .tab[data-active="true"]{ background: linear-gradient(90deg, rgba(123,74,255,.35), rgba(10,212,255,.28)) }
+    .grid-cards{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px }
+    .cardx{ border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:12px; background:rgba(255,255,255,.02) }
+    .cardx h3{ margin:0 0 6px; font-size:16px; }
+    .cardx p{ margin:0 0 10px; color:var(--muted); font-size:13px; }
+    .led{ width:10px; height:10px; border-radius:50%; display:inline-block; vertical-align:middle; margin-right:6px; box-shadow:0 0 12px currentColor }
+    .led.ok{ color:var(--ok) } .led.off{ color:#4c5563 } .led.warn{ color:var(--warn) }
 
-  /* RESPONSIVO */
-  @media (min-width: 768px) {
-    :root { --size-orb: min(42vw, 520px); --hud-size: 72px; --hud-gap: 22px; }
-    .opt svg { width: 30px; height: 30px; }
-  }
-</style>
+    /* =========== util ========= */
+    .hide{display:none}
+    .btn{appearance:none; border:var(--line); background:rgba(255,255,255,.04); color:var(--txt); padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700 }
+    .btn.ghost{background:transparent; border-style:dashed}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); font-size:12px; color:var(--muted); display:inline-flex; gap:8px; align-items:center }
+    .mut{color:var(--muted)}
+    .kbd{font:600 .78rem/1 ui-monospace,monospace; background:rgba(255,255,255,.06); border:var(--line); padding:2px 6px; border-radius:8px}
+  </style>
 </head>
 <body>
-<div class="stage">
-  <div class="orb-wrap" id="orbWrap" aria-label="Orbe Nebula">
-    <canvas id="orb"></canvas>
-    <div class="orb-glow" id="orbGlow"></div>
-    <canvas id="particles"></canvas>
-    <div class="ring"></div>
+  <!-- Mini indicador de cena -->
+  <div class="scene-indicator" id="sceneIndicator" aria-live="polite">
+    <span class="label" id="sceneLabel">Cena: Espaço</span>
+    <button class="reset" id="sceneReset" title="Reset cena">Reset</button>
   </div>
 
-  <!-- CHAMADA INICIAL -->
-  <div class="call" id="call">Toque o orbe para ativar · “Sempre único, sempre seu”.</div>
-
-  <!-- OPÇÕES (aparecem só após o primeiro toque) -->
-  <div class="options" id="options">
-    <button class="opt fenda" data-open="fenda" aria-label="Abrir Fenda">
-      <svg viewBox="0 0 24 24"><path d="M12 2l8 4-8 4-8-4 8-4Z"/><path d="M4 6v8l8 4 8-4V6"/><path d="M12 10v8"/></svg><div class="lab">Fenda</div>
-    </button>
-    <button class="opt sigilo" data-open="sigilo" aria-label="Abrir Sigilo">
-      <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 9h14"/><path d="M7 15h10"/><path d="M6 6l3 3-3 3"/><path d="M18 6l-3 3 3 3"/></svg><div class="lab">Sigilo</div>
-    </button>
-    <button class="opt chaves" data-open="chaves" aria-label="Abrir Chaves">
-      <svg viewBox="0 0 24 24"><circle cx="7" cy="7" r="3"/><path d="M9 9l8 8"/><path d="M14 14l3 3l2-2l-3-3"/><path d="M6 10l2 2"/></svg><div class="lab">Chaves</div>
-    </button>
-    <button class="opt playlist" data-open="playlist" aria-label="Abrir Playlist">
-      <svg viewBox="0 0 24 24"><path d="M4 6h12"/><path d="M4 10h12"/><path d="M4 14h8"/><circle cx="18" cy="16" r="3"/></svg><div class="lab">Playlist</div>
-    </button>
-  </div>
-</div>
-
-<!-- MODAL + CARDS -->
-<div class="backdrop" id="backdrop"></div>
-
-<section class="card" id="card">
-  <header>
-    <h3 id="cardTitle">Módulo</h3>
-    <div class="act">
-      <button class="btn" data-close aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>Fechar</button>
+  <!-- Stage / Orbe -->
+  <div class="stage">
+    <div class="orb-scene" id="scene" role="application" aria-label="Campo Nebula">
+      <div class="orb-wrap" id="orbWrap" aria-label="Orbe Nebula" tabindex="0">
+        <div class="orb" aria-hidden="true"></div>
+        <div class="orb-glow" aria-hidden="true"></div>
+        <div class="orbe-label">KOBLLUX</div>
+        <div class="options" id="hudOptions">
+          <button class="opt fenda" data-open="fenda" aria-label="Abrir Fenda">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 4-8 4-8-4 8-4Z"/><path d="M4 6v8l8 4 8-4V6"/><path d="M12 10v8"/></svg><div class="lab">Fenda</div>
+          </button>
+          <button class="opt sigilo" data-open="sigilo" aria-label="Abrir Sigilo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M5 9h14"/><path d="M7 15h10"/><path d="M6 6l3 3-3 3"/><path d="M18 6l-3 3 3 3"/></svg><div class="lab">Sigilo</div>
+          </button>
+          <button class="opt chaves" data-open="chaves" aria-label="Abrir Chaves">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="7" r="3"/><path d="M9 9l8 8"/><path d="M14 14l3 3l2-2l-3-3"/></svg><div class="lab">Chaves</div>
+          </button>
+          <button class="opt playlist" data-open="player" aria-label="Abrir Player">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h12"/><path d="M4 10h12"/><path d="M4 14h8"/><circle cx="18" cy="16" r="3"/></svg><div class="lab">Playlist</div>
+          </button>
+        </div>
+      </div>
+      <div class="call" id="call">Toque o orbe para ativar · Sempre único, sempre seu.</div>
     </div>
-  </header>
-  <div class="content" id="cardContent"></div>
-</section>
+  </div>
 
-<script>
-/* ==========================================================================
-   WEBGL ORB (Shader Nebula + Fog + RimLight)  —  no dependencies
-   ========================================================================== */
-(function(){
-  const canvas = document.getElementById('orb');
-  const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
-  if (!gl) return;
+  <!-- Backdrop + Card (módulos) -->
+  <div class="backdrop" id="backdrop"></div>
+  <section class="card" id="card">
+    <header>
+      <div class="title"><div class="dot ok"></div><h3 id="cardTitle">Módulo</h3></div>
+      <div class="act">
+        <button class="iconbtn" data-min="true" title="Minimizar">▾</button>
+        <button class="iconbtn" data-close title="Fechar">✕</button>
+      </div>
+    </header>
+    <div class="content" id="cardContent"></div>
+  </section>
 
-  const dpr = Math.min(2, (window.devicePixelRatio||1));
-  function resize(){
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = Math.floor(rect.width * dpr);
-    canvas.height = Math.floor(rect.height * dpr);
-    gl.viewport(0,0,canvas.width, canvas.height);
-  }
-  new ResizeObserver(resize).observe(canvas);
-  resize();
+  <!-- ESTOJO (Loja / Config Center) -->
+  <aside id="panelConfigCenter" aria-label="Estojo de Módulos" data-open="false">
+    <div class="config-inner">
+      <div class="tabs" role="tablist">
+        <button class="tab" data-tab="Ferramentas" data-active="true">Ferramentas</button>
+        <button class="tab" data-tab="Mídia">Mídia</button>
+        <button class="tab" data-tab="Chaves">Chaves</button>
+        <button class="tab" data-tab="Símbolos">Símbolos</button>
+        <button class="tab" data-tab="Layouts">Layouts</button>
+      </div>
+      <div class="grid-cards" id="cards"></div>
+      <div style="text-align:center; margin-top:10px"><button id="closeConfig" class="btn ghost">Fechar Estojo</button></div>
+    </div>
+  </aside>
 
-  // Fullscreen quad
-  const vs = `
-    attribute vec2 aPos;
-    varying vec2 vUv;
-    void main(){
-      vUv = aPos * 0.5 + 0.5;
-      gl_Position = vec4(aPos, 0.0, 1.0);
-    }`;
+  <script>
+  /* ================== BRAIN / ESTADO (Baú = LocalStorage) ==================== */
+  const Brain = (() => {
+    const LS = { CONFIG:'dual.config', LAST_HTML:'dual.lastHTML', USER_SYMBOL:'dual.user.symbol', ONBOARD_OK:'dual.onboard.ok', KEYS:'dual.keys' };
+    const defaultConfig = { assets:[], modules:{ core_storage:true, sys_logs:true, net_ping:true, sec_keys:true, dev_html:true, player:true, sigil:true }, theme:'nebula', fusion:{A:'Atlas',B:'Nova'} };
+    let config=null; const registry={};
+    const Logs = (()=>{ const box=()=>document.getElementById('logs')||{prepend(){}}; return { add(msg){ const el=document.createElement('div'); const t=new Date().toLocaleTimeString(); el.textContent='['+t+'] '+msg; box().prepend(el); }, clear(){ const el=document.getElementById('logs'); if(el) el.innerHTML=''; } }; })();
+    const saveJSON=(k,o)=>{ try{ localStorage.setItem(k, JSON.stringify(o)); }catch(e){ Logs.add('saveJSON fail '+e); } };
+    const loadJSON=(k,f=null)=>{ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):f; }catch(e){ Logs.add('loadJSON fail '+e); return f; } };
+    function ensureConfig(){ config=loadJSON(LS.CONFIG,null); if(!config){ config=structuredClone(defaultConfig); saveJSON(LS.CONFIG,config);} return config; }
+    function setModuleFlag(name,v){ config.modules[name]=!!v; saveJSON(LS.CONFIG,config); }
+    function mount(name){ const def = registry[name]; if(def && def.mount) def.mount(); }
+    function unmount(name){ const def = registry[name]; if(def && def.unmount) def.unmount(); }
+    return { LS, ensureConfig, get config(){ return config??ensureConfig(); }, setModuleFlag, registry, mount, unmount, Logs, saveJSON, loadJSON };
+  })();
 
-  const fs = `
-    precision highp float;
-    varying vec2 vUv;
-    uniform vec2 u_res;
-    uniform float u_time;
-    uniform float u_active;
+  /* ================== MODULARIZAÇÃO ==================== */
+  function registerModule(def){ Brain.registry[def.name]=def; }
 
-    // helpers
-    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
-    float noise(in vec2 p){
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      float a = hash(i);
-      float b = hash(i + vec2(1.0, 0.0));
-      float c = hash(i + vec2(0.0, 1.0));
-      float d = hash(i + vec2(1.0, 1.0));
-      vec2 u = f*f*(3.0-2.0*f);
-      return mix(a, b, u.x) + (c - a)*u.y*(1.0 - u.x) + (d - b)*u.x*u.y;
-    }
-
-    // camera
-    vec3 camPos(){ return vec3(0.0, 0.0, 3.0); }
-    vec3 getRay(vec2 uv){
-      uv = (uv * 2.0 - 1.0);
-      uv.x *= u_res.x / u_res.y;
-      vec3 ro = camPos();
-      vec3 rd = normalize(vec3(uv, -1.8));
-      return rd;
-    }
-
-    // analytic sphere intersect
-    bool intersectSphere(vec3 ro, vec3 rd, float r, out float t){
-      float b = dot(ro, rd);
-      float c = dot(ro, ro) - r*r;
-      float h = b*b - c;
-      if(h < 0.0){ t = -1.0; return false; }
-      h = sqrt(h);
-      t = -b - h;
-      if(t < 0.0) t = -b + h;
-      if(t < 0.0) return false;
-      return true;
-    }
-
-    void main(){
-      vec2 uv = vUv;
-      vec3 ro = camPos();
-      vec3 rd = getRay(uv);
-
-      float t; // intersecção
-      vec3 col = vec3(0.02,0.03,0.07); // espaço
-      float fogDensity = 0.6;
-      vec3 fogCol = vec3(0.07,0.09,0.16);
-
-      // halo/nebulosa de fundo
-      float g = noise(uv*6.0 + u_time*0.05) * 0.25;
-      col += vec3(0.25,0.08,0.55) * g * 0.6 + vec3(0.0,0.35,0.55) * g * 0.4;
-
-      if(intersectSphere(ro, rd, 1.0, t)){
-        vec3 p = ro + rd * t;
-        vec3 n = normalize(p);
-
-        // base nebula color on surface
-        float bands = 0.5 + 0.5*sin(6.0*p.x + 5.0*p.y + u_time*0.6);
-        float swirl = noise(p.xy*4.0 + u_time*0.2);
-        vec3 nebA = vec3(0.52, 0.24, 1.00);
-        vec3 nebB = vec3(0.00, 0.90, 1.00);
-        vec3 base = mix(nebA, nebB, clamp(bands*0.6 + swirl*0.4, 0.0, 1.0));
-
-        // lighting: key + rim
-        vec3 L = normalize(vec3(0.6, 0.7, 0.5));
-        float diff = max(dot(n, L), 0.0);
-        float rim = pow(1.0 - max(dot(n, -rd), 0.0), 2.0);
-
-        float pulse = 0.5 + 0.5*sin(u_time*1.5);
-        float act = mix(0.6, 1.0, u_active);
-        vec3 c = base * (0.35 + 0.75*diff*act) + (nebB*0.6 + nebA*0.4) * rim * (0.6 + 0.4*pulse);
-
-        // fog com base na distância t
-        float fogAmt = 1.0 - exp(-t * 0.35);
-        col = mix(c, fogCol, fogAmt*0.25);
-      } else {
-        // halo externo/bloom-like
-        vec2 centered = uv - 0.5;
-        centered.x *= u_res.x/u_res.y;
-        float d = length(centered);
-        float outer = smoothstep(0.58, 0.12, d);
-        vec3 halo = vec3(0.25,0.12,0.55)*outer*0.35 + vec3(0.00,0.55,0.95)*outer*0.25;
-        col += halo;
-      }
-
-      // leve vinheta
-      float vign = smoothstep(1.2, 0.55, length((uv-0.5)*vec2(u_res.x/u_res.y,1.0)));
-      col *= vign;
-
-      gl_FragColor = vec4(col, 0.98);
-    }`;
-
-  function compile(type, source){
-    const s = gl.createShader(type);
-    gl.shaderSource(s, source);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      console.error(gl.getShaderInfoLog(s));
-      return null;
-    }
-    return s;
-  }
-  const vShader = compile(gl.VERTEX_SHADER, vs);
-  const fShader = compile(gl.FRAGMENT_SHADER, fs);
-  const prog = gl.createProgram();
-  gl.attachShader(prog, vShader);
-  gl.attachShader(prog, fShader);
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-    console.error(gl.getProgramInfoLog(prog));
-  }
-  gl.useProgram(prog);
-
-  // buffer do quad
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  const quad = new Float32Array([
-    -1,-1,  1,-1, -1, 1,
-     1,-1,  1, 1, -1, 1
-  ]);
-  gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
-
-  const locPos = gl.getAttribLocation(prog, 'aPos');
-  gl.enableVertexAttribArray(locPos);
-  gl.vertexAttribPointer(locPos, 2, gl.FLOAT, false, 0, 0);
-
-  const uRes = gl.getUniformLocation(prog, 'u_res');
-  const uTime = gl.getUniformLocation(prog, 'u_time');
-  const uActive = gl.getUniformLocation(prog, 'u_active');
-
-  let start = performance.now();
-  let active = 0.0;
-
-  function draw(){
-    const t = (performance.now() - start) * 0.001;
-    gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.uniform1f(uTime, t);
-    gl.uniform1f(uActive, active);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    requestAnimationFrame(draw);
-  }
-  draw();
-
-  // expõe controles para UI
-  window.__orbGL__ = {
-    setActive: (v)=>{ active = v?1.0:0.0; },
-    pulse: ()=>{
-      // anima um pico de atividade
-      let k = 0; const steps = 24;
-      const id = setInterval(()=>{
-        active = Math.min(1, active + 0.06);
-        if (++k>=steps){ clearInterval(id); }
-      }, 16);
-      setTimeout(()=>{
-        let j = 0;
-        const id2 = setInterval(()=>{
-          active = Math.max(0, active - 0.06);
-          if (++j>=steps){ clearInterval(id2); }
-        }, 16);
-      }, 380);
-    }
-  };
-})();
-
-/* ==========================================================================
-   PARTÍCULAS LEVES (overlay 2D canvas com aditivo)
-   ========================================================================== */
-(function(){
-  const c = document.getElementById('particles');
-  const ctx = c.getContext('2d');
-  const dpr = Math.min(2, (window.devicePixelRatio||1));
-  function resize(){
-    const r = c.getBoundingClientRect();
-    c.width = Math.floor(r.width*dpr); c.height = Math.floor(r.height*dpr);
-  }
-  new ResizeObserver(resize).observe(c); resize();
-
-  const N = 90;
-  const nodes = Array.from({length:N}, (_,i)=>{
-    return {
-      a: Math.random()*Math.PI*2,
-      r: 0.42 + Math.random()*0.48,
-      s: (0.2+Math.random()*0.7) * (Math.random()<0.5?-1:1),
-      z: 0.5+Math.random()*0.5,
-      hue: 200 + Math.random()*160
-    };
+  // —— Baú (status + import/export) ——
+  registerModule({ name:'core_storage', title:'Baú • LocalStorage', group:'Ferramentas',
+    ui(){ return `
+      <div class="mod-section">
+        <div class="row"><strong>Status</strong>
+          <div id="storageInfo">
+            <div class="kv"><span>dual.config</span> <span id="kvConfig" class="pill">–</span></div>
+            <div class="kv"><span>dual.onboard.ok</span> <span id="kvOnboard" class="pill">–</span></div>
+            <div class="kv"><span>dual.lastHTML</span> <span id="kvHTML" class="pill">–</span></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="title" style="display:flex;gap:8px;align-items:center"><div class="dot ok"></div><strong>Backup</strong></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button class="btn" id="btnExport">Exportar</button>
+            <label class="btn">Importar<input id="fileImport" type="file" accept="application/json" class="hide"/></label>
+          </div>
+        </div>
+      </div>`; },
+    mount(){ const cfg=Brain.config; document.getElementById('kvConfig').textContent = Object.keys(cfg.modules).filter(k=>cfg.modules[k]).length+' módulos on';
+      document.getElementById('kvOnboard').textContent = localStorage.getItem(Brain.LS.ONBOARD_OK)==='1'?'sim':'não';
+      document.getElementById('kvHTML').textContent = localStorage.getItem(Brain.LS.LAST_HTML)?'salvo':'—';
+      // handlers
+      const exp=document.getElementById('btnExport'); if(exp) exp.onclick=()=>{
+        const data={ config:Brain.config, keys:Brain.loadJSON(Brain.LS.KEYS,{}), html:localStorage.getItem(Brain.LS.LAST_HTML)||null, symbol:Brain.loadJSON(Brain.LS.USER_SYMBOL,null) };
+        const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download='dual_backup.json'; a.click(); URL.revokeObjectURL(url);
+      };
+      const imp=document.getElementById('fileImport'); if(imp) imp.onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{
+        const data=JSON.parse(r.result); if(data.config) Brain.saveJSON(Brain.LS.CONFIG,data.config); if(data.keys) Brain.saveJSON(Brain.LS.KEYS,data.keys); if(data.html) localStorage.setItem(Brain.LS.LAST_HTML,data.html); if(data.symbol) Brain.saveJSON(Brain.LS.USER_SYMBOL,data.symbol); alert('Importado!'); }catch(err){ alert('Falha ao importar'); }}; r.readAsText(f); };
+    },
+    unmount(){/* noop */}
   });
 
-  function draw(t){
-    ctx.clearRect(0,0,c.width,c.height);
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.translate(c.width/2, c.height/2);
-    const scale = Math.min(c.width, c.height)/2;
-    for(const n of nodes){
-      const ang = n.a + t*0.0002*n.s;
-      const rr = n.r * (0.65 + 0.15*Math.sin(t*0.001 + n.a));
-      const x = Math.cos(ang)*rr*scale;
-      const y = Math.sin(ang)*rr*scale*0.98;
-      const rad = (1.2 + n.z*1.8) * (c.width/800);
-      const g = ctx.createRadialGradient(x,y,0,x,y,rad*4);
-      g.addColorStop(0, `hsla(${n.hue}, 85%, 70%, .85)`);
-      g.addColorStop(1, `hsla(${n.hue}, 85%, 50%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
-    }
-    ctx.restore();
-    requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-})();
+  // —— Logs ——
+  registerModule({ name:'sys_logs', title:'Logs', group:'Ferramentas',
+    ui(){ return `<div class="mod-section"><div class="row"><div id="logs" style="font-family:ui-monospace, Menlo, Consolas; font-size:12px; line-height:1.5; max-height:30svh; overflow:auto"></div><button class="btn" id="btnClearLogs">Limpar</button></div></div>`; },
+    mount(){ const b=document.getElementById('btnClearLogs'); if(b) b.onclick=()=>Brain.Logs.clear(); }, unmount(){}
+  });
 
-/* ==========================================================================
-   UI / ATIVAÇÃO / MÓDULOS INTERNOS
-   ========================================================================== */
-(function(){
+  // —— Ping simples ——
+  registerModule({ name:'net_ping', title:'Rede & Ping', group:'Ferramentas',
+    ui(){ return `
+      <div class="mod-section">
+        <div class="row"><label>Endpoint</label><input id="pingUrl" value="https://dns.google/resolve?name=google.com"/></div>
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="btnPing">Ping</button><span class="pill">último: <b id="pingVal">–</b> ms</span><span class="pill">mín: <b id="pingMin">–</b></span><span class="pill">máx: <b id="pingMax">–</b></span></div>
+      </div>`; },
+    mount(){ let min=Infinity, max=0; const val=(n)=>{document.getElementById('pingVal').textContent=n;};
+      const set=()=>{document.getElementById('pingMin').textContent=min===Infinity?'–':min; document.getElementById('pingMax').textContent=max||'–'};
+      const go=async()=>{ const url=document.getElementById('pingUrl').value; const t=performance.now(); try{ await fetch(url,{cache:'no-store'}) }catch{} const d=Math.round(performance.now()-t); min=Math.min(min,d); max=Math.max(max,d); val(d); set(); Brain.Logs.add('Ping '+d+'ms'); };
+      const b=document.getElementById('btnPing'); if(b) b.onclick=go; },
+    unmount(){/* noop */}
+  });
+
+  // —— Chaves SK (CRUD + ativa) ——
+  registerModule({ name:'sec_keys', title:'Chaves SK', group:'Chaves',
+    ui(){ return `
+      <div class="mod-section">
+        <div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="inKeyLabel" placeholder="apelido" style="flex:1"/>
+          <input id="inKeyValue" placeholder="sk-..." style="flex:2"/>
+          <button class="btn" id="btnAddKey">Adicionar</button>
+        </div>
+        <div id="keysList"></div>
+      </div>`; },
+    mount(){ const add=()=>{ const k=Brain.loadJSON(Brain.LS.KEYS,{}); const label=document.getElementById('inKeyLabel').value.trim()||('key-'+Date.now()); const val=document.getElementById('inKeyValue').value.trim(); if(!val){alert('Informe a chave'); return;} k[label]=val; Brain.saveJSON(Brain.LS.KEYS,k); render(); };
+      const render=()=>{ const box=document.getElementById('keysList'); const k=Brain.loadJSON(Brain.LS.KEYS,{}); box.innerHTML=''; Object.keys(k).forEach(label=>{ const row=document.createElement('div'); row.className='pill'; row.style.display='flex'; row.style.justifyContent='space-between'; row.style.gap='8px'; row.style.alignItems='center'; row.innerHTML=`<span class="mono" style="font-family:ui-monospace">${label}</span><div style="display:flex;gap:6px"><button class="btn ghost" data-copy="${label}">Copiar</button><button class="btn ghost" data-del="${label}">Remover</button></div>`; box.appendChild(row); }); box.onclick=(e)=>{ const btn=e.target.closest('button'); if(!btn) return; const label=btn.getAttribute('data-copy')||btn.getAttribute('data-del'); if(btn.hasAttribute('data-copy')){ navigator.clipboard.writeText(k[label]||''); alert('Copiado'); } else { delete k[label]; Brain.saveJSON(Brain.LS.KEYS,k); render(); } }; };
+      const b=document.getElementById('btnAddKey'); if(b) b.onclick=add; render(); },
+    unmount(){/* noop */}
+  });
+
+  // —— HTML Viewer (upload/preview) ——
+  registerModule({ name:'dev_html', title:'HTML Viewer', group:'Ferramentas',
+    ui(){ return `
+      <div class="mod-section">
+        <div class="row" id="htmlDrop" style="text-align:center">
+          <div style="font-weight:800; margin-bottom:6px">Solte um arquivo <span class="kbd">.html</span> ou clique para escolher</div>
+          <div class="mut">Dica: <span class="kbd">Arraste & Solte</span> / <span class="kbd">Ctrl+O</span> / <span class="kbd">⌘+O</span></div>
+          <input id="inpHtmlFile" type="file" accept=".html,text/html" class="hide" />
+        </div>
+        <iframe id="htmlFrame" title="Documento HTML" sandbox="allow-same-origin allow-forms allow-scripts" style="width:100%; height:52dvh; border:var(--line); border-radius:12px; background:#000"></iframe>
+      </div>`; },
+    mount(){ const drop=document.getElementById('htmlDrop'); const inp=document.getElementById('inpHtmlFile'); const frame=document.getElementById('htmlFrame');
+      const open=(file)=>{ const r=new FileReader(); r.onload=()=>{ localStorage.setItem(Brain.LS.LAST_HTML,r.result); frame.srcdoc=r.result; Brain.Logs.add('HTML carregado'); }; r.readAsText(file); };
+      drop.onclick=()=>inp.click(); inp.onchange=(e)=>{ const f=e.target.files&&e.target.files[0]; if(f) open(f); };
+      drop.ondragover=(e)=>{ e.preventDefault(); drop.style.outline='2px dashed rgba(255,255,255,.4)'; };
+      drop.ondragleave=()=>{ drop.style.outline='none'; };
+      drop.ondrop=(e)=>{ e.preventDefault(); drop.style.outline='none'; const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) open(f); };
+      const saved=localStorage.getItem(Brain.LS.LAST_HTML); if(saved) frame.srcdoc=saved; },
+    unmount(){/* noop */}
+  });
+
+  // —— Player (placeholder) ——
+  registerModule({ name:'player', title:'Playlist', group:'Mídia', ui(){ return `<div class="mod-section"><div class="row"><p class="mut">Suba suas faixas (futuro).</p></div></div>`; }, mount(){}, unmount(){} });
+
+  // —— Sigilo (placeholder leve) ——
+  registerModule({ name:'sigil', title:'Símbolos & Sigilos', group:'Símbolos', ui(){ return `<div class="mod-section"><div class="row"><p class="mut">Gerador SVG (futuro). Por ora, use seu avatar.</p></div></div>`; }, mount(){}, unmount(){} });
+
+  /* ================== UI FLOW / ROUTER ==================== */
   const orbWrap = document.getElementById('orbWrap');
-  const orbGlow = document.getElementById('orbGlow');
-  const call = document.getElementById('call');
-  const options = document.getElementById('options');
-  const backdrop = document.getElementById('backdrop');
-  const card = document.getElementById('card');
-  const cardTitle = document.getElementById('cardTitle');
-  const cardContent = document.getElementById('cardContent');
+  const hud     = document.getElementById('hudOptions');
+  const call    = document.getElementById('call');
+  const card    = document.getElementById('card');
+  const cardC   = document.getElementById('cardContent');
+  const cardT   = document.getElementById('cardTitle');
+  const backdrop= document.getElementById('backdrop');
+  const sceneInd= document.getElementById('sceneIndicator');
+  const sceneLab= document.getElementById('sceneLabel');
 
-  let activated = false;
+  function openModule(name){ const def=Brain.registry[name]; if(!def){ alert('módulo não encontrado: '+name); return; } cardC.innerHTML = def.ui? def.ui() : '<div class="mod-section"><p>Sem UI</p></div>'; card.classList.add('active'); backdrop.classList.add('active'); cardT.textContent = def.title||name; Brain.mount(name); }
+  function closeCard(){ card.classList.remove('active'); backdrop.classList.remove('active'); }
 
-  function showOptions(){
-    options.classList.add('active');
-    orbGlow.style.opacity = 1;
-  }
+  // Primeira ativação → mostra HUD + abre Estojo
+  orbWrap.addEventListener('click', ()=>{
+    hud.classList.add('active'); if (call) call.textContent = 'Ativado · HUD + Estojo'; sceneLab.textContent='Espaço Ativo'; sceneInd.classList.add('show');
+    // Marca onboarding
+    localStorage.setItem(Brain.LS.ONBOARD_OK,'1');
+    // Abre Estojo suavemente na primeira vez
+    setTimeout(()=>document.getElementById('panelConfigCenter').setAttribute('data-open','true'), 200);
+  }, { once:true });
 
-  function activate(){
-    if (activated) return;
-    activated = true;
-    call.textContent = "Ativado · escolha um módulo";
-    if (window.__orbGL__) window.__orbGL__.pulse();
-    showOptions();
-  }
+  // Abrir via HUD
+  document.addEventListener('click', (ev)=>{
+    const t = ev.target.closest && ev.target.closest('.opt[data-open]'); if(!t) return; const id=t.getAttribute('data-open');
+    const map={ fenda:'dev_html', sigilo:'sigil', chaves:'sec_keys', player:'player' };
+    openModule(map[id]||id);
+  }, true);
 
-  orbWrap.addEventListener('click', activate, { once: true });
-
-  // abrir módulo
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.opt');
-    if (!btn) return;
-    const mod = btn.getAttribute('data-open');
-    openModule(mod);
+  // Minimizar/fechar card
+  card.addEventListener('click', (e)=>{
+    if(e.target.matches('[data-close]')) closeCard();
+    if(e.target.matches('[data-min]')) card.classList.toggle('min');
   });
+  backdrop.addEventListener('click', ()=>closeCard());
 
-  // fechar
-  document.querySelector('[data-close]').addEventListener('click', closeModule);
-  backdrop.addEventListener('click', closeModule);
-  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModule(); });
-
-  function openModule(name){
-    const mods = {
-      fenda: renderFenda,
-      sigilo: renderSigilo,
-      chaves: renderChaves,
-      playlist: renderPlaylist
-    };
-    const fn = mods[name];
-    if (!fn) return;
-    cardTitle.textContent = name.charAt(0).toUpperCase()+name.slice(1);
-    cardContent.innerHTML = "";
-    fn(cardContent);
-    backdrop.classList.add('active');
-    card.classList.add('active');
-  }
-  function closeModule(){
-    card.classList.remove('active');
-    backdrop.classList.remove('active');
+  // Estojo / Loja de módulos
+  function renderEstojo(){
+    const grid=document.getElementById('cards'); if(!grid) return; grid.innerHTML=''; const groups=['Ferramentas','Mídia','Chaves','Símbolos','Layouts'];
+    const defs=Object.values(Brain.registry);
+    groups.forEach(g=>{
+      defs.filter(d=>d.group===g).forEach((d,i)=>{
+        const el=document.createElement('div'); el.className='cardx'; el.innerHTML=`<h3>${d.title||d.name}</h3><p class="mut">Grupo: ${d.group}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-open="${d.name}">Abrir</button><button class="btn ghost" data-toggle="${d.name}">Ativar/Desativar</button></div>`; grid.appendChild(el);
+      });
+    });
+    grid.onclick=(e)=>{ const btn=e.target.closest('button'); if(!btn) return; const open=btn.getAttribute('data-open'); const tog=btn.getAttribute('data-toggle'); if(open){ openModule(open); } if(tog){ const cur=!!Brain.config.modules[tog]; Brain.setModuleFlag(tog,!cur); alert(`${tog}: ${!cur?'ativo':'inativo'}`); } };
   }
 
-  /* =================== CONTEÚDOS INTERNOS =================== */
-  function renderFenda(root){
-    root.appendChild(el('div', {class:'mod-section'},
-      el('div', {class:'pill'}, icon('cube'), txt(' Fenda Nebula — abertura de espaços simbólicos')),
-      el('div', {class:'row'},
-        el('label', null, txt('Ritual de abertura')),
-        el('textarea', {rows:4, placeholder:'Descreva a intenção da Fenda…'})
-      ),
-      el('div', {class:'row'},
-        el('button', {class:'btn', onclick:()=>{
-          if (window.__orbGL__) window.__orbGL__.pulse();
-        }}, icon('spark'), txt(' Pulsar Orbe'))
-      )
-    ));
-  }
+  document.getElementById('closeConfig').onclick=()=>document.getElementById('panelConfigCenter').setAttribute('data-open','false');
 
-  function renderSigilo(root){
-    const sig = `
-╭────────────────────────────╮
-│  ᚠ  ᚢ  ᚦ  ᚨ  ᚱ  ᚲ         │
-│        ✶  Sigilo  ✶        │
-│  ᚷ  ᚹ  ᚺ  ᚾ  ᛁ  ᛃ         │
-╰────────────────────────────╯`;
-    root.appendChild(el('div', {class:'mod-section'},
-      el('div', {class:'pill'}, icon('sigil'), txt(' Sigilo — inscrição de intenção')),
-      el('pre', {style:'margin:0;font-size:12px;line-height:1.25;'}, txt(sig)),
-      el('div', {class:'row'},
-        el('label', null, txt('Mantra / Verbo-chave')),
-        el('input', {placeholder:'Escreva seu verbo de ativação…'})
-      )
-    ));
-  }
+  // Reset cena (limpa onboarding e HUD)
+  document.getElementById('sceneReset').onclick=()=>{
+    localStorage.removeItem(Brain.LS.ONBOARD_OK); hud.classList.remove('active'); document.getElementById('panelConfigCenter').setAttribute('data-open','false'); call.textContent='Toque o orbe para ativar · Sempre único, sempre seu.'; sceneInd.classList.remove('show');
+  };
 
-  function renderChaves(root){
-    const keyInp = el('input', {type:'password', placeholder:'Cole aqui sua SK (localStorage)'});
-    const status = el('div', {class:'pill'}, icon('lock'), txt(' Local • seguro'));
-    const save = el('button', {class:'btn', onclick:()=>{
-      try{
-        localStorage.setItem('dual.sk', keyInp.value || '');
-        status.innerHTML = ''; status.appendChild(icon('check')); status.appendChild(txt(' Salvo'));
-        setTimeout(()=>{ status.innerHTML=''; status.appendChild(icon('lock')); status.appendChild(txt(' Local • seguro')); }, 1400);
-      }catch(e){ alert('Erro ao salvar no localStorage'); }
-    }}, icon('save'), txt(' Salvar'));
-    const clear = el('button', {class:'btn', style:'margin-left:8px;', onclick:()=>{
-      localStorage.removeItem('dual.sk');
-      keyInp.value='';
-    }}, icon('trash'), txt(' Limpar'));
+  // Boot
+  (function boot(){ Brain.ensureConfig(); renderEstojo(); })();
 
-    root.appendChild(el('div', {class:'mod-section'},
-      el('div', {class:'pill'}, icon('keys'), txt(' Chaves SK — armazenamento local')),
-      el('div', {class:'row'}, el('label', null, txt('Chave secreta')), keyInp),
-      el('div', {class:'row'}, status, save, clear)
-    ));
-  }
-
-  function renderPlaylist(root){
-    const info = el('div', {class:'pill'}, icon('music'), txt(' Playlist Nebula — slots de áudio locais'));
-    const list = el('div', {class:'row'});
-    // slots simples sem áudio externo (nome + descrição)
-    for(let i=1;i<=6;i++){
-      list.appendChild(el('div', {class:'mod-section'},
-        el('div', {class:'row'},
-          el('label', null, txt('Faixa '+i)),
-          el('input', {placeholder:'Nome da faixa '+i})
-        ),
-        el('div', {class:'row'},
-          el('textarea', {rows:2, placeholder:'Descrição / intenção sonora…'})
-        )
-      ));
-    }
-    root.appendChild(el('div', {class:'mod-section'}, info, list));
-  }
-
-  /* =================== HELPERS =================== */
-  function el(tag, attrs, ...children){
-    const n = document.createElement(tag);
-    if (attrs) for (const k in attrs){
-      if (k==='style') n.setAttribute('style', attrs[k]);
-      else if (k==='class') n.className = attrs[k];
-      else if (k.startsWith('on')) n[k] = attrs[k];
-      else n.setAttribute(k, attrs[k]);
-    }
-    children.forEach(c=> n.appendChild(typeof c==='string'? document.createTextNode(c): c));
-    return n;
-  }
-  function txt(t){ return document.createTextNode(t); }
-  function icon(name){
-    const ns='http://www.w3.org/2000/svg';
-    const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox','0 0 24 24');
-    const P=(d)=>{ const p=document.createElementNS(ns,'path'); p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke','currentColor'); p.setAttribute('stroke-linecap','round'); p.setAttribute('stroke-linejoin','round'); p.setAttribute('stroke-width','2'); return p; };
-    if(name==='cube'){ svg.append(P('M12 2l8 4-8 4-8-4 8-4Z')); svg.append(P('M4 6v8l8 4 8-4V6')); svg.append(P('M12 10v8')); }
-    if(name==='sigil'){ svg.append(P('M12 3v18')); svg.append(P('M5 9h14')); svg.append(P('M7 15h10')); svg.append(P('M6 6l3 3-3 3')); svg.append(P('M18 6l-3 3 3 3')); }
-    if(name==='spark'){ svg.append(P('M12 2l1.8 4.5L18 8l-4.2 1.4L12 14l-1.8-4.6L6 8l4.2-1.5L12 2z')); }
-    if(name==='lock'){ svg.append(P('M7 11V8a5 5 0 0 1 10 0v3')); svg.append(P('M6 11h12v9H6z')); }
-    if(name==='check'){ svg.append(P('M4 12l5 5L20 6')); }
-    if(name==='save'){ svg.append(P('M5 4h14v16H5z')); svg.append(P('M8 4v5h8V4')); }
-    if(name==='trash'){ svg.append(P('M4 7h16')); svg.append(P('M6 7l1 13h10l1-13')); svg.append(P('M9 7V4h6v3')); }
-    if(name==='keys'){ svg.append(P('M7 5a3 3 0 1 1 0 6a3 3 0 0 1 0-6z')); svg.append(P('M9 9l8 8')); svg.append(P('M14 14l3 3l2-2l-3-3')); }
-    if(name==='music'){ svg.append(P('M9 18a3 3 0 1 0 0-6 3 3 0 0 0 0 6z')); svg.append(P('M12 6v8')); svg.append(P('M12 6l7-2v8')); }
-    return svg;
-  }
-
-  // tornar os ícones acessíveis somente após ativação inicial
-  setTimeout(()=>{
-    // se usuário tentar apertar antes, nada acontece; após clique no orbe, options ganha .active
-    document.getElementById('options').classList.remove('active');
-  }, 0);
-})();
-</script>
+  </script>
 </body>
 </html>
