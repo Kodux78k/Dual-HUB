@@ -913,65 +913,6 @@ body::after{content:'';position:fixed;inset:0;background:none !important;pointer
     body.session-full .tabs-wrap,
     body.session-full .fab { display: none !important; }
 
-
-
-/* === ORB + Particles (escopado dentro do círculo de arquétipos) === */
-.arch-circle .orb-wrap{
-  pointer-events:auto;
-  position:absolute;
-  inset: 6%;
-  width: 88%;
-  height: 88%;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  filter: drop-shadow(0 24px 48px rgba(0,0,0,.45));
-  z-index: 5; /* acima do iframe, abaixo de overlays de UI */
-}
-.arch-circle canvas#orb, .arch-circle canvas#particles{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  display:block;
-  pointer-events:none; /* não bloquear cliques do hub */
-}
-.arch-circle .orb-glow{
-  position:absolute;
-  inset:-8%;
-  border-radius:50%;
-  pointer-events:none;
-  background:radial-gradient(60% 60% at 50% 50%, rgba(122,60,255,.18), rgba(0,229,255,.14) 45%, rgba(0,0,0,0) 70%);
-  filter:blur(16px);
-  opacity:.92;
-  transition:opacity .6s ease, transform .6s ease;
-}
-.arch-circle .orb-wrap.activated .orb-glow{ transform:scale(1.05); }
-.arch-circle .ring{
-  position:absolute;
-  inset:-8%;
-  border-radius:50%;
-  pointer-events:none;
-  background: radial-gradient(80% 80% at 50% 50%, rgba(255,255,255,.10), rgba(255,255,255,0) 42%);
-}
-.arch-circle .call{
-  position:absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(234,242,255,.78);
-  font-size: 11px;
-  letter-spacing: .3px;
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: .85;
-  text-shadow: 0 1px 0 rgba(0,0,0,.5);
-}
-@media (min-width:768px){
-  .arch-circle .call{ font-size:12px; }
-}
 </style>
 <style id="blue1Theme">
 /* === Blue‑1 Theme (UI) === */
@@ -1304,52 +1245,6 @@ body::after{
 html[data-overlay="off"] body::after{ background: transparent !important; }
 html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
 </style>
-
-<style>
-/* --- Edge Toggles (botões fantasmas na borda) --- */
-.edge-toggle {
-  position: fixed;
-  left: max(6px, env(safe-area-inset-left));
-  width: 14px; height: 56px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.04);
-  box-shadow: 0 6px 24px rgba(0,0,0,.35), inset 0 0 20px rgba(255,255,255,.05);
-  opacity: .18; transition: opacity .2s ease, transform .12s ease;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  z-index: 120; /* acima do orb e do panel */
-  display: grid; place-items: center;
-  -webkit-tap-highlight-color: rgba(255,255,255,.1);
-}
-.edge-toggle:active { transform: scale(.98); }
-.edge-toggle:hover { opacity: .35; }
-
-/* posições verticais */
-#etNav   { top: 55vh; transform: translateY(-50%); }
-#etHead  { top: 78vh; transform: translateY(-50%); }
-
-/* ícone minimal (barra dupla / barra única) */
-.edge-toggle i {
-  display:block; width: 2px; height: 32px; position:relative;
-  background: linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,.08));
-  border-radius: 2px;
-}
-.edge-toggle i::after{
-  content:""; position:absolute; left:6px; top:0; width:2px; height:32px;
-  background: linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,.08));
-  border-radius:2px;
-}
-
-/* estados “escondidos” aplicados no BODY */
-body.hide-nav .options,
-body.hide-nav .btn-ctrl { display: none !important; }
-
-body.hide-header .hud-bar { display: none !important; }
-
-/* quando header some, compensa o topo no container principal */
-body.hide-header .container { padding-top: max(8px, env(safe-area-inset-top)); }
-</style>
-
 </head>
 <body>
   <!-- Splash screen displayed on initial load -->
@@ -1433,15 +1328,6 @@ body.hide-header .container { padding-top: max(8px, env(safe-area-inset-top)); }
             <div id="arch-fadeCover"></div>
             <!-- Camada de ripple auditivo fica sobre o conteúdo do círculo -->
             <div id="audioRipple" class="audio-ripple"></div>
-            <!-- ORB Nebula (WebGL + Partículas) — integrado no HUB -->
-            <div class="orb-wrap" id="orbWrap" aria-label="Orbe Nebula">
-              <canvas id="orb"></canvas>
-              <div class="orb-glow" id="orbGlow"></div>
-              <canvas id="particles"></canvas>
-              <div class="ring"></div>
-              <div class="call" id="orbCall">Toque para pulsar · Nebula</div>
-            </div>
-
             <iframe id="arch-frame" title="Archetype Core" sandbox="allow-scripts" referrerpolicy="no-referrer" src="./archetypes/atlas.html"></iframe>
           </div>
           <!-- Mensagem de feedback aparece fora da bolinha, logo abaixo dela -->
@@ -5133,645 +5019,89 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<script>
-/* ==========================================================================
-   ORB WebGL (shader nebula) + Partículas 2D — escopo HUB
-   ========================================================================== */
-(function(){
-  const canvas = document.getElementById('orb');
-  if(!canvas) return;
-  const gl = canvas.getContext('webgl', { antialias:true, alpha:true });
-  if(!gl) return;
-
-  const dpr = Math.min(2, window.devicePixelRatio||1);
-  function resize(){
-    const r = canvas.getBoundingClientRect();
-    canvas.width = Math.floor(r.width*dpr);
-    canvas.height = Math.floor(r.height*dpr);
-    gl.viewport(0,0,canvas.width,canvas.height);
-  }
-  new ResizeObserver(resize).observe(canvas); resize();
-
-  const vs = 'attribute vec2 aPos; varying vec2 vUv; void main(){ vUv=aPos*0.5+0.5; gl_Position=vec4(aPos,0.,1.);}';
-  const fs = `precision highp float; varying vec2 vUv; uniform vec2 u_res; uniform float u_time; uniform float u_active;
-  float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
-  float noise(vec2 p){ vec2 i=floor(p); vec2 f=fract(p); float a=hash(i);
-    float b=hash(i+vec2(1.,0.)); float c=hash(i+vec2(0.,1.)); float d=hash(i+vec2(1.,1.));
-    vec2 u=f*f*(3.-2.*f); return mix(a,b,u.x)+(c-a)*u.y*(1.-u.x)+(d-b)*u.x*u.y; }
-  vec3 cam(){ return vec3(0.,0.,3.); }
-  vec3 getRay(vec2 uv){ uv=(uv*2.-1.); uv.x*=u_res.x/u_res.y; return normalize(vec3(uv,-1.8)); }
-  bool isph(vec3 ro, vec3 rd, float r, out float t){
-    float b=dot(ro,rd); float c=dot(ro,ro)-r*r; float h=b*b-c; if(h<0.){t=-1.;return false;}
-    h=sqrt(h); t=-b-h; if(t<0.) t=-b+h; if(t<0.) return false; return true; }
-  void main(){
-    vec2 uv=vUv; vec3 ro=cam(); vec3 rd=getRay(uv);
-    float t; vec3 col=vec3(0.02,0.03,0.07); vec3 fogCol=vec3(0.07,0.09,0.16);
-    float g=noise(uv*6.+u_time*0.05)*0.25; col+=vec3(0.25,0.08,0.55)*g*0.6+vec3(0.0,0.35,0.55)*g*0.4;
-    if(isph(ro,rd,1.,t)){
-      vec3 p=ro+rd*t; vec3 n=normalize(p);
-      float bands=0.5+0.5*sin(6.*p.x+5.*p.y+u_time*0.6);
-      float swirl=noise(p.xy*4.+u_time*0.2);
-      vec3 A=vec3(0.52,0.24,1.00), B=vec3(0.00,0.90,1.00);
-      vec3 base=mix(A,B, clamp(bands*0.6+swirl*0.4,0.,1.));
-      vec3 L=normalize(vec3(0.6,0.7,0.5));
-      float diff=max(dot(n,L),0.); float rim=pow(1.-max(dot(n,-rd),0.), 2.);
-      float pulse=0.5+0.5*sin(u_time*1.5); float act=mix(0.6,1.0,u_active);
-      vec3 c=base*(0.35+0.75*diff*act)+(B*0.6+A*0.4)*rim*(0.6+0.4*pulse);
-      float fogAmt=1.0-exp(-t*0.35); col=mix(c,fogCol,fogAmt*0.25);
-    }else{
-      vec2 centered=uv-0.5; centered.x*=u_res.x/u_res.y;
-      float d=length(centered); float outer=smoothstep(0.58,0.12,d);
-      vec3 halo=vec3(0.25,0.12,0.55)*outer*0.35+vec3(0.00,0.55,0.95)*outer*0.25;
-      col+=halo;
-    }
-    float vign=smoothstep(1.2,0.55, length((uv-0.5)*vec2(u_res.x/u_res.y,1.)));
-    col*=vign; gl_FragColor=vec4(col,0.98);
-  }`;
-  function sh(type,src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
-  const pr=gl.createProgram(); gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs)); gl.linkProgram(pr); gl.useProgram(pr);
-  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1, 1,-1,1,1,-1,1]),gl.STATIC_DRAW);
-  const loc=gl.getAttribLocation(pr,'aPos'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  const uRes=gl.getUniformLocation(pr,'u_res'); const uTime=gl.getUniformLocation(pr,'u_time'); const uActive=gl.getUniformLocation(pr,'u_active');
-  let start=performance.now(), active=0.0;
-  function draw(){ const t=(performance.now()-start)*0.001; gl.uniform2f(uRes,canvas.width,canvas.height); gl.uniform1f(uTime,t); gl.uniform1f(uActive,active); gl.drawArrays(gl.TRIANGLES,0,6); requestAnimationFrame(draw) }
-  draw();
-  window.__orbGL__ = {
-    setActive:(v)=>{ active=v?1.0:0.0; },
-    pulse:()=>{ let k=0,steps=24; const id=setInterval(()=>{ active=Math.min(1,active+0.06); if(++k>=steps) clearInterval(id);},16);
-                setTimeout(()=>{ let j=0; const id2=setInterval(()=>{ active=Math.max(0,active-0.06); if(++j>=steps) clearInterval(id2);},16);},380); }
-  };
-})();
-
-(function particles2D(){
-  const c=document.getElementById('particles'); if(!c) return;
-  const ctx=c.getContext('2d'); const dpr=Math.min(2,window.devicePixelRatio||1);
-  function rs(){ const r=c.getBoundingClientRect(); c.width=Math.floor(r.width*dpr); c.height=Math.floor(r.height*dpr); }
-  new ResizeObserver(rs).observe(c); rs();
-  const N=90, nodes=Array.from({length:N},()=>({a:Math.random()*6.283, r:0.42+Math.random()*0.48, s:(0.2+Math.random()*0.7)*(Math.random()<0.5?-1:1), z:0.5+Math.random()*0.5, hue:200+Math.random()*160}));
-  function draw(t){ ctx.clearRect(0,0,c.width,c.height); ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.translate(c.width/2,c.height/2); const scale=Math.min(c.width,c.height)/2;
-    for(const n of nodes){
-      const a=n.a + t*0.00025*n.s, r=n.r + 0.03*Math.sin(t*0.0005+n.a);
-      const x=Math.cos(a)*r*scale, y=Math.sin(a)*r*scale;
-      const g=ctx.createRadialGradient(x,y,0, x,y, 6 + n.z*8);
-      g.addColorStop(0, `hsla(${n.hue}, 85%, 65%, ${0.38*n.z})`);
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y, 2.5 + n.z*3.0, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.restore(); requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-})();
-
-// Pulsar no clique direto no wrap
-document.getElementById('orbWrap')?.addEventListener('click', function(){ try{ window.__orbGL__ && window.__orbGL__.pulse(); }catch(_){ } });
-</script>
-
-
-<script>
-/* ================================================================
-   Dual · Particles "Cell" Renderer with Archetype Colors (Blue-1 safe)
-   - Replaces the existing #particles canvas with a new instance.
-   - Colors follow the current archetype (persisted in localStorage).
-   - Public API: window.setArchetype(name)
-   ================================================================ */
-(function(){
-  const ARCH_KEY = 'dual.archetype';           // localStorage key
-  const DEFAULT_ARCH = 'Nova';                 // default if none stored
-  // Hue palettes (center hue and spread) — tweak to your taste
-  const ARCH_PALETTES = {
-    'Nova':   { hue: 200, spread: 24 }, // ciano celeste
-    'Elysha': { hue: 280, spread: 26 }, // violeta-nebula
-    'Kaion':  { hue: 160, spread: 20 }, // verde-tec
-    'Atlas':  { hue: 30,  spread: 16 }, // âmbar/solar
-    'Serena': { hue: 320, spread: 22 }, // magenta quente
-    'Artemis':{ hue: 210, spread: 18 }, // azul profundo
-    'Pulse':  { hue: 195, spread: 30 }, // aqua vivo
-    'Rhea':   { hue: 45,  spread: 18 }, // ouro suave
-    'Solus':  { hue: 12,  spread: 18 }, // coral
-    'Aion':   { hue: 260, spread: 20 }, // roxo frio
-    'Genus':  { hue: 140, spread: 18 }, // verde bio
-    'Lumine': { hue: 220, spread: 20 }  // azul-luz
-  };
-
-  // Read current archetype from localStorage
-  function getArch(){
-    try { return localStorage.getItem(ARCH_KEY) || DEFAULT_ARCH; }
-    catch(_) { return DEFAULT_ARCH; }
-  }
-  function setArch(name){
-    const key = (name||'').trim();
-    if (!ARCH_PALETTES[key]) return;
-    try { localStorage.setItem(ARCH_KEY, key); } catch(_){}
-    // recolor immediately
-    CURRENT.arch = key;
-    recolor();
-  }
-  window.setArchetype = setArch;
-  window.getArchetype = getArch;
-
-  // Obtain / replace particles canvas safely
-  const oldCanvas = document.getElementById('particles');
-  if (!oldCanvas) return;
-  const parent = oldCanvas.parentNode;
-  const clone = oldCanvas.cloneNode(true);
-  oldCanvas.replaceWith(clone);
-
-  const c = clone;
-  const ctx = c.getContext('2d', { alpha:true });
-  const dpr = Math.min(2, (window.devicePixelRatio||1));
-  let RAF = 0;
-
-  function resize(){
-    const r = c.getBoundingClientRect();
-    c.width  = Math.floor(r.width * dpr);
-    c.height = Math.floor(r.height * dpr);
-  }
-  new ResizeObserver(()=>{ resize(); }).observe(c); resize();
-
-  // "Cell": concentric membrane, cytoplasm glow, drifting organelles
-  const CURRENT = {
-    arch: getArch(),
-    t0: performance.now(),
-    nodes: [],
-    nucleus: { wobbleA: Math.random()*6.28, wobbleB: Math.random()*6.28 }
-  };
-
-  const N = 96; // particles (organelles)
-  function palette(){
-    const p = ARCH_PALETTES[CURRENT.arch] || ARCH_PALETTES[DEFAULT_ARCH];
-    return p;
-  }
-  function rand(min, max){ return min + Math.random()*(max-min); }
-
-  function seed(){
-    CURRENT.nodes = Array.from({length:N}, ()=>{
-      const a  = Math.random()*Math.PI*2;
-      const rr = 0.30 + Math.random()*0.58; // keep inner space for nucleus
-      const s  = (0.15 + Math.random()*0.65) * (Math.random()<0.5?-1:1);
-      const z  = 0.45 + Math.random()*0.55;
-      return { a, r: rr, s, z, hueOffset: rand(-1,1), drift: rand(0.8,1.6) };
-    });
-  }
-  seed();
-
-  function recolor(){
-    // noop: colors are computed per-frame from CURRENT.arch
-  }
-
-  function draw(now){
-    const t = now || performance.now();
-    const dt = t - CURRENT.t0;
-
-    ctx.clearRect(0,0,c.width,c.height);
-    ctx.save();
-    ctx.translate(c.width/2, c.height/2);
-    ctx.globalCompositeOperation = 'lighter';
-
-    const scl = Math.min(c.width, c.height)/2;
-
-    // Cell membrane (rim)
-    (()=>{
-      const grd = ctx.createRadialGradient(0,0, scl*0.15, 0,0, scl*0.98);
-      const P = palette();
-      const h = P.hue;
-      grd.addColorStop(0.00, `hsla(${h}, 90%, 65%, .06)`);
-      grd.addColorStop(0.55, `hsla(${h}, 90%, 55%, .10)`);
-      grd.addColorStop(0.87, `hsla(${h}, 90%, 60%, .16)`);
-      grd.addColorStop(1.00, `hsla(${h}, 90%, 65%, 0)`);
-      ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(0,0, scl*0.98, 0, Math.PI*2); ctx.fill();
-    })();
-
-    // Cytoplasm faint noise swirl
-    (()=>{
-      const swirl = Math.sin(t*0.0013)*0.04;
-      ctx.rotate(swirl);
-      ctx.globalAlpha = 0.08;
-      const P = palette();
-      const h = P.hue + 12;
-      for (let i=0;i<6;i++){
-        const r = scl*(0.25 + i*0.12);
-        ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-        ctx.strokeStyle = `hsla(${h},70%,60%,${0.08 - i*0.01})`;
-        ctx.lineWidth = 2 * (c.width/800);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      ctx.rotate(-swirl);
-    })();
-
-    // Nucleus (soft pulsing)
-    (()=>{
-      const P = palette();
-      const h = P.hue - 10;
-      const wob = Math.sin(t*0.0016 + CURRENT.nucleus.wobbleA)*0.02 + Math.sin(t*0.0011 + CURRENT.nucleus.wobbleB)*0.015;
-      const r  = scl*(0.18 + wob);
-      const g  = ctx.createRadialGradient(0,0, 0, 0,0, r*1.55);
-      g.addColorStop(0.00, `hsla(${h}, 95%, 75%, .55)`);
-      g.addColorStop(0.45, `hsla(${h}, 90%, 60%, .18)`);
-      g.addColorStop(1.00, `hsla(${h}, 85%, 55%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
-    })();
-
-    // Organelles (drifting particles)
-    const P = palette();
-    for(const n of CURRENT.nodes){
-      const ang = n.a + t*0.00025*n.s;
-      const rr  = n.r * (0.72 + 0.12*Math.sin(t*0.001 + n.a));
-      const x = Math.cos(ang)*rr*scl;
-      const y = Math.sin(ang)*rr*scl*0.98;
-      const rad = (1.0 + n.z*1.6) * (c.width/900);
-      const hue = P.hue + n.hueOffset * P.spread;
-
-      const g = ctx.createRadialGradient(x,y,0,x,y,rad*4.2);
-      g.addColorStop(0, `hsla(${hue}, 90%, 70%, .88)`);
-      g.addColorStop(1, `hsla(${hue}, 85%, 50%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
-    }
-
-    ctx.restore();
-    RAF = requestAnimationFrame(draw);
-  }
-
-  function boot(){
-    cancelAnimationFrame(RAF);
-    RAF = requestAnimationFrame(draw);
-  }
-
-  // If a global archetype selector exists elsewhere, hook it:
-  document.addEventListener('archetype:change', (ev)=>{
-    const name = ev && ev.detail && ev.detail.name;
-    if (name && ARCH_PALETTES[name]) setArch(name);
-  });
-
-  // expose lightweight API
-  window.DUAL_ARCH = {
-    set: setArch,
-    get: getArch,
-    palettes: ARCH_PALETTES
-  };
-
-  // Start with last used or default
-  recolor();
-  boot();
-})();
-</script>
-
-
-<!-- Edge toggles: navegação (nave) e header -->
-<button id="etNav"  class="edge-toggle" aria-label="Alternar navegação" title="Mostrar/ocultar navegação">
-  <i></i>
-</button>
-<button id="etHead" class="edge-toggle" aria-label="Alternar header" title="Mostrar/ocultar header">
-  <i></i>
-</button>
-
-
+<!-- DUALHUB-WALLET-PATCH START -->
 <script>
 (function(){
-  const KEY_NAV  = 'dual.ui.hideNav';
-  const KEY_HEAD = 'dual.ui.hideHeader';
-
-  const $ = (s)=> document.querySelector(s);
-  let etNav, etHead;
-
-  function vibrate(ms=12){ try{ navigator.vibrate && navigator.vibrate(ms); }catch(_){} }
-
-  function applyPersisted(){
+  if(window.__dualhub_wallet_patch_applied) return;
+  window.__dualhub_wallet_patch_applied = true;
+  const LS = {
+    get(k){ try{ return (localStorage.getItem(k)||'').trim(); }catch(e){ return ''; } },
+    set(k,v){ try{ localStorage.setItem(k,(v||'').toString().trim()); }catch(e){} }
+  };
+  const K = {
+    ACTIVE: 'dual.wallet.active',
+    OR_KEY: 'wallet.openrouter.key',
+    OR_MODEL: 'wallet.openrouter.model',
+    BRIDGE_KEY: 'dual.keys.openrouter',
+    BRIDGE_MODEL: 'dual.openrouter.model'
+  };
+  // migrate from legacy keys if empty
+  (function migrate(){
     try{
-      const hideNav  = localStorage.getItem(KEY_NAV)  === '1';
-      const hideHead = localStorage.getItem(KEY_HEAD) === '1';
-      document.body.classList.toggle('hide-nav', hideNav);
-      document.body.classList.toggle('hide-header', hideHead);
-    }catch(_){}
+      if(!LS.get(K.OR_KEY)){
+        const legacy = LS.get('dual.keys.openrouter') || LS.get('openrouter.key') || LS.get('wallet.openrouter.1') || LS.get('wallet.openrouter.2');
+        if(legacy) LS.set(K.OR_KEY, legacy);
+      }
+      if(!LS.get(K.OR_MODEL)){
+        const legacyM = LS.get('dual.openrouter.model') || LS.get('openrouter.model') || 'openrouter/auto';
+        LS.set(K.OR_MODEL, legacyM);
+      }
+      if(!LS.get(K.ACTIVE)) LS.set(K.ACTIVE,'openrouter');
+    }catch(e){}
+  })();
+  function applyBridgeFromWallet(){
+    const active = LS.get(K.ACTIVE);
+    if(active === 'openrouter'){
+      const key = LS.get(K.OR_KEY);
+      const mdl = LS.get(K.OR_MODEL) || 'openrouter/auto';
+      if(key) LS.set(K.BRIDGE_KEY, key);
+      LS.set(K.BRIDGE_MODEL, mdl);
+      appendLog('Bridge aplicada: ' + (key? 'chave presente' : 'sem chave') + ' • modelo=' + mdl);
+    }
+  }
+  // quick logger UI
+  function appendLog(s){
+    try{
+      let L = document.getElementById('dualhub_patch_log');
+      if(!L){
+        L = document.createElement('div');
+        L.id = 'dualhub_patch_log';
+        L.style.cssText = 'position:fixed;left:12px;bottom:12px;right:12px;z-index:999999;pointer-events:none;font:12px/1.2 system-ui;color:#cfe8ff';
+        document.body.appendChild(L);
+      }
+      const d = document.createElement('div');
+      d.style.cssText = 'background:rgba(3,6,12,0.6);border:1px solid rgba(255,255,255,0.03);padding:6px;border-radius:8px;margin-top:6px;pointer-events:auto';
+      d.textContent = (new Date()).toLocaleTimeString() + ' — ' + s;
+      L.appendChild(d);
+      // keep last 6
+      while(L.children.length>6) L.removeChild(L.firstChild);
+    }catch(e){}
   }
 
-  function toggleNav(){
-    document.body.classList.toggle('hide-nav');
-    const on = document.body.classList.contains('hide-nav');
-    try{ localStorage.setItem(KEY_NAV, on?'1':'0'); }catch(_){}
-    vibrate(8);
+  // Test function (GET /models)
+  const OR_API = "https://openrouter.ai/api/v1";
+  function validKey(sk){ return /^sk-or-v1-[A-Za-z0-9_-]{12,}$/.test(sk); }
+  async function testKey(){
+    const sk = LS.get(K.OR_KEY);
+    if(!sk){ appendLog('Sem chave wallet.openrouter.key'); alert('Sem chave na carteira. Cole e Salve.'); return; }
+    if(!validKey(sk)) appendLog('Formato de chave suspeito');
+    try{
+      appendLog('Testando chave /models...');
+      const r = await fetch(OR_API + '/models', { method:'GET', headers:{ 'Authorization':'Bearer '+sk, 'X-Title':'DualHub-Local' }});
+      const txt = await r.text();
+      if(!r.ok){ appendLog('API erro ' + r.status + ' — ' + txt.slice(0,160)); alert('Erro API: '+r.status); return; }
+      appendLog('Chave OK — modelos listados');
+      alert('Chave OK — modelos listados');
+    }catch(e){
+      appendLog('Falha rede/CORS: ' + (e.message||e));
+      alert('Falha rede/CORS: ' + (e.message||e));
+    }
   }
-
-  function toggleHeader(){
-    document.body.classList.toggle('hide-header');
-    const on = document.body.classList.contains('hide-header');
-    try{ localStorage.setItem(KEY_HEAD, on?'1':'0'); }catch(_){}
-    vibrate(8);
-  }
-
-  function boot(){
-    etNav  = $('#etNav');
-    etHead = $('#etHead');
-    if (etNav)  etNav.addEventListener('click', toggleNav,  {passive:true});
-    if (etHead) etHead.addEventListener('click', toggleHeader, {passive:true});
-    applyPersisted();
-    // atalhos desktop
-    document.addEventListener('keydown', (e)=>{
-      if (e.key === 'n' || e.key === 'N') toggleNav();
-      if (e.key === 'h' || e.key === 'H') toggleHeader();
-    });
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+  // Expose minimal helpers
+  window.__dualhub_wallet = { applyBridgeFromWallet, testKey };
+  // Auto-apply bridge on load
+  try{ applyBridgeFromWallet(); appendLog('Bridge inicial aplicada'); }catch(e){}
 })();
 </script>
-
-
-<script>
-/* =====================================================
-   Nexus Bind: UI flags ↔ S.state ↔ Firestore (persist)
-   - Adds S.state.ui.{hideNav, hideHeader}
-   - Mirrors to body classes
-   - Persists via saveState() when available
-   - Extends renderState + Manifesto
-   ===================================================== */
-(function(){
-  const KEY_NAV  = 'dual.ui.hideNav';
-  const KEY_HEAD = 'dual.ui.hideHeader';
-
-  // 1) Ensure S and ui bucket
-  window.S = window.S || { state:{}, config:{} };
-  const st = (S.state = S.state || {});
-  st.ui = st.ui || { hideNav:false, hideHeader:false };
-
-  // 2) Bootstrap from localStorage if not set
-  try {
-    if (localStorage.getItem(KEY_NAV)  !== null) st.ui.hideNav    = localStorage.getItem(KEY_NAV)  === '1';
-    if (localStorage.getItem(KEY_HEAD) !== null) st.ui.hideHeader = localStorage.getItem(KEY_HEAD) === '1';
-  } catch(_){}
-
-  // 3) Helpers
-  function applyBody(){
-    document.body.classList.toggle('hide-nav', !!S.state.ui.hideNav);
-    document.body.classList.toggle('hide-header', !!S.state.ui.hideHeader);
-  }
-  function persist(){
-    try {
-      localStorage.setItem(KEY_NAV,  S.state.ui.hideNav ? '1':'0');
-      localStorage.setItem(KEY_HEAD, S.state.ui.hideHeader ? '1':'0');
-    } catch(_){}
-    if (typeof window.saveState === 'function'){
-      try { saveState(S.state); } catch(_){}
-    }
-  }
-
-  // 4) Wire edge toggle buttons to S.state (overwrite handlers if exist)
-  function wireEdge(){
-    const etNav  = document.getElementById('etNav');
-    const etHead = document.getElementById('etHead');
-    if (etNav){
-      etNav.onclick = function(){
-        S.state.ui.hideNav = !S.state.ui.hideNav;
-        applyBody(); persist();
-        try{ navigator.vibrate && navigator.vibrate(8);}catch(_){}
-      };
-    }
-    if (etHead){
-      etHead.onclick = function(){
-        S.state.ui.hideHeader = !S.state.ui.hideHeader;
-        applyBody(); persist();
-        try{ navigator.vibrate && navigator.vibrate(8);}catch(_){}
-      };
-    }
-  }
-
-  // 5) Patch renderState to always apply UI flags
-  const prevRender = window.renderState;
-  window.renderState = function patchedRenderState(){
-    if (typeof prevRender === 'function') prevRender.apply(this, arguments);
-    // ensure UI classes
-    applyBody();
-    // also keep Manifesto fresh if open
-    if (S.state.manifestoOpen && typeof window.renderManifestoContent === 'function'){
-      try{ renderManifestoContent(); }catch(_){}
-    }
-  };
-  window.renderState.__uiBound = true;
-
-  // 6) Extend Manifesto content to show flags (wrap original)
-  const prevManifesto = window.renderManifestoContent;
-  window.renderManifestoContent = function patchedManifesto(){
-    if (typeof prevManifesto === 'function') prevManifesto.apply(this, arguments);
-    try{
-      const el = document.getElementById('manifestoStatus');
-      if (!el) return;
-      const uiInfo = document.createElement('div');
-      uiInfo.style.marginTop = '10px';
-      uiInfo.innerHTML = `
-        <h3 class="text-nebula-m" style="margin:.75rem 0 .35rem;font-weight:800">UI Flags</h3>
-        <ul class="text-sm" style="display:grid;gap:8px;list-style:none;padding:0;margin:0">
-          <li style="display:flex;justify-content:space-between;align-items:center;background:var(--glass);padding:10px;border:1px solid var(--ring);border-radius:12px">
-            <span>Ocultar Navegação</span><span style="color:${S.state.ui.hideNav?'var(--ok)':'var(--muted)'}">${S.state.ui.hideNav?'ATIVO':'INATIVO'}</span></li>
-          <li style="display:flex;justify-content:space-between;align-items:center;background:var(--glass);padding:10px;border:1px solid var(--ring);border-radius:12px">
-            <span>Ocultar Header</span><span style="color:${S.state.ui.hideHeader?'var(--ok)':'var(--muted)'}">${S.state.ui.hideHeader?'ATIVO':'INATIVO'}</span></li>
-        </ul>`;
-      el.appendChild(uiInfo);
-    }catch(_){}
-  };
-
-  // 7) Initial apply
-  applyBody();
-  // Try wire after DOM ready
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireEdge);
-  else wireEdge();
-})();
-</script>
-
-
-<script>
-/* =====================================================
-   Archetype Sync ↔ S.state ↔ localStorage ↔ Firestore
-   - Ensures S.state.archetype exists
-   - Wraps DUAL_ARCH.set to persist + saveState()
-   - Reconciles on boot and when remote state changes
-   - Shows in Manifesto
-   ===================================================== */
-(function(){
-  const ARCH_KEY = 'dual.archetype';
-  const DEFAULT  = 'Nova';
-
-  // 1) Ensure S and archetype field
-  window.S = window.S || { state:{}, config:{} };
-  const st = (S.state = S.state || {});
-  if (typeof st.archetype === 'undefined'){
-    // bootstrap from localStorage or renderer (DUAL_ARCH) or default
-    let bootArch = DEFAULT;
-    try{
-      const ls = localStorage.getItem(ARCH_KEY);
-      if (ls) bootArch = ls;
-    }catch(_){}
-    if (window.DUAL_ARCH && typeof DUAL_ARCH.get === 'function'){
-      try { bootArch = DUAL_ARCH.get() || bootArch; } catch(_){}
-    }
-    st.archetype = bootArch;
-  }
-
-  // 2) Helper: persist to LS + Firestore
-  function persistArch(name){
-    // localStorage
-    try{ localStorage.setItem(ARCH_KEY, name); }catch(_){}
-    // Firestore (if available)
-    if (typeof window.saveState === 'function'){
-      try{ saveState(S.state); }catch(_){}
-    }
-  }
-
-  // 3) Wrap DUAL_ARCH.set to also update S.state
-  if (window.DUAL_ARCH && typeof DUAL_ARCH.set === 'function'){
-    const prevSet = DUAL_ARCH.set;
-    DUAL_ARCH.set = function(name){
-      const res = prevSet.apply(this, arguments);
-      if (name && typeof name === 'string'){
-        S.state.archetype = name;
-        persistArch(name);
-        // If you want Manifesto to refresh live:
-        if (S.state.manifestoOpen && typeof window.renderManifestoContent === 'function'){
-          try{ renderManifestoContent(); }catch(_){}
-        }
-      }
-      return res;
-    };
-  }
-
-  // 4) Also wrap window.setArchetype if present
-  if (typeof window.setArchetype === 'function'){
-    const prev = window.setArchetype;
-    window.setArchetype = function(name){
-      const res = prev.apply(this, arguments);
-      if (name && typeof name === 'string'){
-        S.state.archetype = name;
-        persistArch(name);
-        if (S.state.manifestoOpen && typeof window.renderManifestoContent === 'function'){
-          try{ renderManifestoContent(); }catch(_){}
-        }
-      }
-      return res;
-    };
-  }
-
-  // 5) Reconcile particles renderer with S.state on boot
-  function reconcile(){
-    const target = S.state.archetype || DEFAULT;
-    if (window.DUAL_ARCH && typeof DUAL_ARCH.get === 'function' && typeof DUAL_ARCH.set === 'function'){
-      try{
-        if (DUAL_ARCH.get() !== target){
-          DUAL_ARCH.set(target);
-        }
-      }catch(_){}
-    }
-  }
-
-  // 6) Patch renderState so archetype is always consistent after any remote merge
-  const prevRender = window.renderState;
-  window.renderState = function patchedRenderState(){
-    if (typeof prevRender === 'function') prevRender.apply(this, arguments);
-    reconcile();
-  };
-
-  // 7) Extend Manifesto output with Archetype line
-  const prevManifesto = window.renderManifestoContent;
-  window.renderManifestoContent = function patchedManifesto(){
-    if (typeof prevManifesto === 'function') prevManifesto.apply(this, arguments);
-    const el = document.getElementById('manifestoStatus');
-    if (!el) return;
-    const info = document.createElement('div');
-    info.style.marginTop = '10px';
-    info.innerHTML = `
-      <h3 class="text-nebula-m" style="margin:.75rem 0 .35rem;font-weight:800">Arquetipo Atual</h3>
-      <div class="text-sm" style="display:flex;justify-content:space-between;align-items:center;background:var(--glass);padding:10px;border:1px solid var(--ring);border-radius:12px">
-        <span>Nome</span><span style="color:var(--ok)">${(S.state.archetype||'Nova')}</span>
-      </div>`;
-    el.appendChild(info);
-  };
-
-  // 8) Initial reconcile
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', reconcile);
-  else reconcile();
-})();
-</script>
-
-
-<!-- PATCH v3.7 — FPS Target Auto‑Throttle (particles) -->
-<script id="fps-autothrottle-v37">
-(function(){
-  const TARGET = 50;   // target FPS
-  const TOLER  = 8;    // tolerance band
-  const STEP_DOWN = 0.85; // 15% down when below band
-  const STEP_UP   = 1.06; // 6% up when above band
-  const MIN_ONE   = 80;   // per-ring minimum count (dual)
-  const MIN_SINGLE= 96;   // single layer minimum
-  const MAX_CAP   = 360;  // upper cap for auto expand
-
-  let frames=0, fps=0, last=performance.now();
-  function tick(now){
-    frames++;
-    if(now-last>=1000){ fps=frames; frames=0; last=now; maybeAdjust(); }
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-
-  function lsNum(k, d){ try{ const v=localStorage.getItem(k); return v==null? d : parseFloat(v); }catch(_){ return d; } }
-  function setLS(k, v){ try{ localStorage.setItem(k, String(v)); }catch(_){ } }
-
-  function sendAtomConfig(data){
-    try{
-      const fr = document.getElementById('arch-frame');
-      fr && fr.contentWindow && fr.contentWindow.postMessage({ type:'atomConfig', data }, '*');
-    }catch(_){}
-  }
-  function sendLayers(L){
-    try{
-      const fr = document.getElementById('arch-frame');
-      fr && fr.contentWindow && fr.contentWindow.postMessage({ type:'atomConfigLayers', layers:L }, '*');
-    }catch(_){}
-  }
-
-  // try to detect if dual-ring is active: we mark a flag when layers message is seen
-  let dualActive = false, lastLayers = null;
-  window.addEventListener('message', (ev)=>{
-    const d=ev.data||{};
-    if(d.type==='atomConfigLayers' && Array.isArray(d.layers)){
-      dualActive = true; lastLayers = d.layers;
-    }
-  });
-
-  function maybeAdjust(){
-    // band check
-    if (fps < (TARGET - TOLER)) {
-      // too slow: reduce
-      if (dualActive && lastLayers && lastLayers.length){
-        const L = lastLayers.map((x,i)=>{
-          const next = Math.max(MIN_ONE, Math.floor((x.count||160) * STEP_DOWN));
-          return Object.assign({}, x, { count: next });
-        });
-        lastLayers = L;
-        sendLayers(L);
-      } else {
-        const cur = Math.max(MIN_SINGLE, Math.floor(lsNum('dual.atom.count', 160) * STEP_DOWN));
-        setLS('dual.atom.count', cur);
-        sendAtomConfig({ count: cur });
-      }
-    } else if (fps > (TARGET + TOLER + 6)) {
-      // fast enough: gently increase (headroom)
-      if (dualActive && lastLayers && lastLayers.length){
-        const L = lastLayers.map((x,i)=>{
-          const next = Math.min(MAX_CAP, Math.floor((x.count||160) * STEP_UP));
-          return Object.assign({}, x, { count: next });
-        });
-        lastLayers = L;
-        sendLayers(L);
-      } else {
-        const cur = Math.min(MAX_CAP, Math.floor(lsNum('dual.atom.count', 160) * STEP_UP));
-        setLS('dual.atom.count', cur);
-        sendAtomConfig({ count: cur });
-      }
-    }
-  }
-})();
-</script>
-
+<!-- DUALHUB-WALLET-PATCH END -->
 </body></html>
