@@ -1304,6 +1304,57 @@ body::after{
 html[data-overlay="off"] body::after{ background: transparent !important; }
 html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
 </style>
+
+<style id="orb-slot-css">
+/* === ORB Slot (iframe "dentro" do orbe) === */
+.arch-circle { position: relative; }
+#orbWrap { position: relative; }
+#orbWrap canvas#orb,
+#orbWrap .orb-glow,
+#orbWrap .ring,
+#orbWrap canvas#particles { position: absolute; inset: 0; }
+
+/* Z-order for sandwiching */
+#orbWrap canvas#orb { z-index: 1; }
+#orbWrap .orb-glow { z-index: 2; }
+#orbWrap .orb-slot   { z-index: 3; } /* iframe masked */
+#orbWrap canvas#particles { z-index: 4; }
+#orbWrap .ring { z-index: 5; }
+/* HUB overlays keep above */
+#arch-fadeCover, #audioRipple { z-index: 6; }
+
+/* Masked slot inside the orb */
+.orb-slot{
+  position:absolute;
+  inset: 8%;              /* adjust 6–10% to taste */
+  border-radius: 50%;
+  overflow: hidden;
+  -webkit-clip-path: circle(50% at 50% 50%);
+          clip-path: circle(50% at 50% 50%);
+  mix-blend-mode: screen;
+  opacity: .92;
+  filter: saturate(1.06) contrast(1.04);
+  will-change: transform, opacity, filter;
+  pointer-events: auto;   /* allow interaction inside the archetype app */
+}
+.orb-slot iframe#arch-frame{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:0; background:#0b0f14; /* avoid white flash */
+  transform: translateZ(0);
+}
+/* Tint with archetype overlay color */
+.orb-slot::after{
+  content:"";
+  position:absolute; inset:0;
+  background: var(--arch-overlay, transparent);
+  pointer-events:none;
+  mix-blend-mode: overlay;
+  opacity:.35;
+  transition: opacity .25s ease;
+}
+</style>
+
 </head>
 <body>
   <!-- Splash screen displayed on initial load -->
@@ -1322,7 +1373,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
       <small>Dual · Trinity</small>
     </div>
     <button class="ib fx-trans fx-press ring" id="btnDownload" title="Baixar HTML">
-<img src="icons/download.png" alt="Download" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/download.svg'">
+<img src="icons/download.svg" alt="Download" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/download.svg'">
       <span class="ripple"></span>
     </button>
     <button class="ib fx-trans fx-press ring" id="btnHelp" title="Ajuda / Atalhos">
@@ -1330,7 +1381,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
       <span class="ripple"></span>
     </button>
     <button class="ib fx-trans fx-press ring" id="btnBrain" title="Brain">
-<img src="icons/brain.png" alt="Brain" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/brain.svg'">
+<img src="icons/brain.svg" alt="Brain" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/brain.svg'">
       <span class="ripple"></span>
     </button>
   <button class="ib fx-trans fx-press ring" id="btnLS" title="Local Storage" aria-label="Local Storage">
@@ -1378,7 +1429,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
             <button class="btn fx-trans fx-press ring" id="arch-prev" title="Anterior">
               <img src="icons/chevron-left.svg" alt="Anterior" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-left.svg'">
             <span class="ripple"></span></button>
-            <select id="arch-select" title="Escolher arquétipo"><option value="atlas.html">atlas.html</option><option value="nova.html">nova.html</option><option value="vitalis.html">vitalis.html</option><option value="pulse.html">pulse.html</option><option value="artemis.html">artemis.html</option><option value="serena.html">serena.html</option><option value="kaos.html">kaos.html</option><option value="genus.html">genus.html</option><option value="lumine.html">lumine.html</option><option value="rhea.html">rhea.html</option><option value="solus.html">solus.html</option><option value="aion.html">aion.html</option></select>
+            <select id="arch-select" title="Escolher arquétipo"><option value="./archetypes3d/value="./archetypes3d/atlas.html">atlas.html</option><option value="./archetypes3d/value="./archetypes3d/nova.html">nova.html</option><option value="./archetypes3d/value="./archetypes3d/vitalis.html">vitalis.html</option><option value="./archetypes3d/value="./archetypes3d/pulse.html">pulse.html</option><option value="./archetypes3d/value="./archetypes3d/artemis.html">artemis.html</option><option value="./archetypes3d/value="./archetypes3d/serena.html">serena.html</option><option value="./archetypes3d/value="./archetypes3d/kaos.html">kaos.html</option><option value="./archetypes3d/value="./archetypes3d/genus.html">genus.html</option><option value="./archetypes3d/value="./archetypes3d/lumine.html">lumine.html</option><option value="./archetypes3d/value="./archetypes3d/rhea.html">rhea.html</option><option value="./archetypes3d/value="./archetypes3d/solus.html">solus.html</option><option value="./archetypes3d/value="./archetypes3d/aion.html">aion.html</option></select>
             <button class="btn fx-trans fx-press ring" id="arch-next" title="Próximo">
               <img src="icons/chevron-right.svg" alt="Próximo" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/chevron-right.svg'">
             <span class="ripple"></span></button>
@@ -1403,15 +1454,15 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
           <!-- Menu de arquétipos: permite acessar Apps, Stack, Usuário, Revo e Home -->
           <div id="archMenu" class="arch-menu">
             <button data-nav="apps">
-              <img src="icons/folder-open.png" alt="Apps" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
+              <img src="icons/folder-open.svg" alt="Apps" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
               <span>Apps</span>
             <span class="ripple"></span></button>
             <button data-nav="stack">
-              <img src="icons/layer-group.png" alt="Stack" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
+              <img src="icons/layer-group.svg" alt="Stack" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
               <span>Stack</span>
             <span class="ripple"></span></button>
             <button data-nav="brain">
-              <img src="icons/user.png" alt="Usuário" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/user.svg'">
+              <img src="icons/user.svg" alt="Usuário" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/user.svg'">
               <span>Usuário</span>
             <span class="ripple"></span></button>
             <button data-nav="home">
@@ -1419,7 +1470,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
               <span>Arquétipo</span>
             <span class="ripple"></span></button>
             <button data-nav="chat">
-              <img src="icons/comments.png" alt="Chat" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg'">
+              <img src="icons/comments.svg" alt="Chat" width="20" height="20" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg'">
               <span>Chat</span>
             <span class="ripple"></span></button>
           <button data-audio="true" id="archAudioBtn">
@@ -1430,7 +1481,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
         </div><div class="cards">
           <button class="card fx-trans fx-press ring" data-nav="apps">
             <div class="ico">
-<img src="icons/folder-open.png" alt="Apps" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
+<img src="icons/folder-open.svg" alt="Apps" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
             </div>
             <div>
               <div style="font-weight:800">Apps</div>
@@ -1440,7 +1491,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
           </button>
           <button class="card fx-trans fx-press ring" data-nav="stack">
             <div class="ico">
-<img src="icons/layer-group.png" alt="Stack" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
+<img src="icons/layer-group.svg" alt="Stack" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
             </div>
             <div>
               <div style="font-weight:800">Stack</div>
@@ -1450,7 +1501,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
           </button>
           <button class="card fx-trans fx-press ring" data-nav="brain">
             <div class="ico">
-<img src="icons/user.png" alt="Usuário" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/user.svg'">
+<img src="icons/user.svg" alt="Usuário" width="24" height="24" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/user.svg'">
             </div>
             <div>
               <div style="font-weight:800">Usuário</div>
@@ -1488,7 +1539,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
                 <input id="openInside" type="checkbox" checked=""> abrir dentro
               </label>
               <button id="btnToggleLocal" class="btn fx-trans fx-press ring">
-                <img src="icons/folder-open.png" alt="Locais" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'" style="margin-right:4px">
+                <img src="icons/folder-open.svg" alt="Locais" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'" style="margin-right:4px">
                 Mostrar Locais<span class="ripple"></span>
               </button>
             </div>
@@ -1496,11 +1547,11 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
               <!-- Aceita arquivos .json além de HTML/TXT para permitir upload de catálogos personalizados -->
               <input id="fileLocal" type="file" accept=".html,.htm,.txt,.json" multiple="" class="input ring">
               <button id="btnImport" class="btn fx-trans fx-press ring">
-                <img src="icons/plus-circle.png" alt="Adicionar" width="16" height="16" onerror="this.onerror=null;this.src='icons/plus-circle.png'" style="margin-right:4px">
+                <img src="icons/plus-circle.svg" alt="Adicionar" width="16" height="16" onerror="this.onerror=null;this.src='icons/plus-circle.svg'" style="margin-right:4px">
                 Adicionar Locais<span class="ripple"></span>
               </button>
               <button id="btnExport" class="btn fx-trans fx-press ring">
-                <img src="icons/file-export.png" alt="Exportar" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/file-export.svg'" style="margin-right:4px">
+                <img src="icons/file-export.svg" alt="Exportar" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/file-export.svg'" style="margin-right:4px">
                 Exportar Locais<span class="ripple"></span>
               </button>
               <button id="btnClear" class="btn fx-trans fx-press ring">
@@ -1511,7 +1562,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
             <div id="appsCount" class="mut">15 apps</div>
           </div>
         </div>
-        <div id="appsWrap" class="apps-wrap"><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Ampara</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s-6-3.5-6-8a4%204%200%200%201%206-3%204%204%200%200%201%206%203c0%204.5-6%208-6%208z%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Serena · Ampara">Serena ·…</div><div class="mut">Acolhimento e suporte emocional.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Arcana</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203v6M12%2015v6%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3Cpath%20d%3D%22M19%205l-3%203M5%2019l3-3M5%205l3%203M19%2019l-3-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Solus · Arcana">Solus ·…</div><div class="mut">Harmonização energética e meditação.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Brilhare</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M2%2012h2M20%2012h2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Lumine · Brilhare">Lumine ·…</div><div class="mut">Inspiração leve e atividades lúdicas.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Cartesius</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Atlas · Cartesius">Atlas ·…</div><div class="mut">Planejador estratégico com cronogramas e checklists.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Disruptor</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%204l7%207-7%207%22%2F%3E%3Cpath%20d%3D%22M20%204l-7%207%207%207%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Kaos · Disruptor">Kaos ·…</div><div class="mut">Questiona padrões e propõe soluções ousadas.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Evolutia</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2012c0-2.2%201.8-4%204-4%201.2%200%202.3.5%203%201.3M17%2012c0%202.2-1.8%204-4%204-1.2%200-2.3-.5-3-1.3%22%2F%3E%3Cpath%20d%3D%22M3%2012h4M17%2012h4%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Aion · Evolutia">Aion ·…</div><div class="mut">Microações estratégicas e evolução.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Fabricus</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%227%22%20y%3D%227%22%20width%3D%2210%22%20height%3D%2210%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M7%207l5-3%205%203M17%2017l-5%203-5-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Genus · Fabricus">Genus ·…</div><div class="mut">Protótipos e materialização de ideias.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Inspira</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%202v4M12%2018v4M2%2012h4M18%2012h4%22%2F%3E%3Cpath%20d%3D%22M5.6%205.6l2.8%202.8M15.6%2015.6l2.8%202.8M18.4%205.6l-2.8%202.8M8.4%2015.6l-2.8%202.8%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Nova · Inspira">Nova ·…</div><div class="mut">Criativa que desbloqueia ideias com mapas mentais e exercícios.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Momentum</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h4l2-5%204%2010%202-5h6%22%2F%3E%3Cpath%20d%3D%22M13%203l-2%204%203%201-2%204%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Vitalis · Momentum">Vitalis ·…</div><div class="mut">Rotinas físicas, hacks biológicos e motivação.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Naviga</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h12%22%2F%3E%3Cpath%20d%3D%22M13%206l6%206-6%206%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Artemis · Naviga">Artemis ·…</div><div class="mut">Explora conhecimentos e rotas de aprendizado.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Outros</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Dual_esqueci">Dual_esqueci</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="index_kobllux_voicefix">index_kobllux_voicefix</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="index-100">index-100</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Raízes</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203v6%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%229%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M12%2013v2l-2%202M12%2015l2%202M12%2017v3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Rhea · Raízes">Rhea ·…</div><div class="mut">Vínculos e memórias emocionais.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Resona</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.png"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2%2012h3l2-4%203%208%202-4h8%22%2F%3E%3Cpath%20d%3D%22M20%208v-3M20%2019v-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Pulse · Resona">Pulse ·…</div><div class="mut">Trilhas sonoras e ajuste de som emocional.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div></div>
+        <div id="appsWrap" class="apps-wrap"><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Ampara</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s-6-3.5-6-8a4%204%200%200%201%206-3%204%204%200%200%201%206%203c0%204.5-6%208-6%208z%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Serena · Ampara">Serena ·…</div><div class="mut">Acolhimento e suporte emocional.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Arcana</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203v6M12%2015v6%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3Cpath%20d%3D%22M19%205l-3%203M5%2019l3-3M5%205l3%203M19%2019l-3-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Solus · Arcana">Solus ·…</div><div class="mut">Harmonização energética e meditação.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Brilhare</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M2%2012h2M20%2012h2M4.9%204.9l1.4%201.4M17.7%2017.7l1.4%201.4M4.9%2019.1l1.4-1.4M17.7%206.3l1.4-1.4%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Lumine · Brilhare">Lumine ·…</div><div class="mut">Inspiração leve e atividades lúdicas.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Cartesius</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Atlas · Cartesius">Atlas ·…</div><div class="mut">Planejador estratégico com cronogramas e checklists.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Disruptor</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%204l7%207-7%207%22%2F%3E%3Cpath%20d%3D%22M20%204l-7%207%207%207%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Kaos · Disruptor">Kaos ·…</div><div class="mut">Questiona padrões e propõe soluções ousadas.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Evolutia</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2012c0-2.2%201.8-4%204-4%201.2%200%202.3.5%203%201.3M17%2012c0%202.2-1.8%204-4%204-1.2%200-2.3-.5-3-1.3%22%2F%3E%3Cpath%20d%3D%22M3%2012h4M17%2012h4%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Aion · Evolutia">Aion ·…</div><div class="mut">Microações estratégicas e evolução.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Fabricus</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%227%22%20y%3D%227%22%20width%3D%2210%22%20height%3D%2210%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M7%207l5-3%205%203M17%2017l-5%203-5-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Genus · Fabricus">Genus ·…</div><div class="mut">Protótipos e materialização de ideias.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Inspira</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%202v4M12%2018v4M2%2012h4M18%2012h4%22%2F%3E%3Cpath%20d%3D%22M5.6%205.6l2.8%202.8M15.6%2015.6l2.8%202.8M18.4%205.6l-2.8%202.8M8.4%2015.6l-2.8%202.8%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Nova · Inspira">Nova ·…</div><div class="mut">Criativa que desbloqueia ideias com mapas mentais e exercícios.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Momentum</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h4l2-5%204%2010%202-5h6%22%2F%3E%3Cpath%20d%3D%22M13%203l-2%204%203%201-2%204%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Vitalis · Momentum">Vitalis ·…</div><div class="mut">Rotinas físicas, hacks biológicos e motivação.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Naviga</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2012h12%22%2F%3E%3Cpath%20d%3D%22M13%206l6%206-6%206%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Artemis · Naviga">Artemis ·…</div><div class="mut">Explora conhecimentos e rotas de aprendizado.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Outros</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Dual_esqueci">Dual_esqueci</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="index_kobllux_voicefix">index_kobllux_voicefix</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Cpath%20d%3D%22M3%2012h18M12%203v18%22%2F%3E%3Cpath%20d%3D%22M5%208c3%202%2011%202%2014%200M5%2016c3-2%2011-2%2014%200%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="index-100">index-100</div><div class="mut">HTML local</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Raízes</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203v6%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%229%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M12%2013v2l-2%202M12%2015l2%202M12%2017v3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Rhea · Raízes">Rhea ·…</div><div class="mut">Vínculos e memórias emocionais.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div><div class="apps-group"><h3 style="margin: 16px 4px 8px; font-size: 15px; font-weight: 800; color: var(--mut);">Resona</h3><div class="grid"><div class="app-card fx-trans fx-lift"><button class="fav-btn"><img alt="Favorito" src="icons/star.svg"><span class="ripple"></span></button><div class="app-icon"><img alt="" width="24" height="24" src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2523f5f7ff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M2%2012h3l2-4%203%208%202-4h8%22%2F%3E%3Cpath%20d%3D%22M20%208v-3M20%2019v-3%22%2F%3E%3C%2Fsvg%3E"></div><div style="flex: 1 1 0%;"><div class="app-title" title="Pulse · Resona">Pulse ·…</div><div class="mut">Trilhas sonoras e ajuste de som emocional.</div><button class="btn fx-trans fx-press ring">Abrir<span class="ripple"></span></button></div></div></div></div></div>
       </div>
     </section>
 
@@ -1522,17 +1573,17 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
           <div style="font-weight:800; display:flex; align-items:center; gap:8px">
             Sessões
             <button id="btnCloseAll" class="btn fx-trans fx-press ring" title="Fechar todas">
-              <img src="icons/xmark.png" alt="Fechar todas" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/xmark.svg'" style="margin-right:4px">
+              <img src="icons/xmark.svg" alt="Fechar todas" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/xmark.svg'" style="margin-right:4px">
               Fechar todas<span class="ripple"></span>
             </button>
             <!-- Botão para criar grupos de sessões -->
             <button id="btnAddGroup" class="btn fx-trans fx-press ring" title="Novo grupo">
-              <img src="icons/folder-plus.png" alt="Novo grupo" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-plus.svg'" style="margin-right:4px">
+              <img src="icons/folder-plus.svg" alt="Novo grupo" width="16" height="16" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-plus.svg'" style="margin-right:4px">
               Novo grupo<span class="ripple"></span>
             </button>
             <!-- Botão para enviar um HTML local e abrir como sessão -->
             <button id="btnStackUpload" class="btn fx-trans fx-press ring" title="Upload HTML">
-              <img src="icons/file-upload.png" alt="Upload HTML" width="16" height="16" onerror="this.onerror=null;this.src='icons/file-upload.png'" style="margin-right:4px">
+              <img src="icons/file-upload.svg" alt="Upload HTML" width="16" height="16" onerror="this.onerror=null;this.src='icons/file-upload.svg'" style="margin-right:4px">
               Upload HTML<span class="ripple"></span>
             </button>
             <input id="stackUpload" type="file" accept=".html,text/html" style="display:none">
@@ -1679,24 +1730,24 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
   <nav class="tabbar">
     <div class="inner">
       <button class="tab fx-trans fx-press ring" data-nav="home">
-<img src="icons/house.png" alt="Home" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/house.svg'">
+<img src="icons/house.svg" alt="Home" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/house.svg'">
         <span style="display:none">Home</span><span class="ripple"></span>
       </button>
       <button class="tab fx-trans fx-press ring" data-nav="apps">
-<img src="icons/folder-open.png" alt="Apps" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
+<img src="icons/folder-open.svg" alt="Apps" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/folder-open.svg'">
         <span style="display:none">Apps</span><span class="ripple"></span>
       </button>
       <button class="tab fx-trans fx-press ring" data-nav="stack">
-<img src="icons/layer-group.png" alt="Stack" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
+<img src="icons/layer-group.svg" alt="Stack" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/layer-group.svg'">
         <span style="display:none">Stack</span><span class="ripple"></span>
       </button>
       <button class="tab fx-trans fx-press ring active" data-nav="brain">
-<img src="icons/brain.png" alt="Brain" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/brain.svg'">
+<img src="icons/brain.svg" alt="Brain" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/brain.svg'">
         <span style="display:none">Brain</span><span class="ripple"></span>
       </button>
       <!-- Botão da nova aba Chat -->
       <button class="tab fx-trans fx-press ring" data-nav="chat">
-<img src="icons/comments.png" alt="Chat" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg'">
+<img src="icons/comments.svg" alt="Chat" width="18" height="18" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/svgs/solid/comments.svg'">
         <span style="display:none">Chat</span><span class="ripple"></span>
       </button>
     </div>
@@ -2836,7 +2887,7 @@ html[data-overlay="off"] #arch-fadeCover{ background: transparent !important; }
       const favImg = document.createElement('img');
       favImg.alt = 'Favorito';
       // Use ícone local para favorito; evita depender de CDN
-      favImg.src = 'icons/star.png';
+      favImg.src = 'icons/star.svg';
       fav.appendChild(favImg);
       // Marque como favoritado se a chave estiver na lista
       if (isFav(a.key)) fav.classList.add('fav');
@@ -5181,195 +5232,277 @@ document.getElementById('orbWrap')?.addEventListener('click', function(){ try{ w
 </script>
 
 
-<script>
-/* ================================================================
-   Dual · Particles "Cell" Renderer with Archetype Colors (Blue-1 safe)
-   - Replaces the existing #particles canvas with a new instance.
-   - Colors follow the current archetype (persisted in localStorage).
-   - Public API: window.setArchetype(name)
-   ================================================================ */
+<script id="orb-slot-and-archpersist-patch">
 (function(){
-  const ARCH_KEY = 'dual.archetype';           // localStorage key
-  const DEFAULT_ARCH = 'Nova';                 // default if none stored
-  // Hue palettes (center hue and spread) — tweak to your taste
-  const ARCH_PALETTES = {
-    'Nova':   { hue: 200, spread: 24 }, // ciano celeste
-    'Elysha': { hue: 280, spread: 26 }, // violeta-nebula
-    'Kaion':  { hue: 160, spread: 20 }, // verde-tec
-    'Atlas':  { hue: 30,  spread: 16 }, // âmbar/solar
-    'Serena': { hue: 320, spread: 22 }, // magenta quente
-    'Artemis':{ hue: 210, spread: 18 }, // azul profundo
-    'Pulse':  { hue: 195, spread: 30 }, // aqua vivo
-    'Rhea':   { hue: 45,  spread: 18 }, // ouro suave
-    'Solus':  { hue: 12,  spread: 18 }, // coral
-    'Aion':   { hue: 260, spread: 20 }, // roxo frio
-    'Genus':  { hue: 140, spread: 18 }, // verde bio
-    'Lumine': { hue: 220, spread: 20 }  // azul-luz
-  };
+  // ---- Helpers ----
+  function $(q, r=document){ return r.querySelector(q); }
+  function baseName(file){ return String(file||'').replace(/\.html$/i,'').toLowerCase(); }
 
-  // Read current archetype from localStorage
-  function getArch(){
-    try { return localStorage.getItem(ARCH_KEY) || DEFAULT_ARCH; }
-    catch(_) { return DEFAULT_ARCH; }
+  // ---- Create orb-slot and move the iframe inside the orb ----
+  function fuseIframeIntoOrb(){
+    var wrap = $('#orbWrap');
+    var frame = $('#arch-frame');
+    if(!wrap || !frame) return;
+    // If already fused, skip
+    if (frame.parentElement && frame.parentElement.classList && frame.parentElement.classList.contains('orb-slot')) return;
+    var slot = document.createElement('div');
+    slot.className = 'orb-slot';
+    // Insert slot above particles but below ring (order controlled by CSS z-index)
+    wrap.appendChild(slot);
+    // Move iframe inside slot
+    slot.appendChild(frame);
   }
-  function setArch(name){
-    const key = (name||'').trim();
-    if (!ARCH_PALETTES[key]) return;
-    try { localStorage.setItem(ARCH_KEY, key); } catch(_){}
-    // recolor immediately
-    CURRENT.arch = key;
-    recolor();
+
+  // ---- Archetype persistence (uno:arch) + overlay/apply + Firestore sync ----
+  function currentSelectBase(){
+    var sel = $('#arch-select'); if(!sel) return '';
+    var opt = sel.options[sel.selectedIndex];
+    return baseName(opt && opt.value);
   }
-  window.setArchetype = setArch;
-  window.getArchetype = getArch;
-
-  // Obtain / replace particles canvas safely
-  const oldCanvas = document.getElementById('particles');
-  if (!oldCanvas) return;
-  const parent = oldCanvas.parentNode;
-  const clone = oldCanvas.cloneNode(true);
-  oldCanvas.replaceWith(clone);
-
-  const c = clone;
-  const ctx = c.getContext('2d', { alpha:true });
-  const dpr = Math.min(2, (window.devicePixelRatio||1));
-  let RAF = 0;
-
-  function resize(){
-    const r = c.getBoundingClientRect();
-    c.width  = Math.floor(r.width * dpr);
-    c.height = Math.floor(r.height * dpr);
+  function applyArch(base){
+    var sel = $('#arch-select'), frame = $('#arch-frame'), fade = $('#arch-fadeCover');
+    if(!sel || !frame) return;
+    var idx = -1;
+    for (var i=0;i<sel.options.length;i++){
+      if (baseName(sel.options[i].value) === base){ idx = i; break; }
+    }
+    if (idx >= 0){
+      sel.selectedIndex = idx;
+      if (fade) fade.classList.add('show');
+      var file = sel.options[idx].value;
+      frame.src = './archetypes/' + file;
+      try { if (typeof window.applyArchOverlay === 'function') window.applyArchOverlay(base); } catch(_){}
+      try { if (typeof window.speakArchetype === 'function') window.speakArchetype(base); } catch(_){}
+      try { if (typeof window.updateHomeStatus === 'function') window.updateHomeStatus(); } catch(_){}
+      setTimeout(function(){ if (fade) fade.classList.remove('show'); }, 240);
+    }
   }
-  new ResizeObserver(()=>{ resize(); }).observe(c); resize();
-
-  // "Cell": concentric membrane, cytoplasm glow, drifting organelles
-  const CURRENT = {
-    arch: getArch(),
-    t0: performance.now(),
-    nodes: [],
-    nucleus: { wobbleA: Math.random()*6.28, wobbleB: Math.random()*6.28 }
-  };
-
-  const N = 96; // particles (organelles)
-  function palette(){
-    const p = ARCH_PALETTES[CURRENT.arch] || ARCH_PALETTES[DEFAULT_ARCH];
-    return p;
+  function saveArch(base){
+    if(!base) return;
+    try { localStorage.setItem('uno:arch', base); } catch(_){}
+    // If a shared app state exists, mirror and save remotely
+    try {
+      if (window.S && S.state){
+        S.state.archetype = base;
+        if (typeof window.saveState === 'function') saveState(S.state);
+      }
+    } catch(_){}
   }
-  function rand(min, max){ return min + Math.random()*(max-min); }
-
-  function seed(){
-    CURRENT.nodes = Array.from({length:N}, ()=>{
-      const a  = Math.random()*Math.PI*2;
-      const rr = 0.30 + Math.random()*0.58; // keep inner space for nucleus
-      const s  = (0.15 + Math.random()*0.65) * (Math.random()<0.5?-1:1);
-      const z  = 0.45 + Math.random()*0.55;
-      return { a, r: rr, s, z, hueOffset: rand(-1,1), drift: rand(0.8,1.6) };
+  function bindArchPersistence(){
+    var sel = $('#arch-select'), prev = $('#arch-prev'), next = $('#arch-next');
+    function persist(){ var b=currentSelectBase(); if(b){ saveArch(b);} }
+    if (sel) sel.addEventListener('change', persist, {passive:true});
+    if (prev) prev.addEventListener('click', function(){ setTimeout(persist, 0); }, {passive:true});
+    if (next) next.addEventListener('click', function(){ setTimeout(persist, 0); }, {passive:true});
+    // Accept remote notifications
+    window.addEventListener('message', function(ev){
+      var d = ev && ev.data || {};
+      if (d && d.type==='archReady' && d.name){
+        var b = baseName(d.name);
+        saveArch(b);
+      }
     });
   }
-  seed();
-
-  function recolor(){
-    // noop: colors are computed per-frame from CURRENT.arch
-  }
-
-  function draw(now){
-    const t = now || performance.now();
-    const dt = t - CURRENT.t0;
-
-    ctx.clearRect(0,0,c.width,c.height);
-    ctx.save();
-    ctx.translate(c.width/2, c.height/2);
-    ctx.globalCompositeOperation = 'lighter';
-
-    const scl = Math.min(c.width, c.height)/2;
-
-    // Cell membrane (rim)
-    (()=>{
-      const grd = ctx.createRadialGradient(0,0, scl*0.15, 0,0, scl*0.98);
-      const P = palette();
-      const h = P.hue;
-      grd.addColorStop(0.00, `hsla(${h}, 90%, 65%, .06)`);
-      grd.addColorStop(0.55, `hsla(${h}, 90%, 55%, .10)`);
-      grd.addColorStop(0.87, `hsla(${h}, 90%, 60%, .16)`);
-      grd.addColorStop(1.00, `hsla(${h}, 90%, 65%, 0)`);
-      ctx.fillStyle = grd;
-      ctx.beginPath(); ctx.arc(0,0, scl*0.98, 0, Math.PI*2); ctx.fill();
-    })();
-
-    // Cytoplasm faint noise swirl
-    (()=>{
-      const swirl = Math.sin(t*0.0013)*0.04;
-      ctx.rotate(swirl);
-      ctx.globalAlpha = 0.08;
-      const P = palette();
-      const h = P.hue + 12;
-      for (let i=0;i<6;i++){
-        const r = scl*(0.25 + i*0.12);
-        ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-        ctx.strokeStyle = `hsla(${h},70%,60%,${0.08 - i*0.01})`;
-        ctx.lineWidth = 2 * (c.width/800);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      ctx.rotate(-swirl);
-    })();
-
-    // Nucleus (soft pulsing)
-    (()=>{
-      const P = palette();
-      const h = P.hue - 10;
-      const wob = Math.sin(t*0.0016 + CURRENT.nucleus.wobbleA)*0.02 + Math.sin(t*0.0011 + CURRENT.nucleus.wobbleB)*0.015;
-      const r  = scl*(0.18 + wob);
-      const g  = ctx.createRadialGradient(0,0, 0, 0,0, r*1.55);
-      g.addColorStop(0.00, `hsla(${h}, 95%, 75%, .55)`);
-      g.addColorStop(0.45, `hsla(${h}, 90%, 60%, .18)`);
-      g.addColorStop(1.00, `hsla(${h}, 85%, 55%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
-    })();
-
-    // Organelles (drifting particles)
-    const P = palette();
-    for(const n of CURRENT.nodes){
-      const ang = n.a + t*0.00025*n.s;
-      const rr  = n.r * (0.72 + 0.12*Math.sin(t*0.001 + n.a));
-      const x = Math.cos(ang)*rr*scl;
-      const y = Math.sin(ang)*rr*scl*0.98;
-      const rad = (1.0 + n.z*1.6) * (c.width/900);
-      const hue = P.hue + n.hueOffset * P.spread;
-
-      const g = ctx.createRadialGradient(x,y,0,x,y,rad*4.2);
-      g.addColorStop(0, `hsla(${hue}, 90%, 70%, .88)`);
-      g.addColorStop(1, `hsla(${hue}, 85%, 50%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
+  function bootWithSavedArch(){
+    var saved = (localStorage.getItem('uno:arch') || localStorage.getItem('infodose:arch') || '').replace(/\.html$/i,'');
+    saved = baseName(saved);
+    if(saved){
+      var cur = currentSelectBase();
+      if (cur !== saved) applyArch(saved);
+    } else {
+      // Initialize with current
+      saveArch(currentSelectBase());
     }
-
-    ctx.restore();
-    RAF = requestAnimationFrame(draw);
   }
 
-  function boot(){
-    cancelAnimationFrame(RAF);
-    RAF = requestAnimationFrame(draw);
+  function start(){
+    fuseIframeIntoOrb();
+    bindArchPersistence();
+    bootWithSavedArch();
   }
 
-  // If a global archetype selector exists elsewhere, hook it:
-  document.addEventListener('archetype:change', (ev)=>{
-    const name = ev && ev.detail && ev.detail.name;
-    if (name && ARCH_PALETTES[name]) setArch(name);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
+
+<script id="arch-chips-3d-layers">
+(function(){
+  // Minimal palettes (sync with your overlay colors)
+  const COLORS = {
+    atlas:'#409EFF', nova:'#FF52B1', vitalis:'#34D399', pulse:'#00BFFF',
+    artemis:'#FFC300', serena:'#B684FF', kaos:'#FF4D6D', genus:'#22C55E',
+    lumine:'#FFD54F', rhea:'#00D1B2', solus:'#6495ED', aion:'#8B5CF6'
+  };
+  const PRESET = name => ({
+    name,
+    color: COLORS[name] || '#88a',
+    count: (name==='nova'||name==='pulse'||name==='lumine') ? 340 : 260,
+    orbitRadius: (name==='nova'||name==='serena'||name==='lumine') ? 0.76 : 0.68,
+    spin: (name==='nova'||name==='pulse') ? 0.7 : 0.56,
+    size: 0.010, // sphere size
+    glow: 0.42
   });
 
-  // expose lightweight API
-  window.DUAL_ARCH = {
-    set: setArch,
-    get: getArch,
-    palettes: ARCH_PALETTES
-  };
+  const ACTIVE = new Set();
+  function sendLayers(){
+    const fr = document.getElementById('arch-frame');
+    if (!fr || !fr.contentWindow) return;
+    const arr = Array.from(ACTIVE).map(n => PRESET(n));
+    fr.contentWindow.postMessage({ type:'atomConfigLayers', layers: arr }, '*');
+  }
 
-  // Start with last used or default
-  recolor();
-  boot();
+  function chipEl(name){
+    const b = document.createElement('button');
+    b.className = 'arch-chip';
+    b.textContent = name[0].toUpperCase()+name.slice(1);
+    b.style.borderColor = 'rgba(255,255,255,.18)';
+    b.style.background = 'rgba(255,255,255,.06)';
+    b.onclick = ()=>{
+      if (ACTIVE.has(name)) ACTIVE.delete(name); else ACTIVE.add(name);
+      b.classList.toggle('on', ACTIVE.has(name));
+      sendLayers();
+    };
+    return b;
+  }
+
+  function ensureStyles(){
+    if (document.getElementById('archChip3DStyles')) return;
+    const st = document.createElement('style'); st.id='archChip3DStyles';
+    st.textContent = `
+      .arch-chip-wrap{ display:grid; grid-template-columns: repeat(auto-fill,minmax(92px,1fr)); gap:8px; }
+      .arch-chip{ appearance:none; border:1px solid var(--ring, rgba(255,255,255,.18)); background: var(--glass, rgba(255,255,255,.06)); color: var(--txt, #eaf2ff);
+        padding:8px 10px; border-radius:999px; font-size:12px; letter-spacing:.2px; cursor:pointer; }
+      .arch-chip.on{ background: rgba(57,255,182,.18); border-color: rgba(57,255,182,.45); }
+      .arch-chip-title{ font-size:12px; color: var(--muted,#a6b0c0); margin: 6px 0 6px; font-weight:800; }
+    `;
+    document.head.appendChild(st);
+  }
+
+  function injectInLSPanel(){
+    ensureStyles();
+    const panel = document.getElementById('lsPanel') || document.querySelector('#lsModal .ls-panel');
+    if (!panel || document.getElementById('archChip3DSection')) return;
+    const sec = document.createElement('div');
+    sec.id = 'archChip3DSection';
+    sec.className = 'preset';
+    sec.style.marginTop = '10px';
+    sec.innerHTML = `<div class="arch-chip-title">Arquétipos (camadas no ORB · 3D)</div>`;
+    const wrap = document.createElement('div'); wrap.className = 'arch-chip-wrap';
+    ['atlas','nova','vitalis','pulse','artemis','serena','kaos','genus','lumine','rhea','solus','aion'].forEach(n=> wrap.appendChild(chipEl(n)));
+    sec.appendChild(wrap);
+    // Coloca no topo do LS Panel
+    const hdr = panel.querySelector('.ls-hdr');
+    if (hdr && hdr.parentNode) hdr.parentNode.insertBefore(sec, hdr.nextSibling);
+    // Ativa por padrão a camada do arquétipo atual
+    try{
+      const sel = document.getElementById('arch-select');
+      const cur = (sel && sel.value || 'atlas.html').replace(/.*\//,'').replace(/\.html$/i,'');
+      const btn = wrap.querySelector('button.arch-chip:nth-child(' + (['atlas','nova','vitalis','pulse','artemis','serena','kaos','genus','lumine','rhea','solus','aion'].indexOf(cur)+1) + ')');
+      if (cur && btn){ ACTIVE.add(cur); btn.classList.add('on'); sendLayers(); }
+    }catch(_){}
+  }
+
+  function bindLSButton(){
+    const btn = document.getElementById('btnLS');
+    if (btn && !btn.dataset._chipsHook){
+      btn.dataset._chipsHook = '1';
+      btn.addEventListener('click', ()=> setTimeout(injectInLSPanel, 80), {passive:true});
+    } else {
+      // if already open
+      setTimeout(injectInLSPanel, 120);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindLSButton);
+  else bindLSButton();
+
+  // Also re-inject if LS modal gets rebuilt
+  document.addEventListener('ls:disabled-changed', ()=> setTimeout(injectInLSPanel, 60));
+})();
+</script>
+
+
+<!-- PATCH v3.5.1 — Preset "Partículas Máxima" + "Repor padrão de Fábrica" (inline augment) -->
+<script id="lspanel-atom-presets-v351">
+(function(){
+  // waits for v3.5 preset bar and augments it
+  function getArch(){
+    const sel = document.getElementById('arch-select');
+    if(!sel) return 'atlas';
+    const v = sel.value || 'atlas'; return v.replace(/\.html$/i,'').toLowerCase();
+  }
+  function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+  function setLS(k,v){try{localStorage.setItem(k,String(v));}catch(_){}};
+  function getKeys(arch){return {
+    c:`dual.atom.${arch}.count`, o:`dual.atom.${arch}.orbit`, g:`dual.atom.${arch}.glow`
+  };}
+  function pushToFrame(data){
+    try{ const fr=document.getElementById('arch-frame'); fr&&fr.contentWindow&&fr.contentWindow.postMessage({type:'atomConfig',data},'*'); }catch(_){}
+  }
+
+  function ensure(){
+    const panel = document.getElementById('lsPanel') || document.querySelector('#lsModal .ls-panel');
+    if(!panel) return;
+    const bar = document.getElementById('atomPresetBar');
+    if(!bar || document.getElementById('atomPresetMaxBtn')) return;
+
+    function pill(txt, id, cb){
+      const b=document.createElement('button'); b.className='pill-btn'; b.id=id; b.textContent=txt; b.onclick=cb; return b;
+    }
+
+    // Preset Máximas (alto custo visual)
+    const maxBtn = pill('Partículas Máxima', 'atomPresetMaxBtn', ()=>{
+      const arch = getArch(), K = getKeys(arch);
+      const cfg = { count: 560, orbitRadius: .80, glow: .62 };
+      setLS(K.c, cfg.count); setLS(K.o, cfg.orbitRadius); setLS(K.g, cfg.glow);
+      const c=document.getElementById('atom-count'), o=document.getElementById('atom-orbit'), g=document.getElementById('atom-glow');
+      const co=document.getElementById('atom-count-out'), oo=document.getElementById('atom-orbit-out'), go=document.getElementById('atom-glow-out');
+      if(c){ c.value=cfg.count; co&&(co.textContent=String(cfg.count)); }
+      if(o){ o.value=cfg.orbitRadius; oo&&(oo.textContent=cfg.orbitRadius.toFixed(2)); }
+      if(g){ g.value=cfg.glow; go&&(go.textContent=cfg.glow.toFixed(2)); }
+      pushToFrame(cfg);
+    });
+
+    // Repor padrão de fábrica (remove presets do arquétipo atual)
+    const resetArchBtn = pill('Repor padrão de Fábrica', 'atomPresetFactoryBtn', ()=>{
+      const arch = getArch(), K = getKeys(arch);
+      try{ localStorage.removeItem(K.c); localStorage.removeItem(K.o); localStorage.removeItem(K.g); }catch(_){}
+      // Opcional: envia um cfg neutro (não força nada) — deixa o filho usar o default dele
+      // Para dar feedback visual, resetamos sliders para valores médios amigáveis
+      const c=document.getElementById('atom-count'), o=document.getElementById('atom-orbit'), g=document.getElementById('atom-glow');
+      const co=document.getElementById('atom-count-out'), oo=document.getElementById('atom-orbit-out'), go=document.getElementById('atom-glow-out');
+      const def = { count: 180, orbitRadius: .75, glow: .42 };
+      if(c){ c.value=def.count; co&&(co.textContent=String(def.count)); }
+      if(o){ o.value=def.orbitRadius; oo&&(oo.textContent=def.orbitRadius.toFixed(2)); }
+      if(g){ g.value=def.glow; go&&(go.textContent=def.glow.toFixed(2)); }
+      pushToFrame(def);
+      // micro toast
+      try{
+        let ok = document.getElementById('atomSavedOK');
+        if(!ok){ ok=document.createElement('div'); ok.id='atomSavedOK'; ok.className='mut'; ok.style.fontSize='11px'; ok.style.marginTop='4px'; bar.parentElement.appendChild(ok); }
+        ok.textContent='Padrão de fábrica restaurado para "'+arch+'".';
+        setTimeout(()=> ok.textContent='', 1600);
+      }catch(_){}
+    });
+
+    // place to the end of preset bar
+    bar.appendChild(maxBtn);
+    bar.appendChild(resetArchBtn);
+  }
+
+  function bind(){
+    const btnLS = document.getElementById('btnLS');
+    if(btnLS && !btnLS.dataset._v351){
+      btnLS.dataset._v351='1';
+      btnLS.addEventListener('click', ()=> setTimeout(ensure, 140), {passive:true});
+    } else {
+      setTimeout(ensure, 220);
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+  document.addEventListener('ls:disabled-changed', ()=> setTimeout(ensure, 120));
 })();
 </script>
 
